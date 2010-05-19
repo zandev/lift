@@ -135,9 +135,9 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
     }
   )
 
-  def superUser_? : Boolean = currentUser.map(_.superUser.is) openOr false
+  override def superUser_? : Boolean = currentUser.map(_.superUser.is) openOr false
 
-   def skipEmailValidation = false
+  def skipEmailValidation = false
 
   def userMenu: List[Node] = {
     val li = loggedIn_?
@@ -145,9 +145,6 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
     filter(i => i.display && i.loggedIn == li).
     map(i => (<a href={i.pathStr}>{i.name}</a>))
   }
-
-  protected def snarfLastItem: String =
-  (for (r <- S.request) yield r.path.wholePath.last) openOr ""
 
   lazy val ItemList: List[MenuItem] =
   List(MenuItem(S.??("sign.up"), signUpPath, false),
@@ -159,18 +156,6 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
        MenuItem(S.??("edit.profile"), editPath, true),
        MenuItem("", validateUserPath, false))
 
-  // def requestLoans: List[LoanWrapper] = Nil // List(curUser)
-
-
-  
-
-  //def loggedIn_? : Boolean = currentUserId.isDefined
-  def loggedIn_? = {
-    if(!currentUserId.isDefined)
-      for(f <- autologinFunc) f()
-    currentUserId.isDefined
-  }
-
   def logUserIdIn(id: String) {
     curUser.remove()
     curUserId(Full(id))
@@ -180,8 +165,6 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
     curUserId(Full(who.id.toString))
     onLogIn.foreach(_(who))
   }
-
-  def logoutCurrentUser = logUserOut()
 
   def logUserOut() {
     onLogOut.foreach(_(curUser))

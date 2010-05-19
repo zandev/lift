@@ -48,7 +48,7 @@ trait UserService[ModelType <: UserDetails] {
 
   lazy val testSuperUser = If(superUser_? _, S.??("must.be.super.user"))
 
-  var authenticationProvider: AuthenticationProvider
+//  var authenticationProvider: AuthenticationProvider
   
   def currentUserId: Box[String]
 
@@ -72,14 +72,16 @@ trait UserService[ModelType <: UserDetails] {
 
   def logUserOut(): Unit
 
-  def authenticate(authentication: Authentication) = authenticationProvider.authenticate(authentication)
+  //def authenticate(authentication: Authentication) = authenticationProvider.authenticate(authentication)
 }
-
+/*
 trait AuthenticationProvider {
+  type Authentication
   def authenticate(authentication: Authentication)
 }
 
 class UserServiceAuthenticationProvider[ModelType <: UserDetails](userService: UserService[ModelType]) extends AuthenticationProvider {
+  type
   def authenticate(authentication: Authentication[ModelType]) =
 }
 
@@ -89,7 +91,7 @@ abstract class Authentication[ModelType] {
 
 case class EmailPassword[ModelType](email: String, password: String) extends Authentication {
   def authenticate(userService: UserService[ModelType]) = null
-}
+}*/
 
 trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] with UserFinders[ModelType] {
   /**
@@ -274,6 +276,10 @@ trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] wi
   def changePassword: NodeSeq
 
   def validateUser(id: String): NodeSeq
+
+  def signup(): NodeSeq
+
+  def edit(): NodeSeq
 
   protected object signupFunc extends RequestVar[Box[() => NodeSeq]](Empty)
 
