@@ -93,37 +93,13 @@ trait ProtoUser[T <: ProtoUser[T]] extends KeyedMapper[Long, T] with UserIdAsStr
   def niceNameWEmailLink = <a href={"mailto:"+email.is}>{niceName}</a>
 }
 
-trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMetaMapper[Long, ModelType] {
+trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMetaMapper[Long, ModelType] with UserOperations[ModelType]{
   self: ModelType =>
 
   def signupFields: List[BaseOwnedMappedField[ModelType]] = firstName :: lastName :: email :: locale :: timezone :: password :: Nil
 
   override def fieldOrder: List[BaseOwnedMappedField[ModelType]] = firstName :: lastName :: email :: locale :: timezone :: password :: Nil
 
-  /**
-   * If the
-   */
-  def screenWrap: Box[Node] = Empty
-
-  val basePath: List[String] = "user_mgt" :: Nil
-  def signUpSuffix = "sign_up"
-  lazy val signUpPath = thePath(signUpSuffix)
-  def loginSuffix = "login"
-  lazy val loginPath = thePath(loginSuffix)
-  def lostPasswordSuffix = "lost_password"
-  lazy val lostPasswordPath = thePath(lostPasswordSuffix)
-  def passwordResetSuffix = "reset_password"
-  lazy val passwordResetPath = thePath(passwordResetSuffix)
-  def changePasswordSuffix = "change_password"
-  lazy val changePasswordPath = thePath(changePasswordSuffix)
-  def logoutSuffix = "logout"
-  lazy val logoutPath = thePath(logoutSuffix)
-  def editSuffix = "edit"
-  lazy val editPath = thePath(editSuffix)
-  def validateUserSuffix = "validate_user"
-  lazy val validateUserPath = thePath(validateUserSuffix)
-
-  def homePage = "/"
 
   object loginRedirect extends SessionVar[Box[String]](Empty)
 
@@ -139,18 +115,13 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
     }
   }
 
-  def thePath(end: String): List[String] = basePath ::: List(end)
+  
 
   /**
    * Return the URL of the "login" page
    */
   def loginPageURL = loginPath.mkString("/","/", "")
 
-  def notLoggedIn_? = !loggedIn_?
-
-  lazy val testLogginIn = If(loggedIn_? _, S.??("must.be.logged.in")) ;
-
-  lazy val testSuperUser = If(superUser_? _, S.??("must.be.super.user"))
 
   def loginFirst = If(
     loggedIn_? _,
@@ -166,141 +137,7 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
 
   def superUser_? : Boolean = currentUser.map(_.superUser.is) openOr false
 
-  /**
-   * The menu item for login (make this "Empty" to disable)
-   */
-  def loginMenuLoc: Box[Menu] =
-    Full(Menu(Loc("Login", loginPath, S.??("login"), loginMenuLocParams)))
-
-  /**
-   * The LocParams for the menu item for login.
-   * Overwrite in order to add custom LocParams. Attention: Not calling super will change the default behavior!
-   */
-  protected def loginMenuLocParams: List[LocParam[Unit]] =
-    If(notLoggedIn_? _, S.??("already.logged.in")) ::
-    Template(() => wrapIt(login)) ::
-    Nil
-
-  /**
-   * The menu item for logout (make this "Empty" to disable)
-   */
-  def logoutMenuLoc: Box[Menu] =
-    Full(Menu(Loc("Logout", logoutPath, S.??("logout"), logoutMenuLocParams)))
-
-  /**
-   * The LocParams for the menu item for logout.
-   * Overwrite in order to add custom LocParams. Attention: Not calling super will change the default behavior!
-   */
-  protected def logoutMenuLocParams: List[LocParam[Unit]] =
-    Template(() => wrapIt(logout)) ::
-    testLogginIn ::
-    Nil
-
-  /**
-   * The menu item for creating the user/sign up (make this "Empty" to disable)
-   */
-  def createUserMenuLoc: Box[Menu] =
-    Full(Menu(Loc("CreateUser", signUpPath, S.??("sign.up"), createUserMenuLocParams)))
-
-  /**
-   * The LocParams for the menu item for creating the user/sign up.
-   * Overwrite in order to add custom LocParams. Attention: Not calling super will change the default behavior!
-   */
-  protected def createUserMenuLocParams: List[LocParam[Unit]] =
-    Template(() => wrapIt(signupFunc.map(_()) openOr signup)) ::
-    If(notLoggedIn_? _, S.??("logout.first")) ::
-    Nil
-
-  /**
-   * The menu item for lost password (make this "Empty" to disable)
-   */
-  def lostPasswordMenuLoc: Box[Menu] =
-    Full(Menu(Loc("LostPassword", lostPasswordPath, S.??("lost.password"), lostPasswordMenuLocParams))) // not logged in
-
-  /**
-   * The LocParams for the menu item for lost password.
-   * Overwrite in order to add custom LocParams. Attention: Not calling super will change the default behavior!
-   */
-  protected def lostPasswordMenuLocParams: List[LocParam[Unit]] =
-    Template(() => wrapIt(lostPassword)) ::
-    If(notLoggedIn_? _, S.??("logout.first")) ::
-    Nil
-
-  /**
-   * The menu item for resetting the password (make this "Empty" to disable)
-   */
-  def resetPasswordMenuLoc: Box[Menu] =
-    Full(Menu(Loc("ResetPassword", (passwordResetPath, true), S.??("reset.password"), resetPasswordMenuLocParams))) //not Logged in
-
-  /**
-   * The LocParams for the menu item for resetting the password.
-   * Overwrite in order to add custom LocParams. Attention: Not calling super will change the default behavior!
-   */
-  protected def resetPasswordMenuLocParams: List[LocParam[Unit]] =
-    Hidden ::
-    Template(() => wrapIt(passwordReset(snarfLastItem))) ::
-    If(notLoggedIn_? _, S.??("logout.first")) ::
-    Nil
-
-  /**
-   * The menu item for editing the user (make this "Empty" to disable)
-   */
-  def editUserMenuLoc: Box[Menu] =
-    Full(Menu(Loc("EditUser", editPath, S.??("edit.user"), editUserMenuLocParams)))
-
-  /**
-   * The LocParams for the menu item for editing the user.
-   * Overwrite in order to add custom LocParams. Attention: Not calling super will change the default behavior!
-   */
-  protected def editUserMenuLocParams: List[LocParam[Unit]] =
-    Template(() => wrapIt(editFunc.map(_()) openOr edit)) ::
-    testLogginIn ::
-    Nil
-
-  /**
-   * The menu item for changing password (make this "Empty" to disable)
-   */
-  def changePasswordMenuLoc: Box[Menu] =
-    Full(Menu(Loc("ChangePassword", changePasswordPath, S.??("change.password"), changePasswordMenuLocParams)))
-
-  /**
-   * The LocParams for the menu item for changing password.
-   * Overwrite in order to add custom LocParams. Attention: Not calling super will change the default behavior!
-   */
-  protected def changePasswordMenuLocParams: List[LocParam[Unit]] =
-    Template(() => wrapIt(changePassword)) ::
-    testLogginIn ::
-    Nil
-
-  /**
-   * The menu item for validating a user (make this "Empty" to disable)
-   */
-  def validateUserMenuLoc: Box[Menu] =
-    Full(Menu(Loc("ValidateUser", (validateUserPath, true), S.??("validate.user"), validateUserMenuLocParams)))
-
-  /**
-   * The LocParams for the menu item for validating a user.
-   * Overwrite in order to add custom LocParams. Attention: Not calling super will change the default behavior!
-   */
-  protected def validateUserMenuLocParams: List[LocParam[Unit]] =
-    Hidden ::
-    Template(() => wrapIt(validateUser(snarfLastItem))) ::
-    If(notLoggedIn_? _, S.??("logout.first")) ::
-    Nil
-
-/**
-* An alias for the sitemap property
-*/
-def menus: List[Menu] = sitemap // issue 182
-
-  lazy val sitemap: List[Menu] =
-  List(loginMenuLoc, logoutMenuLoc, createUserMenuLoc,
-       lostPasswordMenuLoc, resetPasswordMenuLoc,
-       editUserMenuLoc, changePasswordMenuLoc,
-       validateUserMenuLoc).flatten(a => a)
-
-
-  def skipEmailValidation = false
+   def skipEmailValidation = false
 
   def userMenu: List[Node] = {
     val li = loggedIn_?
@@ -324,15 +161,8 @@ def menus: List[Menu] = sitemap // issue 182
 
   // def requestLoans: List[LoanWrapper] = Nil // List(curUser)
 
-  var onLogIn: List[ModelType => Unit] = Nil
 
-  var onLogOut: List[Box[ModelType] => Unit] = Nil
-
-  /**
-   * This function is given a chance to log in a user
-   * programmatically when needed
-   */
-  var autologinFunc: Box[()=>Unit] = Empty
+  
 
   //def loggedIn_? : Boolean = currentUserId.isDefined
   def loggedIn_? = {
@@ -412,7 +242,7 @@ def menus: List[Menu] = sitemap // issue 182
                      (bccEmail.toList.map(BCC(_)))) :_* )
   }
 
-  protected object signupFunc extends RequestVar[Box[() => NodeSeq]](Empty)
+//  protected object signupFunc extends RequestVar[Box[() => NodeSeq]](Empty)
 
   /**
    * Override this method to do something else after the user signs up
@@ -653,7 +483,7 @@ def menus: List[Menu] = sitemap // issue 182
      </form>)
   }
 
-  object editFunc extends RequestVar[Box[() => NodeSeq]](Empty)
+//  object editFunc extends RequestVar[Box[() => NodeSeq]](Empty)
 
   def edit = {
     val theUser: ModelType = currentUser.open_! // we know we're logged in
@@ -693,16 +523,10 @@ def menus: List[Menu] = sitemap // issue 182
         (<tr><td>{f.displayName}</td><td>{form}</td></tr>) ) )
   }
 
-  protected def wrapIt(in: NodeSeq): NodeSeq =
-  screenWrap.map(new RuleTransformer(new RewriteRule {
-        override def transform(n: Node) = n match {
-          case e: Elem if "bind" == e.label && "lift" == e.prefix => in
-          case _ => n
-        }
-      })) openOr in
+  
 }
 
-trait MegaProtoUser[T <: MegaProtoUser[T]] extends ProtoUser[T] {
+trait MegaProtoUser[T <: MegaProtoUser[T]] extends ProtoUser[T] with UserDetails {
   self: T =>
   object uniqueId extends MappedUniqueId(this, 32) {
     override def dbIndexed_? = true
@@ -728,6 +552,7 @@ trait MegaProtoUser[T <: MegaProtoUser[T]] extends ProtoUser[T] {
 
   def localeDisplayName = ??("locale")
 
+  def userEmail = email.is
 }
 
 }
