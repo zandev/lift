@@ -34,6 +34,15 @@ trait UserFinders[ModelType <: UserDetails] {
   def findByUniqueId(uniqueId: String): Box[ModelType]
 }
 
+trait MapperUserFinders[ModelType <: MegaProtoUser[ModelType]] extends UserFinders[ModelType] {
+  self: ModelType => 
+  def findByUsername(username: String) = getSingleton.find(By(email, username))
+
+  def findByUniqueId(uniqueId: String) = getSingleton.find(By(self.uniqueId, uniqueId))
+
+  def findById(id: String) = getSingleton.find(id)
+}
+
 trait UserService[ModelType <: UserDetails] extends UserFinders[ModelType]{
   /**
    * This function is given a chance to log in a user
@@ -68,13 +77,23 @@ trait UserService[ModelType <: UserDetails] extends UserFinders[ModelType]{
 
   def superUser_? : Boolean = false
 
-  def logUserIdIn(id: String): Unit
-
-  def logUserIn(who: ModelType): Unit
+  def logUserIdIn(id: String) {
+    curUser.remove()
+    curUserId(Full(id))
+  }
+  
+  def logUserIn(who: ModelType) {
+    logUserIdIn(who.userIdAsString)
+    onLogIn.foreach(_(who))
+  }
 
   def logoutCurrentUser() = logUserOut()
 
-  def logUserOut(): Unit
+  def logUserOut() {
+    onLogOut.foreach(_(curUser))
+    curUserId.remove()
+    curUser.remove()
+  }
 
   //def authenticate(authentication: Authentication) = authenticationProvider.authenticate(authentication)
 }

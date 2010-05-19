@@ -93,17 +93,15 @@ trait ProtoUser[T <: ProtoUser[T]] extends KeyedMapper[Long, T] with UserIdAsStr
   def niceNameWEmailLink = <a href={"mailto:"+email.is}>{niceName}</a>
 }
 
-trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMetaMapper[Long, ModelType] with UserOperations[ModelType]{
+trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMetaMapper[Long, ModelType]
+        with UserOperations[ModelType] with MapperUserFinders[ModelType] {
   self: ModelType =>
 
   def signupFields: List[BaseOwnedMappedField[ModelType]] = firstName :: lastName :: email :: locale :: timezone :: password :: Nil
 
   override def fieldOrder: List[BaseOwnedMappedField[ModelType]] = firstName :: lastName :: email :: locale :: timezone :: password :: Nil
 
-
   object loginRedirect extends SessionVar[Box[String]](Empty)
-
-
 
   case class MenuItem(name: String, path: List[String],
                       loggedIn: Boolean) {
@@ -115,13 +113,10 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
     }
   }
 
-  
-
   /**
    * Return the URL of the "login" page
    */
   def loginPageURL = loginPath.mkString("/","/", "")
-
 
   def loginFirst = If(
     loggedIn_? _,
@@ -156,20 +151,8 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
        MenuItem(S.??("edit.profile"), editPath, true),
        MenuItem("", validateUserPath, false))
 
-  def logUserIdIn(id: String) {
-    curUser.remove()
-    curUserId(Full(id))
-  }
-  def logUserIn(who: ModelType) {
-    curUser.remove()
-    curUserId(Full(who.id.toString))
-    onLogIn.foreach(_(who))
-  }
-
-  def logUserOut() {
-    onLogOut.foreach(_(curUser))
-    curUserId.remove()
-    curUser.remove()
+  override def logUserOut() {
+    super.logUserOut()
     S.request.foreach(_.request.session.terminate)
   }
 
@@ -182,7 +165,6 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
           <tr><td>&nbsp;</td><td><user:submit/></td></tr>
                                         </table></form>)
   }
-
 
   def signupMailBody(user: ModelType, validationLink: String) = {
     (<html>
@@ -270,7 +252,6 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
     case x :: xs if x.loggedIn == loggedIn_? => true
     case _ => false
   }
-
 
   def validateUser(id: String): NodeSeq = getSingleton.find(By(uniqueId, id)) match {
     case Full(user) if !user.validated =>
@@ -498,8 +479,6 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
       f.toForm.toList.map(form =>
         (<tr><td>{f.displayName}</td><td>{form}</td></tr>) ) )
   }
-
-  
 }
 
 trait MegaProtoUser[T <: MegaProtoUser[T]] extends ProtoUser[T] with UserDetails {
