@@ -173,14 +173,7 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
     S.request.foreach(_.request.session.terminate)
   }
 
-  private object curUserId extends SessionVar[Box[String]](Empty)
-
-  def currentUserId: Box[String] = curUserId.is
-
-  private object curUser extends RequestVar[Box[ModelType]](currentUserId.flatMap(id => getSingleton.find(id)))  with CleanRequestVarOnSessionTransition
-
-
-  def currentUser: Box[ModelType] = curUser.is
+  protected object curUserId extends SessionVar[Box[String]](Empty)
 
   def signupXhtml(user: ModelType) = {
     (<form method="post" action={S.uri}><table><tr><td

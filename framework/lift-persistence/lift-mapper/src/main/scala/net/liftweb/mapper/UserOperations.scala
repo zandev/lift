@@ -22,6 +22,7 @@ import _root_.net.liftweb.sitemap._
 import _root_.net.liftweb.sitemap.Loc._
 import xml._
 import transform._
+import net.liftweb.util.AnyVarTrait
 
 trait UserDetails extends UserIdAsString {
   def userEmail: String
@@ -33,7 +34,7 @@ trait UserFinders[ModelType <: UserDetails] {
   def findByUniqueId(uniqueId: String): Box[ModelType]
 }
 
-trait UserService[ModelType <: UserDetails] {
+trait UserService[ModelType <: UserDetails] extends UserFinders[ModelType]{
   /**
    * This function is given a chance to log in a user
    * programmatically when needed
@@ -49,10 +50,13 @@ trait UserService[ModelType <: UserDetails] {
   lazy val testSuperUser = If(superUser_? _, S.??("must.be.super.user"))
 
 //  var authenticationProvider: AuthenticationProvider
-  
-  def currentUserId: Box[String]
 
-  def currentUser: Box[ModelType]
+  protected val curUserId: AnyVarTrait[Box[String], _]
+  protected object curUser extends RequestVar[Box[ModelType]](currentUserId.flatMap(id => findById(id))) with CleanRequestVarOnSessionTransition
+  
+  def currentUserId: Box[String] = curUserId.is
+
+  def currentUser: Box[ModelType] = curUser.is
 
   def loggedIn_? = {
     if(!currentUserId.isDefined)
@@ -93,7 +97,7 @@ case class EmailPassword[ModelType](email: String, password: String) extends Aut
   def authenticate(userService: UserService[ModelType]) = null
 }*/
 
-trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] with UserFinders[ModelType] {
+trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] {
   /**
    * If the
    */
