@@ -290,7 +290,10 @@ trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] {
 
   def login: NodeSeq
 
-  def logout: NodeSeq
+  def logout = {
+    logoutCurrentUser
+    S.redirectTo(homePage)
+  }
 
   def lostPassword: NodeSeq
 

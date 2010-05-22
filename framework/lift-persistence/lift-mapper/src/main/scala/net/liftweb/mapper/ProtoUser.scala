@@ -463,11 +463,6 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
     innerEdit
   }
 
-  def logout = {
-    logoutCurrentUser
-    S.redirectTo(homePage)
-  }
-
   protected def localForm(user: ModelType, ignorePassword: Boolean): NodeSeq = {
     signupFields.
     map(fi => getSingleton.getActualBaseField(user, fi)).
