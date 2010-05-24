@@ -94,7 +94,7 @@ trait ProtoUser[T <: ProtoUser[T]] extends KeyedMapper[Long, T] with UserIdAsStr
 }
 
 trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMetaMapper[Long, ModelType]
-        with UserOperations[ModelType] with MapperUserFinders[ModelType] {
+        with UserService[ModelType] with UserOperations[ModelType] with MapperUserFinders[ModelType] {
   self: ModelType =>
 
   def signupFields: List[BaseOwnedMappedField[ModelType]] = firstName :: lastName :: email :: locale :: timezone :: password :: Nil
@@ -130,8 +130,6 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
     }
   )
 
-  override def superUser_? : Boolean = currentUser.map(_.superUser.is) openOr false
-
   def skipEmailValidation = false
 
   def userMenu: List[Node] = {
@@ -150,11 +148,6 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
        MenuItem(S.??("log.out"), logoutPath, true),
        MenuItem(S.??("edit.profile"), editPath, true),
        MenuItem("", validateUserPath, false))
-
-  override def logUserOut() {
-    super.logUserOut()
-    S.request.foreach(_.request.session.terminate)
-  }
 
   protected object curUserId extends SessionVar[Box[String]](Empty)
 
@@ -463,6 +456,8 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
     innerEdit
   }
 
+  def authenticate(user: ModelType) = user.password.match_?(S.param("password").openOr("*"))
+
   protected def localForm(user: ModelType, ignorePassword: Boolean): NodeSeq = {
     signupFields.
     map(fi => getSingleton.getActualBaseField(user, fi)).
@@ -503,6 +498,14 @@ trait MegaProtoUser[T <: MegaProtoUser[T]] extends ProtoUser[T] with UserDetails
   def localeDisplayName = ??("locale")
 
   def userEmail = email.is
+
+  def userName = shortName
+
+  def userLastName = lastName.is
+
+  def userFirstName = firstName.is
+
+  def superUser_? = superUser.is
 }
 
 }

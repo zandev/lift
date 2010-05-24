@@ -25,7 +25,14 @@ import transform._
 import net.liftweb.util.AnyVarTrait
 
 trait UserDetails extends UserIdAsString {
+  def userFirstName: String
+  def userLastName: String
+  def userName: String
   def userEmail: String
+  def superUser_? : Boolean = false
+  def userEnabled_? : Boolean = true
+  def userLocked_? : Boolean = false
+  def userValidated_? : Boolean = true
 }
 
 trait UserFinders[ModelType <: UserDetails] {
@@ -75,7 +82,7 @@ trait UserService[ModelType <: UserDetails] extends UserFinders[ModelType]{
 
   def notLoggedIn_? = !loggedIn_?
 
-  def superUser_? : Boolean = false
+  def superUser_? : Boolean = currentUser.map(_.superUser_?) openOr false
 
   def logUserIdIn(id: String) {
     curUser.remove()
@@ -93,9 +100,11 @@ trait UserService[ModelType <: UserDetails] extends UserFinders[ModelType]{
     onLogOut.foreach(_(curUser))
     curUserId.remove()
     curUser.remove()
+    S.request.foreach(_.request.session.terminate)
   }
 
   //def authenticate(authentication: Authentication) = authenticationProvider.authenticate(authentication)
+  def authenticate(user: ModelType): Boolean
 }
 /*
 trait AuthenticationProvider {
@@ -116,7 +125,9 @@ case class EmailPassword[ModelType](email: String, password: String) extends Aut
   def authenticate(userService: UserService[ModelType]) = null
 }*/
 
-trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] {
+trait UserOperations[ModelType <: UserDetails] {
+
+  def userService: UserService[ModelType] 
   /**
    * If the
    */
@@ -156,7 +167,7 @@ trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] {
    * Overwrite in order to add custom LocParams. Attention: Not calling super will change the default behavior!
    */
   protected def loginMenuLocParams: List[LocParam[Unit]] =
-    If(notLoggedIn_? _, S.??("already.logged.in")) ::
+    If(userService.notLoggedIn_? _, S.??("already.logged.in")) ::
     Template(() => wrapIt(login)) ::
     Nil
 
@@ -172,7 +183,7 @@ trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] {
    */
   protected def logoutMenuLocParams: List[LocParam[Unit]] =
     Template(() => wrapIt(logout)) ::
-    testLogginIn ::
+    userService.testLogginIn ::
     Nil
 
   /**
@@ -187,7 +198,7 @@ trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] {
    */
   protected def createUserMenuLocParams: List[LocParam[Unit]] =
     Template(() => wrapIt(signupFunc.map(_()) openOr signup)) ::
-    If(notLoggedIn_? _, S.??("logout.first")) ::
+    If(userService.notLoggedIn_? _, S.??("logout.first")) ::
     Nil
 
   /**
@@ -202,7 +213,7 @@ trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] {
    */
   protected def lostPasswordMenuLocParams: List[LocParam[Unit]] =
     Template(() => wrapIt(lostPassword)) ::
-    If(notLoggedIn_? _, S.??("logout.first")) ::
+    If(userService.notLoggedIn_? _, S.??("logout.first")) ::
     Nil
 
   /**
@@ -218,7 +229,7 @@ trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] {
   protected def resetPasswordMenuLocParams: List[LocParam[Unit]] =
     Hidden ::
     Template(() => wrapIt(passwordReset(snarfLastItem))) ::
-    If(notLoggedIn_? _, S.??("logout.first")) ::
+    If(userService.notLoggedIn_? _, S.??("logout.first")) ::
     Nil
 
   /**
@@ -233,7 +244,7 @@ trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] {
    */
   protected def editUserMenuLocParams: List[LocParam[Unit]] =
     Template(() => wrapIt(editFunc.map(_()) openOr edit)) ::
-    testLogginIn ::
+    userService.testLogginIn ::
     Nil
 
   /**
@@ -248,7 +259,7 @@ trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] {
    */
   protected def changePasswordMenuLocParams: List[LocParam[Unit]] =
     Template(() => wrapIt(changePassword)) ::
-    testLogginIn ::
+    userService.testLogginIn ::
     Nil
 
   /**
@@ -264,7 +275,7 @@ trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] {
   protected def validateUserMenuLocParams: List[LocParam[Unit]] =
     Hidden ::
     Template(() => wrapIt(validateUser(snarfLastItem))) ::
-    If(notLoggedIn_? _, S.??("logout.first")) ::
+    If(userService.notLoggedIn_? _, S.??("logout.first")) ::
     Nil
 
   /**
@@ -291,7 +302,7 @@ trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] {
   def login: NodeSeq
 
   def logout = {
-    logoutCurrentUser
+    userService.logoutCurrentUser
     S.redirectTo(homePage)
   }
 
@@ -314,4 +325,44 @@ trait UserOperations[ModelType <: UserDetails] extends UserService[ModelType] {
   protected def snarfLastItem: String =
   (for (r <- S.request) yield r.path.wholePath.last) openOr ""
 
+}
+
+trait UserSnippet {
+  def login(xhtml: NodeSeq): NodeSeq
+  def signup(xhtml: NodeSeq): NodeSeq
+}
+
+trait DefaultUserSnippet extends UserSnippet {
+  def userService: UserService[UserDetails]
+
+  def signup(xhtml: NodeSeq) = null
+
+  def login(xhtml: NodeSeq): NodeSeq = {
+    if (S.post_?) {
+      S.param("username").
+      flatMap(username => userService.findByUsername(email, username)) match {
+        case Full(user) if user.userValidated_? &&
+          userService.authenticate(username, S.param("password").openOr("*")) =>
+          S.notice(S.??("logged.in"))
+          userService.logUserIn(user)
+          val redir = loginRedirect.is match {
+            case Full(url) =>
+              loginRedirect(Empty)
+              url
+            case _ =>
+              homePage
+          }
+          S.redirectTo(redir)
+
+        case Full(user) if !user.userValidated_? =>
+          S.error(S.??("account.validation.error"))
+
+        case _ => S.error(S.??("invalid.credentials"))
+      }
+    }
+    bind("user", xhtml,
+      "email" -> (FocusOnLoad(<input type="text" name="username"/>)),
+      "password" -> (<input type="password" name="password"/>),
+      "submit" -> (<input type="submit" value={S.??("log.in")}/>))
+  }
 }
