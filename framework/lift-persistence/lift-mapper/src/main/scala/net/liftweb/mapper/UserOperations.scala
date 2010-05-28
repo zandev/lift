@@ -20,16 +20,18 @@ import _root_.net.liftweb.common._
 import _root_.net.liftweb.http._
 import _root_.net.liftweb.sitemap._
 import _root_.net.liftweb.sitemap.Loc._
+import _root_.net.liftweb.util._
+import _root_.net.liftweb.util.Helpers._
+import _root_.net.liftweb.http.js.JsCmds._
 import xml._
 import transform._
-import net.liftweb.util.AnyVarTrait
 
 trait UserDetails extends UserIdAsString {
   def userFirstName: String
   def userLastName: String
   def userName: String
   def userEmail: String
-  def superUser_? : Boolean = false
+  def userSuperUser_? : Boolean = false
   def userEnabled_? : Boolean = true
   def userLocked_? : Boolean = false
   def userValidated_? : Boolean = true
@@ -69,7 +71,9 @@ trait UserService[ModelType <: UserDetails] extends UserFinders[ModelType]{
 
   protected val curUserId: AnyVarTrait[Box[String], _]
   protected object curUser extends RequestVar[Box[ModelType]](currentUserId.flatMap(id => findById(id))) with CleanRequestVarOnSessionTransition
-  
+
+  def createUser: ModelType
+
   def currentUserId: Box[String] = curUserId.is
 
   def currentUser: Box[ModelType] = curUser.is
@@ -82,7 +86,7 @@ trait UserService[ModelType <: UserDetails] extends UserFinders[ModelType]{
 
   def notLoggedIn_? = !loggedIn_?
 
-  def superUser_? : Boolean = currentUser.map(_.superUser_?) openOr false
+  def superUser_? : Boolean = currentUser.map(_.userSuperUser_?) openOr false
 
   def logUserIdIn(id: String) {
     curUser.remove()
@@ -156,7 +160,7 @@ trait UserOperations[ModelType <: UserDetails] {
   def homePage = "/"
   def thePath(end: String): List[String] = basePath ::: List(end)
 
-    /**
+  /**
    * The menu item for login (make this "Empty" to disable)
    */
   def loginMenuLoc: Box[Menu] =
@@ -318,31 +322,30 @@ trait UserOperations[ModelType <: UserDetails] {
 
   def edit(): NodeSeq
 
-  protected object signupFunc extends RequestVar[Box[() => NodeSeq]](Empty)
+  object signupFunc extends RequestVar[Box[() => NodeSeq]](Empty)
 
   object editFunc extends RequestVar[Box[() => NodeSeq]](Empty)
 
   protected def snarfLastItem: String =
   (for (r <- S.request) yield r.path.wholePath.last) openOr ""
 
+  def emailFrom = "noreply@"+S.hostName
+
+  def bccEmail: Box[String] = Empty
 }
 
-trait UserSnippet {
-  def login(xhtml: NodeSeq): NodeSeq
-  def signup(xhtml: NodeSeq): NodeSeq
-}
+trait DefaultUserSnippet[ModelType <: UserDetails] extends UserSnippet {
+  def userService: UserService[ModelType]
+  def userOperations: UserOperations[ModelType]
 
-trait DefaultUserSnippet extends UserSnippet {
-  def userService: UserService[UserDetails]
-
-  def signup(xhtml: NodeSeq) = null
+  object loginRedirect extends SessionVar[Box[String]](Empty)
 
   def login(xhtml: NodeSeq): NodeSeq = {
     if (S.post_?) {
       S.param("username").
-      flatMap(username => userService.findByUsername(email, username)) match {
+      flatMap(username => userService.findByUsername(username)) match {
         case Full(user) if user.userValidated_? &&
-          userService.authenticate(username, S.param("password").openOr("*")) =>
+          userService.authenticate(user) =>
           S.notice(S.??("logged.in"))
           userService.logUserIn(user)
           val redir = loginRedirect.is match {
@@ -350,7 +353,7 @@ trait DefaultUserSnippet extends UserSnippet {
               loginRedirect(Empty)
               url
             case _ =>
-              homePage
+              userOperations.homePage
           }
           S.redirectTo(redir)
 
@@ -364,5 +367,200 @@ trait DefaultUserSnippet extends UserSnippet {
       "email" -> (FocusOnLoad(<input type="text" name="username"/>)),
       "password" -> (<input type="password" name="password"/>),
       "submit" -> (<input type="submit" value={S.??("log.in")}/>))
+  }
+  
+  def login: NodeSeq = login(loginXhtml)
+
+  def loginXhtml = {
+    (<form method="post" action={S.uri}><table><tr><td
+              colspan="2">{S.??("log.in")}</td></tr>
+          <tr><td>{S.??("email.address")}</td><td><user:email /></td></tr>
+          <tr><td>{S.??("password")}</td><td><user:password /></td></tr>
+          <tr><td><a href={userOperations.lostPasswordPath.mkString("/", "/", "")}
+                >{S.??("recover.password")}</a></td><td><user:submit /></td></tr></table>
+     </form>)
+  }
+
+  def changePassword(xhtml: NodeSeq): NodeSeq = {
+    val user = userSerivce.currentUser.open_! // we can do this because the logged in test has happened
+    var oldPassword = ""
+    var newPassword: List[String] = Nil
+    bind("user", xhtml,
+         "old_pwd" -> SHtml.password("", s => oldPassword = s),
+         "new_pwd" -> SHtml.password_*("", LFuncHolder(s => newPassword = s)),
+         "submit" -> SHtml.submit(S.??("change"), changePasswordCallback(user, oldPassword, newPassword) _))
+  }
+
+  def changePasswordCallback(user: ModelType, oldPassword: String, newPassword: List[String]): Unit
+
+  def changePassword: NodeSeq = changePassword(changePasswordXhtml)
+
+  def changePasswordXhtml = {
+    (<form method="post" action={S.uri}>
+        <table><tr><td colspan="2">{S.??("change.password")}</td></tr>
+          <tr><td>{S.??("old.password")}</td><td><user:old_pwd /></td></tr>
+          <tr><td>{S.??("new.password")}</td><td><user:new_pwd /></td></tr>
+          <tr><td>{S.??("repeat.password")}</td><td><user:new_pwd /></td></tr>
+          <tr><td>&nbsp;</td><td><user:submit /></td></tr>
+        </table>
+     </form>)
+  }
+
+  def signup(xhtml: NodeSeq) = {
+    val theUser: ModelType = userService.createUser
+
+    def testSignup() {
+      validateSignup(theUser) match {
+        case Nil =>
+          actionsAfterSignup(theUser)
+          S.redirectTo(userOperations.homePage)
+
+        case xs => S.error(xs) ; userOperations.signupFunc(Full(innerSignup _))
+      }
+    }
+
+    def innerSignup = bind("user", signupXhtml(theUser),
+                           "submit" -> SHtml.submit(S.??("sign.up"), testSignup _))
+
+    innerSignup
+  }
+
+  def signup = signup(NodeSeq.Empty)
+
+  /**
+   * Override this method to validate the user signup (eg by adding captcha verification)
+   */
+  def validateSignup(user: ModelType): List[FieldError]
+
+  def signupXhtml(user: ModelType) = {
+    (<form method="post" action={S.uri}><table><tr><td
+              colspan="2">{ S.??("sign.up") }</td></tr>
+          {signupForm(user)}
+          <tr><td>&nbsp;</td><td><user:submit/></td></tr>
+                                        </table></form>)
+  }
+
+  def signupForm(user: ModelType): NodeSeq
+
+  def signupMailBody(user: ModelType, validationLink: String) = {
+    (<html>
+        <head>
+          <title>{S.??("sign.up.confirmation")}</title>
+        </head>
+        <body>
+          <p>{S.??("dear")} {user.userFirstName},
+            <br/>
+            <br/>
+            {S.??("sign.up.validation.link")}
+            <br/><a href={validationLink}>{validationLink}</a>
+            <br/>
+            <br/>
+            {S.??("thank.you")}
+          </p>
+        </body>
+     </html>)
+  }
+
+  def signupMailSubject = S.??("sign.up.confirmation")
+
+  def sendValidationEmail(user: ModelType) {
+    val resetLink = S.hostAndPath+"/"+validateUserPath.mkString("/")+
+    "/"+user.uniqueId
+
+    val email: String = user.userEmail
+
+    val msgXml = signupMailBody(user, resetLink)
+
+    Mailer.sendMail(From(emailFrom),Subject(signupMailSubject),
+                    (To(user.email) :: xmlToMailBodyType(msgXml) ::
+                     (bccEmail.toList.map(BCC(_)))) :_* )
+  }
+
+  /**
+   * Override this method to do something else after the user signs up
+   */
+  protected def actionsAfterSignup(theUser: ModelType) {
+    if (!skipEmailValidation) {
+      sendValidationEmail(theUser)
+      S.notice(S.??("sign.up.message"))
+    } else {
+      S.notice(S.??("welcome"))
+      logUserIn(theUser)
+    }
+  }
+
+  def edit(xhtml: NodeSeq) = {
+    val theUser: ModelType = userService.currentUser.open_! // we know we're logged in
+
+    def testEdit() {
+      theUser.validate match {
+        case Nil =>
+          theUser.save
+          S.notice(S.??("profile.updated"))
+          S.redirectTo(homePage)
+
+        case xs => S.error(xs) ; editFunc(Full(innerEdit _))
+      }
+    }
+
+    def innerEdit = bind("user", editXhtml(theUser),
+                         "submit" -> SHtml.submit(S.??("edit"), testEdit _))
+
+    innerEdit
+  }
+
+  def edit(): NodeSeq = edit(editXhtml())
+
+  def editXhtml(user: ModelType) = {
+    (<form method="post" action={S.uri}>
+        <table><tr><td colspan="2">{S.??("edit")}</td></tr>
+          {localForm(user, true)}
+          <tr><td>&nbsp;</td><td><user:submit/></td></tr>
+        </table>
+     </form>)
+  }
+}
+
+trait MapperUserSnippet[ModelType <: MegaProtoUser] extends DefaultUserSnippet[ModelType] {
+  self: ModelType =>
+
+  def signupFields: List[BaseOwnedMappedField[ModelType]] = firstName :: lastName :: email :: locale :: timezone :: password :: Nil
+
+  override def fieldOrder: List[BaseOwnedMappedField[ModelType]] = firstName :: lastName :: email :: locale :: timezone :: password :: Nil
+  
+  def signupForm(user: ModelType) = null
+  
+  def changePasswordCallback(user: ModelType, oldPassword: String, newPassword: List[String]): Unit = {
+    if (!user.password.match_?(oldPassword)) {
+      S.error(S.??("wrong.old.password"))
+    } else {
+        user.password.setFromAny(newPassword)
+        user.validate match {
+          case Nil => user.save; S.notice(S.??("password.changed")); S.redirectTo(homePage)
+          case xs => S.error(xs)
+        }
+      }
+  }
+
+  def validateSignup(user: ModelType): List[FieldError] = user.validate
+
+  override protected def actionsAfterSignup(theUser: ModelType) = {
+    theUser.validated(skipEmailValidation).uniqueId.reset()
+    theUser.save
+    super.actionsAfterSignup(theUser)
+  }
+
+  def signupForm(user: ModelType): NodeSeq = localForm(user, false)
+
+  protected def localForm(user: ModelType, ignorePassword: Boolean): NodeSeq = {
+    signupFields.
+    map(fi => getSingleton.getActualBaseField(user, fi)).
+    filter(f => !ignorePassword || (f match {
+          case f: MappedPassword[ModelType] => false
+          case _ => true
+        })).
+    flatMap(f =>
+      f.toForm.toList.map(form =>
+        (<tr><td>{f.displayName}</td><td>{form}</td></tr>) ) )
   }
 }
