@@ -19,6 +19,7 @@ package mapper {
 
 import _root_.net.liftweb._
 import _root_.net.liftweb.http.provider._
+import _root_.net.liftweb.builtin.user.UserIdAsString
 import common._
 import util._
 import http._
@@ -53,10 +54,6 @@ KeyedMapper[Long, T] {
   protected def expirationColumnName = "expiration"
 
   def expirationTime: Long = millis + 180.days
-}
-
-trait UserIdAsString {
-  def userIdAsString: String
 }
 
 trait MetaProtoExtendedSession[T <: ProtoExtendedSession[T]] extends

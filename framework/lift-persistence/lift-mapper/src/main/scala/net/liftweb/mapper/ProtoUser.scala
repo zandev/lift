@@ -29,6 +29,7 @@ import _root_.net.liftweb.util._
 import _root_.net.liftweb.common._
 import _root_.net.liftweb.util.Mailer._
 import S._
+import builtin.user._
 
 trait ProtoUser[T <: ProtoUser[T]] extends KeyedMapper[Long, T] with UserIdAsString {
   self: T =>
@@ -96,6 +97,7 @@ trait ProtoUser[T <: ProtoUser[T]] extends KeyedMapper[Long, T] with UserIdAsStr
 trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMetaMapper[Long, ModelType]
         with UserService[ModelType] with UserOperations[ModelType] with MapperUserFinders[ModelType]
         with MapperUserSnippet[ModelType] {
+  self: ModelType => 
 
   case class MenuItem(name: String, path: List[String],
                       loggedIn: Boolean) {
@@ -124,8 +126,6 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
     }
   )
 
-  def skipEmailValidation = false
-
   def userMenu: List[Node] = {
     val li = loggedIn_?
     ItemList.
@@ -151,109 +151,32 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
     case _ => false
   }
 
-  def validateUser(id: String): NodeSeq = getSingleton.find(By(uniqueId, id)) match {
-    case Full(user) if !user.validated =>
-      user.validated(true).uniqueId.reset().save
-      S.notice(S.??("account.validated"))
-      logUserIn(user)
-      S.redirectTo(homePage)
+  def validateUser(user: ModelType) = user.validate
 
-    case _ => S.error(S.??("invalid.validation.link")); S.redirectTo(homePage)
+  def setUserAccountValidated(user: ModelType, validated: Boolean) = {
+    user.validated(validated)
+    resetUniqueId(user).saveUser(user)
+    this
   }
 
-  def lostPasswordXhtml = {
-    (<form method="post" action={S.uri}>
-        <table><tr><td
-              colspan="2">{S.??("enter.email")}</td></tr>
-          <tr><td>{S.??("email.address")}</td><td><user:email /></td></tr>
-          <tr><td>&nbsp;</td><td><user:submit /></td></tr>
-        </table>
-     </form>)
+  def setPassword(user: ModelType, passwords: List[String]) = {
+    user.password.setList(passwords)
+    this
   }
 
-  def passwordResetMailBody(user: ModelType, resetLink: String) = {
-    (<html>
-        <head>
-          <title>{S.??("reset.password.confirmation")}</title>
-        </head>
-        <body>
-          <p>{S.??("dear")} {user.firstName},
-            <br/>
-            <br/>
-            {S.??("click.reset.link")}
-            <br/><a href={resetLink}>{resetLink}</a>
-            <br/>
-            <br/>
-            {S.??("thank.you")}
-          </p>
-        </body>
-     </html>)
+  def setPassword(user: ModelType, password: String) = {
+    user.password.setFromAny(password)
+    this
   }
 
-  def passwordResetEmailSubject = S.??("reset.password.request")
+  def matchPassword(user: ModelType, password: String) = user.password.match_?(password)
 
-  def sendPasswordReset(email: String) {
-    getSingleton.find(By(this.email, email)) match {
-      case Full(user) if user.validated =>
-        user.uniqueId.reset().save
-        val resetLink = S.hostAndPath+
-        passwordResetPath.mkString("/", "/", "/")+user.uniqueId
-
-        val email: String = user.email
-
-        val msgXml = passwordResetMailBody(user, resetLink)
-        Mailer.sendMail(From(emailFrom),Subject(passwordResetEmailSubject),
-                        (To(user.email) :: xmlToMailBodyType(msgXml) ::
-                         (bccEmail.toList.map(BCC(_)))) :_*)
-
-        S.notice(S.??("password.reset.email.sent"))
-        S.redirectTo(homePage)
-
-      case Full(user) =>
-        sendValidationEmail(user)
-        S.notice(S.??("account.validation.resent"))
-        S.redirectTo(homePage)
-
-      case _ => S.error(S.??("email.address.not.found"))
-    }
+  def resetUniqueId(user: ModelType) = {
+    user.uniqueId.reset()
+    this
   }
 
-  def lostPassword = {
-    bind("user", lostPasswordXhtml,
-         "email" -> SHtml.text("", sendPasswordReset _),
-         "submit" -> <input type="submit" value={S.??("send.it")} />)
-  }
-
-  def passwordResetXhtml = {
-    (<form method="post" action={S.uri}>
-        <table><tr><td colspan="2">{S.??("reset.your.password")}</td></tr>
-          <tr><td>{S.??("enter.your.new.password")}</td><td><user:pwd/></td></tr>
-          <tr><td>{S.??("repeat.your.new.password")}</td><td><user:pwd/></td></tr>
-          <tr><td>&nbsp;</td><td><user:submit/></td></tr>
-        </table>
-     </form>)
-  }
-
-  def passwordReset(id: String) =
-  getSingleton.find(By(uniqueId, id)) match {
-    case Full(user) =>
-      def finishSet() {
-        user.validate match {
-          case Nil => S.notice(S.??("password.changed"))
-            user.save
-            logUserIn(user); S.redirectTo(homePage)
-
-          case xs => S.error(xs)
-        }
-      }
-      user.uniqueId.reset().save
-
-      bind("user", passwordResetXhtml,
-           "pwd" -> SHtml.password_*("",(p: List[String]) =>
-          user.password.setList(p)),
-           "submit" -> SHtml.submit(S.??("set.password"), finishSet _))
-    case _ => S.error(S.??("password.link.invalid")); S.redirectTo(homePage)
-  }
+  def saveUser(user: ModelType) = user.save
 
   def authenticate(user: ModelType) = user.password.match_?(S.param("password").openOr("*"))
 
@@ -298,8 +221,49 @@ trait MegaProtoUser[T <: MegaProtoUser[T]] extends ProtoUser[T] with UserDetails
 
   def userFirstName = firstName.is
 
+  def userUniqueId = uniqueId.is
+
   override def userSuperUser_? = superUser.is
 }
+
+trait MapperUserFinders[ModelType <: MegaProtoUser[ModelType]] extends UserFinders[ModelType] {
+  self: ModelType =>
+  def findByUsername(username: String) = findByEmail(username)
+
+  def findByEmail(email: String) = getSingleton.find(By(self.email, email))
+
+  def findByUniqueId(uniqueId: String) = getSingleton.find(By(self.uniqueId, uniqueId))
+
+  def findById(id: String) = getSingleton.find(id)
+}
+
+
+
+trait MapperUserSnippet[ModelType <: MegaProtoUser[ModelType]] extends CommonUserSnippet[ModelType] with MetaMapper[ModelType]{
+  self: ModelType =>
+
+  def signupFields: List[BaseOwnedMappedField[ModelType]] = firstName :: lastName :: email :: locale :: timezone :: password :: Nil
+
+  override def fieldOrder: List[BaseOwnedMappedField[ModelType]] = firstName :: lastName :: email :: locale :: timezone :: password :: Nil
+
+  def validateSignup(user: ModelType): List[FieldError] = user.validate
+
+  def signupForm(user: ModelType): NodeSeq = localForm(user, false)
+
+  def editForm(user: ModelType) = localForm(user, true)
+
+  protected def localForm(user: ModelType, ignorePassword: Boolean): NodeSeq = {
+    signupFields.
+    map(fi => getSingleton.getActualBaseField(user, fi)).
+    filter(f => !ignorePassword || (f match {
+          case f: MappedPassword[ModelType] => false
+          case _ => true
+        })).
+    flatMap(f =>
+      f.toForm.toList.map(form =>
+        (<tr><td>{f.displayName}</td><td>{form}</td></tr>) ) )
+  }
+}  
 
 }
 }
