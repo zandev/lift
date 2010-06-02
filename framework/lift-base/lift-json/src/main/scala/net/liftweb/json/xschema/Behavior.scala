@@ -38,6 +38,7 @@ object XSchemaTree {
     def walk(data: T, const:  XConstant): T = data
     def walk(data: T, prim:   XPrimitiveRef): T = data
     def walk(data: T, prim:   XDefinitionRef): T = data
+    def walk(data: T, prim:   XUnionRef): T = data
 
     def end(data: T, defn:  XProduct): T = data
     def end(data: T, defn:  XCoproduct): T = data
@@ -74,6 +75,7 @@ object XSchemaTree {
       case x: XConstant      => walker.walk(initial, x)
       case x: XDefinitionRef => walker.walk(initial, x)
       case x: XPrimitiveRef  => walker.walk(initial, x)
+      case x: XUnionRef      => walker.walk(initial, x)
     }
   }
 }

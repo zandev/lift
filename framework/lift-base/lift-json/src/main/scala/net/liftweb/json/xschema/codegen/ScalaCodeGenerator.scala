@@ -629,6 +629,12 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       }
     }
     
+    override def walk(data: CodeBuilder, defn: XUnionRef) = {
+      val containsPrims = defn.terms.filter(_.isInstanceOf[XPrimitiveRef]).filter(_ != XJSON).length > 0
+      
+      data += (if (containsPrims) "Any" else "AnyRef")
+    }
+    
     override def end(data: CodeBuilder, opt: XOptional) = {
       data += "]"
     }
