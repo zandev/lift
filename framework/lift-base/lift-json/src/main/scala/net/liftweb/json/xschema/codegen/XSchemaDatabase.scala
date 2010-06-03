@@ -41,15 +41,17 @@ trait XSchemaDatabase extends Iterable[XSchema] {
   
   def definitionsReferencedIn(namespace: String): List[XDefinitionRef] = definitionsIn(namespace).flatMap(definitionsReferencedBy(_))
   
-  lazy val products = definitions.filter(productsP).map(_.asInstanceOf[XProduct])
+  lazy val products = definitionsOfType(classOf[XProduct])
   
-  lazy val coproducts = definitions.filter(coproductsP).map(_.asInstanceOf[XCoproduct])
+  lazy val coproducts = definitionsOfType(classOf[XCoproduct])
+  
+  //lazy val unions = definitionsOfType(classOf[XUnion])
   
   lazy val references = all.filter(referencesP).map(_.asInstanceOf[XReference])
   
-  lazy val definitionRefs = all.filter(definitionRefsP).map(_.asInstanceOf[XDefinitionRef])
+  lazy val definitionRefs = referencesOfType(classOf[XDefinitionRef])
   
-  lazy val primitiveRefs = all.filter(primitiveRefsP).map(_.asInstanceOf[XPrimitiveRef])
+  lazy val primitiveRefs = referencesOfType(classOf[XPrimitiveRef])
   
   def definitionsIn(namespace: String): List[XDefinition] = definitions.filter(_.namespace == namespace)
   
@@ -103,9 +105,10 @@ trait XSchemaDatabase extends Iterable[XSchema] {
    * allow them to have natural representations in functional languages.
    */
   def isSingletonCoproductTerm(defn: XDefinition): Boolean = defn match {
-    case x: XCoproduct => false
     case x: XProduct => coproductContainersOf(defn) == 1 &&
       definitionRefs.filter(_ == x.referenceTo).length == 0
+      
+    case _ => false
   }
   
   /** Determines if the specified product is a term in any coproduct.
@@ -156,11 +159,17 @@ trait XSchemaDatabase extends Iterable[XSchema] {
   
   private def coproductsP = (x: XSchema) => x.isInstanceOf[XCoproduct]
   
+  private def unionsP = (x: XSchema) => x.isInstanceOf[XUnion]
+  
   private def referencesP = (x: XSchema) => x.isInstanceOf[XReference]
   
   private def definitionRefsP = (x: XSchema) => x.isInstanceOf[XDefinitionRef]
   
   private def primitiveRefsP = (x: XSchema) => x.isInstanceOf[XPrimitiveRef]
+  
+  private def definitionsOfType[T <: XDefinition](c: Class[T]): List[T] = definitions.filter { x => c.isAssignableFrom(x.getClass) }.map(_.asInstanceOf[T])
+  
+  private def referencesOfType[T <: XReference](c: Class[T]): List[T] = references.filter { x => c.isAssignableFrom(x.getClass) }.map(_.asInstanceOf[T])
 }
 
 object XSchemaDatabase {

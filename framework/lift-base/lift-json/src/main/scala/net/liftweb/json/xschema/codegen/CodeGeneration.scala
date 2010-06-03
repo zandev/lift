@@ -42,55 +42,62 @@ case class CodeBuilder(codeBuilder: StringBuilder, state: State) {
     
     var newStr = replacements.toList.foldLeft(str) { (str, replacement) => replace(str, replacement) }
     
-    var isFirst = true
-    
-    var indents = new ArrayStack[Int]
-    
-    var startIndentLevel = state.indentLevel
-    
     var lines = newStr.split("\n").toList match {
       case x :: xs if (x.trim.length == 0) => xs
       case xs => xs
     }
     
-    lines.foreach { line =>
-      var strippedLine = line match {
-        case Indented(spaces, rest) if (lines.length > 1) =>
-          val count = spaces.length
+    if (lines.length > 1) {
+      // Multiline:
+      var isFirst = true
+    
+      var indents = new ArrayStack[Int]
+    
+      var startIndentLevel = state.indentLevel
+    
+      lines.foreach { line =>
+        var strippedLine = line match {
+          case Indented(spaces, rest) if (lines.length > 1) =>
+            val count = spaces.length
           
-          if (indents.size == 0) {
-            indents.push(count)
-          }
-          else {
-            val lastCount = indents.peek
+            if (indents.size == 0) {
+              indents.push(count)
+            }
+            else {
+              val lastCount = indents.peek
             
-            if (count != lastCount) {
-              if (count > lastCount) {
-                state.indent
+              if (count != lastCount) {
+                if (count > lastCount) {
+                  state.indent
                 
-                indents.push(count)
-              }
-              else if (count < lastCount) {
-                while (indents.size > 0 && indents.peek != count) {
-                  indents.pop
+                  indents.push(count)
+                }
+                else if (count < lastCount) {
+                  while (indents.size > 0 && indents.peek != count) {
+                    indents.pop
                   
-                  state.unindent
+                    state.unindent
+                  }
                 }
               }
             }
-          }
 
-          rest
+            rest
           
-        case _ => line
+          case _ => line
+        }
+    
+        if (isFirst) isFirst = false else newline
+      
+        append(strippedLine)
       }
     
-      if (isFirst) isFirst = false else newline
-      
-      append(strippedLine)
+      state.indentLevel = startIndentLevel
     }
-    
-    state.indentLevel = startIndentLevel
+    else {
+      // Single line
+      append(newStr);
+    }
     
     this
   }

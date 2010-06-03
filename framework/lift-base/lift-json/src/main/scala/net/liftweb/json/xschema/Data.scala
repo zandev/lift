@@ -55,25 +55,16 @@ package net.liftweb.json.xschema {
             case y: net.liftweb.json.xschema.XPrimitiveRef => x.compare(y)
             case y: net.liftweb.json.xschema.XContainerRef => -1
             case y: net.liftweb.json.xschema.XDefinitionRef => -1
-            case y: net.liftweb.json.xschema.XUnionRef => -1
           }
           case x: net.liftweb.json.xschema.XContainerRef => that match {
             case y: net.liftweb.json.xschema.XPrimitiveRef => 1
             case y: net.liftweb.json.xschema.XContainerRef => x.compare(y)
             case y: net.liftweb.json.xschema.XDefinitionRef => -1
-            case y: net.liftweb.json.xschema.XUnionRef => -1
           }
           case x: net.liftweb.json.xschema.XDefinitionRef => that match {
             case y: net.liftweb.json.xschema.XPrimitiveRef => 1
             case y: net.liftweb.json.xschema.XContainerRef => 1
             case y: net.liftweb.json.xschema.XDefinitionRef => x.compare(y)
-            case y: net.liftweb.json.xschema.XUnionRef => -1
-          }
-          case x: net.liftweb.json.xschema.XUnionRef => that match {
-            case y: net.liftweb.json.xschema.XPrimitiveRef => 1
-            case y: net.liftweb.json.xschema.XContainerRef => 1
-            case y: net.liftweb.json.xschema.XDefinitionRef => 1
-            case y: net.liftweb.json.xschema.XUnionRef => x.compare(y)
           }
         }
       }
@@ -212,10 +203,17 @@ package net.liftweb.json.xschema {
           case x: net.liftweb.json.xschema.XProduct => that match {
             case y: net.liftweb.json.xschema.XProduct => x.compare(y)
             case y: net.liftweb.json.xschema.XCoproduct => -1
+            case y: net.liftweb.json.xschema.XUnion => -1
           }
           case x: net.liftweb.json.xschema.XCoproduct => that match {
             case y: net.liftweb.json.xschema.XProduct => 1
             case y: net.liftweb.json.xschema.XCoproduct => x.compare(y)
+            case y: net.liftweb.json.xschema.XUnion => -1
+          }
+          case x: net.liftweb.json.xschema.XUnion => that match {
+            case y: net.liftweb.json.xschema.XProduct => 1
+            case y: net.liftweb.json.xschema.XCoproduct => 1
+            case y: net.liftweb.json.xschema.XUnion => x.compare(y)
           }
         }
       }
@@ -280,7 +278,7 @@ package net.liftweb.json.xschema {
     
   }
   object XReference extends XSchemaDerived {
-    lazy val xschema: XCoproduct = net.liftweb.json.xschema.Extractors.XCoproductExtractor.extract(JObject(JField("XCoproduct",JObject(JField("name",JString("XReference"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(Nil))::JField("terms",JArray(JObject(JField("name",JString("XPrimitiveRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::JObject(JField("name",JString("XContainerRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::JObject(JField("name",JString("XDefinitionRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::JObject(JField("name",JString("XUnionRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::Nil))::JField("default",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::Nil))
+    lazy val xschema: XCoproduct = net.liftweb.json.xschema.Extractors.XCoproductExtractor.extract(JObject(JField("XCoproduct",JObject(JField("name",JString("XReference"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(Nil))::JField("terms",JArray(JObject(JField("name",JString("XPrimitiveRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::JObject(JField("name",JString("XContainerRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::JObject(JField("name",JString("XDefinitionRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::Nil))::JField("default",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::Nil))
   }
   
   sealed trait XPrimitiveRef extends Product with net.liftweb.json.xschema.XReference {
@@ -311,7 +309,7 @@ package net.liftweb.json.xschema {
     def referenceTo: net.liftweb.json.xschema.XReference
   }
   object XDefinition extends XSchemaDerived {
-    lazy val xschema: XCoproduct = net.liftweb.json.xschema.Extractors.XCoproductExtractor.extract(JObject(JField("XCoproduct",JObject(JField("name",JString("XDefinition"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(Nil))::JField("terms",JArray(JObject(JField("name",JString("XProduct"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::JObject(JField("name",JString("XCoproduct"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::Nil))::JField("default",JObject(JField("XProduct",JObject(Nil))::Nil))::Nil))::Nil))
+    lazy val xschema: XCoproduct = net.liftweb.json.xschema.Extractors.XCoproductExtractor.extract(JObject(JField("XCoproduct",JObject(JField("name",JString("XDefinition"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(Nil))::JField("terms",JArray(JObject(JField("name",JString("XProduct"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::JObject(JField("name",JString("XCoproduct"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::JObject(JField("name",JString("XUnion"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::Nil))::JField("default",JObject(JField("XProduct",JObject(Nil))::Nil))::Nil))::Nil))
   }
   
   sealed trait XField extends Product with net.liftweb.json.xschema.XSchema {
@@ -375,25 +373,6 @@ package net.liftweb.json.xschema {
   }
   object XDefinitionRef extends XSchemaDerived {
     lazy val xschema: XProduct = net.liftweb.json.xschema.Extractors.XProductExtractor.extract(JObject(JField("XProduct",JObject(JField("name",JString("XDefinitionRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(Nil))::JField("terms",JArray(JObject(JField("XRealField",JObject(JField("name",JString("name"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("default",JString(""))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("namespace"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("default",JString(""))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::Nil))::Nil))::Nil))
-  }
-  
-  case class XUnionRef(terms: List[net.liftweb.json.xschema.XReference]) extends Ordered[net.liftweb.json.xschema.XUnionRef] with net.liftweb.json.xschema.XReference {
-    def compare(that: net.liftweb.json.xschema.XUnionRef): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.terms.compare(that.terms)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
-    
-  }
-  object XUnionRef extends XSchemaDerived {
-    lazy val xschema: XProduct = net.liftweb.json.xschema.Extractors.XProductExtractor.extract(JObject(JField("XProduct",JObject(JField("name",JString("XUnionRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(Nil))::JField("terms",JArray(JObject(JField("XRealField",JObject(JField("name",JString("terms"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XContainerRef",JObject(JField("XCollection",JObject(JField("XList",JObject(JField("elementType",JObject(JField("XDefinitionRef",JObject(JField("name",JString("XReference"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil))::Nil))::Nil))::Nil))::Nil))::Nil))::JField("default",JArray(Nil))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::Nil))::Nil))::Nil))
   }
   
   case object XBoolean extends XSchemaDerived with net.liftweb.json.xschema.XPrimitiveRef {
@@ -541,6 +520,10 @@ package net.liftweb.json.xschema {
     lazy val xschema: XProduct = net.liftweb.json.xschema.Extractors.XProductExtractor.extract(JObject(JField("XProduct",JObject(JField("name",JString("XTuple"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(Nil))::JField("terms",JArray(JObject(JField("XRealField",JObject(JField("name",JString("types"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XContainerRef",JObject(JField("XCollection",JObject(JField("XList",JObject(JField("elementType",JObject(JField("XDefinitionRef",JObject(JField("name",JString("XReference"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil))::Nil))::Nil))::Nil))::Nil))::Nil))::JField("default",JArray(Nil))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::Nil))::Nil))::Nil))
   }
   
+  /** A product is analogous to a record: it contains fields, which may be any
+   * type, have default values, and have a user-defined ordering. Products are
+   * the fundamental building blocks used to construct most data structures.
+   */
   case class XProduct(name: String, namespace: String, properties: Map[String, String], terms: List[net.liftweb.json.xschema.XField]) extends Ordered[net.liftweb.json.xschema.XProduct] with net.liftweb.json.xschema.XDefinition with net.liftweb.json.xschema.XProductBehavior {
     def compare(that: net.liftweb.json.xschema.XProduct): Int = {
       import Orderings._
@@ -566,9 +549,14 @@ package net.liftweb.json.xschema {
     def referenceTo: net.liftweb.json.xschema.XDefinitionRef = net.liftweb.json.xschema.XDefinitionRef(name, namespace)
   }
   object XProduct extends XSchemaDerived {
-    lazy val xschema: XProduct = net.liftweb.json.xschema.Extractors.XProductExtractor.extract(JObject(JField("XProduct",JObject(JField("name",JString("XProduct"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(JArray(JString("scala.class.traits")::JString("net.liftweb.json.xschema.XProductBehavior")::Nil)::Nil))::JField("terms",JArray(JObject(JField("XRealField",JObject(JField("name",JString("name"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("default",JString(""))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("namespace"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("default",JString(""))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("properties"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XContainerRef",JObject(JField("XMap",JObject(JField("keyType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("valueType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::Nil))::Nil))::Nil))::JField("default",JArray(Nil))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("terms"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XContainerRef",JObject(JField("XCollection",JObject(JField("XList",JObject(JField("elementType",JObject(JField("XDefinitionRef",JObject(JField("name",JString("XField"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil))::Nil))::Nil))::Nil))::Nil))::Nil))::JField("default",JArray(Nil))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XViewField",JObject(JField("name",JString("referenceTo"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XDefinitionRef",JObject(JField("name",JString("XDefinitionRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil))::Nil))::Nil))::Nil)::Nil))::Nil))::Nil))
+    lazy val xschema: XProduct = net.liftweb.json.xschema.Extractors.XProductExtractor.extract(JObject(JField("XProduct",JObject(JField("name",JString("XProduct"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(JArray(JString("scala.class.traits")::JString("net.liftweb.json.xschema.XProductBehavior")::Nil)::JArray(JString("xschema.doc")::JString("A product is analogous to a record: it contains fields, which may ben                              any type, have default values, and have a user-defined ordering.n                              Products are the fundamental building blocks used to construct most n                              data structures.")::Nil)::Nil))::JField("terms",JArray(JObject(JField("XRealField",JObject(JField("name",JString("name"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("default",JString(""))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("namespace"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("default",JString(""))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("properties"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XContainerRef",JObject(JField("XMap",JObject(JField("keyType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("valueType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::Nil))::Nil))::Nil))::JField("default",JArray(Nil))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("terms"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XContainerRef",JObject(JField("XCollection",JObject(JField("XList",JObject(JField("elementType",JObject(JField("XDefinitionRef",JObject(JField("name",JString("XField"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil))::Nil))::Nil))::Nil))::Nil))::Nil))::JField("default",JArray(Nil))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XViewField",JObject(JField("name",JString("referenceTo"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XDefinitionRef",JObject(JField("name",JString("XDefinitionRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil))::Nil))::Nil))::Nil)::Nil))::Nil))::Nil))
   }
   
+  /** A coproduct is a data structure that can assume one of N other types.
+   * These types must be either products, or other coproducts -- primitives are
+   * not allowed because they cannot be mapped cleanly to most languages (see
+   * unions for a disjoint structure that allows primitives).
+   */
   case class XCoproduct(name: String, namespace: String, properties: Map[String, String], terms: List[net.liftweb.json.xschema.XDefinitionRef], default: net.liftweb.json.JsonAST.JValue) extends Ordered[net.liftweb.json.xschema.XCoproduct] with net.liftweb.json.xschema.XDefinition {
     def compare(that: net.liftweb.json.xschema.XCoproduct): Int = {
       import Orderings._
@@ -597,7 +585,45 @@ package net.liftweb.json.xschema {
     def referenceTo: net.liftweb.json.xschema.XDefinitionRef = net.liftweb.json.xschema.XDefinitionRef(name, namespace)
   }
   object XCoproduct extends XSchemaDerived {
-    lazy val xschema: XProduct = net.liftweb.json.xschema.Extractors.XProductExtractor.extract(JObject(JField("XProduct",JObject(JField("name",JString("XCoproduct"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(Nil))::JField("terms",JArray(JObject(JField("XRealField",JObject(JField("name",JString("name"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("default",JString(""))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("namespace"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("default",JString(""))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("properties"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XContainerRef",JObject(JField("XMap",JObject(JField("keyType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("valueType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::Nil))::Nil))::Nil))::JField("default",JArray(Nil))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("terms"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XContainerRef",JObject(JField("XCollection",JObject(JField("XList",JObject(JField("elementType",JObject(JField("XDefinitionRef",JObject(JField("name",JString("XDefinitionRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil))::Nil))::Nil))::Nil))::Nil))::Nil))::JField("default",JArray(Nil))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("default"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XJSON",JObject(Nil))::Nil))::Nil))::JField("default",JNothing)::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XViewField",JObject(JField("name",JString("referenceTo"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XDefinitionRef",JObject(JField("name",JString("XDefinitionRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil))::Nil))::Nil))::Nil)::Nil))::Nil))::Nil))
+    lazy val xschema: XProduct = net.liftweb.json.xschema.Extractors.XProductExtractor.extract(JObject(JField("XProduct",JObject(JField("name",JString("XCoproduct"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(JArray(JString("xschema.doc")::JString("A coproduct is a data structure that can assume one of N other types. n                              These types must be either products, or other coproducts -- primitivesn                              are not allowed because they cannot be mapped cleanly to most languagesn                              (see unions for a disjoint structure that allows primitives).")::Nil)::Nil))::JField("terms",JArray(JObject(JField("XRealField",JObject(JField("name",JString("name"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("default",JString(""))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("namespace"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("default",JString(""))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("properties"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XContainerRef",JObject(JField("XMap",JObject(JField("keyType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("valueType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::Nil))::Nil))::Nil))::JField("default",JArray(Nil))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("terms"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XContainerRef",JObject(JField("XCollection",JObject(JField("XList",JObject(JField("elementType",JObject(JField("XDefinitionRef",JObject(JField("name",JString("XDefinitionRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil))::Nil))::Nil))::Nil))::Nil))::Nil))::JField("default",JArray(Nil))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("default"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XJSON",JObject(Nil))::Nil))::Nil))::JField("default",JNothing)::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XViewField",JObject(JField("name",JString("referenceTo"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XDefinitionRef",JObject(JField("name",JString("XDefinitionRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil))::Nil))::Nil))::Nil)::Nil))::Nil))::Nil))
+  }
+  
+  /** A union is a C-style union of N types -- referred to as terms. Unlike
+   * coproducts, unions have no effect on the type hierarchy of the specified
+   * terms, and the terms may include primitive types. Although unions have
+   * names and namespaces, most languages do not have explicit support for union
+   * types, and in such cases, no entity will be generated for them, and they
+   * will be translated into the supertype of all the terms.
+   */
+  case class XUnion(name: String, namespace: String, properties: Map[String, String], terms: List[net.liftweb.json.xschema.XDefinitionRef], default: net.liftweb.json.JsonAST.JValue) extends Ordered[net.liftweb.json.xschema.XUnion] with net.liftweb.json.xschema.XDefinition {
+    def compare(that: net.liftweb.json.xschema.XUnion): Int = {
+      import Orderings._
+      
+      if (this == that) return 0
+      
+      var c: Int = 0
+      
+      c = this.name.compare(that.name)
+      if (c != 0) return c * 1
+      
+      c = this.namespace.compare(that.namespace)
+      if (c != 0) return c * 1
+      
+      c = this.properties.compare(that.properties)
+      if (c != 0) return c * 1
+      
+      c = this.terms.compare(that.terms)
+      if (c != 0) return c * 1
+      
+      c = this.default.compare(that.default)
+      if (c != 0) return c * 1
+      
+      return this.hashCode - that.hashCode
+    }
+    def referenceTo: net.liftweb.json.xschema.XDefinitionRef = net.liftweb.json.xschema.XDefinitionRef(name, namespace)
+  }
+  object XUnion extends XSchemaDerived {
+    lazy val xschema: XProduct = net.liftweb.json.xschema.Extractors.XProductExtractor.extract(JObject(JField("XProduct",JObject(JField("name",JString("XUnion"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(JArray(JString("xschema.doc")::JString("A union is a C-style union of N types -- referred to as terms. Unlike n                              coproducts, unions have no effect on the type hierarchy of the specified n                              terms, and the terms may include primitive types. Although unions n                              have names and namespaces, most languages do not have explicit support n                              for union types, and in such cases, no entity will be generated for them,n                              and they will be translated into the supertype of all the terms.")::Nil)::Nil))::JField("terms",JArray(JObject(JField("XRealField",JObject(JField("name",JString("name"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("default",JString(""))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("namespace"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("default",JString(""))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("properties"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XContainerRef",JObject(JField("XMap",JObject(JField("keyType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::JField("valueType",JObject(JField("XPrimitiveRef",JObject(JField("XString",JObject(Nil))::Nil))::Nil))::Nil))::Nil))::Nil))::JField("default",JArray(Nil))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("terms"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XContainerRef",JObject(JField("XCollection",JObject(JField("XList",JObject(JField("elementType",JObject(JField("XDefinitionRef",JObject(JField("name",JString("XDefinitionRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil))::Nil))::Nil))::Nil))::Nil))::Nil))::JField("default",JArray(Nil))::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XRealField",JObject(JField("name",JString("default"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XPrimitiveRef",JObject(JField("XJSON",JObject(Nil))::Nil))::Nil))::JField("default",JNothing)::JField("order",JObject(JField("XOrderAscending",JObject(Nil))::Nil))::Nil))::Nil)::JObject(JField("XViewField",JObject(JField("name",JString("referenceTo"))::JField("properties",JArray(Nil))::JField("fieldType",JObject(JField("XDefinitionRef",JObject(JField("name",JString("XDefinitionRef"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil))::Nil))::Nil))::Nil)::Nil))::Nil))::Nil))
   }
   
   case class XConstant(name: String, namespace: String, properties: Map[String, String], constantType: net.liftweb.json.xschema.XReference, default: net.liftweb.json.JsonAST.JValue) extends Ordered[net.liftweb.json.xschema.XConstant] with net.liftweb.json.xschema.XSchema {
@@ -729,10 +755,10 @@ package net.liftweb.json.xschema {
   
   trait Extractors extends DefaultExtractors with ExtractionHelpers {
     private lazy val XSchemaExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XSchema] = ({
-      case JField("XDefinition", value) => net.liftweb.json.xschema.Serialization.XDefinitionExtractor.extract(value)
-      case JField("XReference", value) => net.liftweb.json.xschema.Serialization.XReferenceExtractor.extract(value)
-      case JField("XField", value) => net.liftweb.json.xschema.Serialization.XFieldExtractor.extract(value)
-      case JField("XConstant", value) => net.liftweb.json.xschema.Serialization.XConstantExtractor.extract(value)
+      case JField("XDefinition", value) => net.liftweb.json.xschema.Extractors.XDefinitionExtractor.extract(value)
+      case JField("XReference", value) => net.liftweb.json.xschema.Extractors.XReferenceExtractor.extract(value)
+      case JField("XField", value) => net.liftweb.json.xschema.Extractors.XFieldExtractor.extract(value)
+      case JField("XConstant", value) => net.liftweb.json.xschema.Extractors.XConstantExtractor.extract(value)
     }: PartialFunction[JField, net.liftweb.json.xschema.XSchema]).orElse(net.liftweb.json.xschema.Extractors.XDefinitionExtractorFunction).orElse(net.liftweb.json.xschema.Extractors.XReferenceExtractorFunction).orElse(net.liftweb.json.xschema.Extractors.XFieldExtractorFunction)
     implicit val XSchemaExtractor: Extractor[net.liftweb.json.xschema.XSchema] = new Extractor[net.liftweb.json.xschema.XSchema] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XSchema = {
@@ -754,10 +780,9 @@ package net.liftweb.json.xschema {
     }
     
     private lazy val XReferenceExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XReference] = ({
-      case JField("XPrimitiveRef", value) => net.liftweb.json.xschema.Serialization.XPrimitiveRefExtractor.extract(value)
-      case JField("XContainerRef", value) => net.liftweb.json.xschema.Serialization.XContainerRefExtractor.extract(value)
-      case JField("XDefinitionRef", value) => net.liftweb.json.xschema.Serialization.XDefinitionRefExtractor.extract(value)
-      case JField("XUnionRef", value) => net.liftweb.json.xschema.Serialization.XUnionRefExtractor.extract(value)
+      case JField("XPrimitiveRef", value) => net.liftweb.json.xschema.Extractors.XPrimitiveRefExtractor.extract(value)
+      case JField("XContainerRef", value) => net.liftweb.json.xschema.Extractors.XContainerRefExtractor.extract(value)
+      case JField("XDefinitionRef", value) => net.liftweb.json.xschema.Extractors.XDefinitionRefExtractor.extract(value)
     }: PartialFunction[JField, net.liftweb.json.xschema.XReference]).orElse(net.liftweb.json.xschema.Extractors.XPrimitiveRefExtractorFunction).orElse(net.liftweb.json.xschema.Extractors.XContainerRefExtractorFunction)
     implicit val XReferenceExtractor: Extractor[net.liftweb.json.xschema.XReference] = new Extractor[net.liftweb.json.xschema.XReference] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XReference = {
@@ -779,13 +804,13 @@ package net.liftweb.json.xschema {
     }
     
     private lazy val XPrimitiveRefExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XPrimitiveRef] = ({
-      case JField("XBoolean", value) => net.liftweb.json.xschema.Serialization.XBooleanExtractor.extract(value)
-      case JField("XInt", value) => net.liftweb.json.xschema.Serialization.XIntExtractor.extract(value)
-      case JField("XLong", value) => net.liftweb.json.xschema.Serialization.XLongExtractor.extract(value)
-      case JField("XFloat", value) => net.liftweb.json.xschema.Serialization.XFloatExtractor.extract(value)
-      case JField("XDouble", value) => net.liftweb.json.xschema.Serialization.XDoubleExtractor.extract(value)
-      case JField("XString", value) => net.liftweb.json.xschema.Serialization.XStringExtractor.extract(value)
-      case JField("XJSON", value) => net.liftweb.json.xschema.Serialization.XJSONExtractor.extract(value)
+      case JField("XBoolean", value) => net.liftweb.json.xschema.Extractors.XBooleanExtractor.extract(value)
+      case JField("XInt", value) => net.liftweb.json.xschema.Extractors.XIntExtractor.extract(value)
+      case JField("XLong", value) => net.liftweb.json.xschema.Extractors.XLongExtractor.extract(value)
+      case JField("XFloat", value) => net.liftweb.json.xschema.Extractors.XFloatExtractor.extract(value)
+      case JField("XDouble", value) => net.liftweb.json.xschema.Extractors.XDoubleExtractor.extract(value)
+      case JField("XString", value) => net.liftweb.json.xschema.Extractors.XStringExtractor.extract(value)
+      case JField("XJSON", value) => net.liftweb.json.xschema.Extractors.XJSONExtractor.extract(value)
     }: PartialFunction[JField, net.liftweb.json.xschema.XPrimitiveRef])
     implicit val XPrimitiveRefExtractor: Extractor[net.liftweb.json.xschema.XPrimitiveRef] = new Extractor[net.liftweb.json.xschema.XPrimitiveRef] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XPrimitiveRef = {
@@ -807,10 +832,10 @@ package net.liftweb.json.xschema {
     }
     
     private lazy val XContainerRefExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XContainerRef] = ({
-      case JField("XCollection", value) => net.liftweb.json.xschema.Serialization.XCollectionExtractor.extract(value)
-      case JField("XMap", value) => net.liftweb.json.xschema.Serialization.XMapExtractor.extract(value)
-      case JField("XOptional", value) => net.liftweb.json.xschema.Serialization.XOptionalExtractor.extract(value)
-      case JField("XTuple", value) => net.liftweb.json.xschema.Serialization.XTupleExtractor.extract(value)
+      case JField("XCollection", value) => net.liftweb.json.xschema.Extractors.XCollectionExtractor.extract(value)
+      case JField("XMap", value) => net.liftweb.json.xschema.Extractors.XMapExtractor.extract(value)
+      case JField("XOptional", value) => net.liftweb.json.xschema.Extractors.XOptionalExtractor.extract(value)
+      case JField("XTuple", value) => net.liftweb.json.xschema.Extractors.XTupleExtractor.extract(value)
     }: PartialFunction[JField, net.liftweb.json.xschema.XContainerRef]).orElse(net.liftweb.json.xschema.Extractors.XCollectionExtractorFunction)
     implicit val XContainerRefExtractor: Extractor[net.liftweb.json.xschema.XContainerRef] = new Extractor[net.liftweb.json.xschema.XContainerRef] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XContainerRef = {
@@ -832,9 +857,9 @@ package net.liftweb.json.xschema {
     }
     
     private lazy val XCollectionExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XCollection] = ({
-      case JField("XList", value) => net.liftweb.json.xschema.Serialization.XListExtractor.extract(value)
-      case JField("XSet", value) => net.liftweb.json.xschema.Serialization.XSetExtractor.extract(value)
-      case JField("XArray", value) => net.liftweb.json.xschema.Serialization.XArrayExtractor.extract(value)
+      case JField("XList", value) => net.liftweb.json.xschema.Extractors.XListExtractor.extract(value)
+      case JField("XSet", value) => net.liftweb.json.xschema.Extractors.XSetExtractor.extract(value)
+      case JField("XArray", value) => net.liftweb.json.xschema.Extractors.XArrayExtractor.extract(value)
     }: PartialFunction[JField, net.liftweb.json.xschema.XCollection])
     implicit val XCollectionExtractor: Extractor[net.liftweb.json.xschema.XCollection] = new Extractor[net.liftweb.json.xschema.XCollection] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XCollection = {
@@ -856,8 +881,9 @@ package net.liftweb.json.xschema {
     }
     
     private lazy val XDefinitionExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XDefinition] = ({
-      case JField("XProduct", value) => net.liftweb.json.xschema.Serialization.XProductExtractor.extract(value)
-      case JField("XCoproduct", value) => net.liftweb.json.xschema.Serialization.XCoproductExtractor.extract(value)
+      case JField("XProduct", value) => net.liftweb.json.xschema.Extractors.XProductExtractor.extract(value)
+      case JField("XCoproduct", value) => net.liftweb.json.xschema.Extractors.XCoproductExtractor.extract(value)
+      case JField("XUnion", value) => net.liftweb.json.xschema.Extractors.XUnionExtractor.extract(value)
     }: PartialFunction[JField, net.liftweb.json.xschema.XDefinition])
     implicit val XDefinitionExtractor: Extractor[net.liftweb.json.xschema.XDefinition] = new Extractor[net.liftweb.json.xschema.XDefinition] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XDefinition = {
@@ -879,9 +905,9 @@ package net.liftweb.json.xschema {
     }
     
     private lazy val XFieldExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XField] = ({
-      case JField("XRealField", value) => net.liftweb.json.xschema.Serialization.XRealFieldExtractor.extract(value)
-      case JField("XViewField", value) => net.liftweb.json.xschema.Serialization.XViewFieldExtractor.extract(value)
-      case JField("XConstantField", value) => net.liftweb.json.xschema.Serialization.XConstantFieldExtractor.extract(value)
+      case JField("XRealField", value) => net.liftweb.json.xschema.Extractors.XRealFieldExtractor.extract(value)
+      case JField("XViewField", value) => net.liftweb.json.xschema.Extractors.XViewFieldExtractor.extract(value)
+      case JField("XConstantField", value) => net.liftweb.json.xschema.Extractors.XConstantFieldExtractor.extract(value)
     }: PartialFunction[JField, net.liftweb.json.xschema.XField])
     implicit val XFieldExtractor: Extractor[net.liftweb.json.xschema.XField] = new Extractor[net.liftweb.json.xschema.XField] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XField = {
@@ -903,9 +929,9 @@ package net.liftweb.json.xschema {
     }
     
     private lazy val XOrderExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XOrder] = ({
-      case JField("XOrderAscending", value) => net.liftweb.json.xschema.Serialization.XOrderAscendingExtractor.extract(value)
-      case JField("XOrderDescending", value) => net.liftweb.json.xschema.Serialization.XOrderDescendingExtractor.extract(value)
-      case JField("XOrderIgnore", value) => net.liftweb.json.xschema.Serialization.XOrderIgnoreExtractor.extract(value)
+      case JField("XOrderAscending", value) => net.liftweb.json.xschema.Extractors.XOrderAscendingExtractor.extract(value)
+      case JField("XOrderDescending", value) => net.liftweb.json.xschema.Extractors.XOrderDescendingExtractor.extract(value)
+      case JField("XOrderIgnore", value) => net.liftweb.json.xschema.Extractors.XOrderIgnoreExtractor.extract(value)
     }: PartialFunction[JField, net.liftweb.json.xschema.XOrder])
     implicit val XOrderExtractor: Extractor[net.liftweb.json.xschema.XOrder] = new Extractor[net.liftweb.json.xschema.XOrder] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XOrder = {
@@ -941,14 +967,6 @@ package net.liftweb.json.xschema {
         XDefinitionRef(
           extractField[String](jvalue, "name", JString("")),
           extractField[String](jvalue, "namespace", JString(""))
-        )
-      }
-    }
-    
-    implicit val XUnionRefExtractor: Extractor[net.liftweb.json.xschema.XUnionRef] = new Extractor[net.liftweb.json.xschema.XUnionRef] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XUnionRef = {
-        XUnionRef(
-          extractField[List[net.liftweb.json.xschema.XReference]](jvalue, "terms", JArray(Nil))
         )
       }
     }
@@ -1067,6 +1085,18 @@ package net.liftweb.json.xschema {
       }
     }
     
+    implicit val XUnionExtractor: Extractor[net.liftweb.json.xschema.XUnion] = new Extractor[net.liftweb.json.xschema.XUnion] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XUnion = {
+        XUnion(
+          extractField[String](jvalue, "name", JString("")),
+          extractField[String](jvalue, "namespace", JString("")),
+          extractField[Map[String, String]](jvalue, "properties", JArray(Nil)),
+          extractField[List[net.liftweb.json.xschema.XDefinitionRef]](jvalue, "terms", JArray(Nil)),
+          extractField[net.liftweb.json.JsonAST.JValue](jvalue, "default", JNothing)
+        )
+      }
+    }
+    
     implicit val XConstantExtractor: Extractor[net.liftweb.json.xschema.XConstant] = new Extractor[net.liftweb.json.xschema.XConstant] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XConstant = {
         XConstant(
@@ -1136,10 +1166,10 @@ package net.liftweb.json.xschema {
     implicit val XSchemaDecomposer: Decomposer[net.liftweb.json.xschema.XSchema] = new Decomposer[net.liftweb.json.xschema.XSchema] {
       def decompose(tvalue: net.liftweb.json.xschema.XSchema): JValue = {
         tvalue match {
-          case x: net.liftweb.json.xschema.XDefinition => JObject(JField("XDefinition", net.liftweb.json.xschema.Serialization.XDefinitionDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XReference => JObject(JField("XReference", net.liftweb.json.xschema.Serialization.XReferenceDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XField => JObject(JField("XField", net.liftweb.json.xschema.Serialization.XFieldDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XConstant => JObject(JField("XConstant", net.liftweb.json.xschema.Serialization.XConstantDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XDefinition => JObject(JField("XDefinition", net.liftweb.json.xschema.Decomposers.XDefinitionDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XReference => JObject(JField("XReference", net.liftweb.json.xschema.Decomposers.XReferenceDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XField => JObject(JField("XField", net.liftweb.json.xschema.Decomposers.XFieldDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XConstant => JObject(JField("XConstant", net.liftweb.json.xschema.Decomposers.XConstantDecomposer.decompose(x)) :: Nil)
         }
       }
     }
@@ -1147,10 +1177,9 @@ package net.liftweb.json.xschema {
     implicit val XReferenceDecomposer: Decomposer[net.liftweb.json.xschema.XReference] = new Decomposer[net.liftweb.json.xschema.XReference] {
       def decompose(tvalue: net.liftweb.json.xschema.XReference): JValue = {
         tvalue match {
-          case x: net.liftweb.json.xschema.XPrimitiveRef => JObject(JField("XPrimitiveRef", net.liftweb.json.xschema.Serialization.XPrimitiveRefDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XContainerRef => JObject(JField("XContainerRef", net.liftweb.json.xschema.Serialization.XContainerRefDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XDefinitionRef => JObject(JField("XDefinitionRef", net.liftweb.json.xschema.Serialization.XDefinitionRefDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XUnionRef => JObject(JField("XUnionRef", net.liftweb.json.xschema.Serialization.XUnionRefDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XPrimitiveRef => JObject(JField("XPrimitiveRef", net.liftweb.json.xschema.Decomposers.XPrimitiveRefDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XContainerRef => JObject(JField("XContainerRef", net.liftweb.json.xschema.Decomposers.XContainerRefDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XDefinitionRef => JObject(JField("XDefinitionRef", net.liftweb.json.xschema.Decomposers.XDefinitionRefDecomposer.decompose(x)) :: Nil)
         }
       }
     }
@@ -1158,13 +1187,13 @@ package net.liftweb.json.xschema {
     implicit val XPrimitiveRefDecomposer: Decomposer[net.liftweb.json.xschema.XPrimitiveRef] = new Decomposer[net.liftweb.json.xschema.XPrimitiveRef] {
       def decompose(tvalue: net.liftweb.json.xschema.XPrimitiveRef): JValue = {
         tvalue match {
-          case x: net.liftweb.json.xschema.XBoolean.type => JObject(JField("XBoolean", net.liftweb.json.xschema.Serialization.XBooleanDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XInt.type => JObject(JField("XInt", net.liftweb.json.xschema.Serialization.XIntDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XLong.type => JObject(JField("XLong", net.liftweb.json.xschema.Serialization.XLongDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XFloat.type => JObject(JField("XFloat", net.liftweb.json.xschema.Serialization.XFloatDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XDouble.type => JObject(JField("XDouble", net.liftweb.json.xschema.Serialization.XDoubleDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XString.type => JObject(JField("XString", net.liftweb.json.xschema.Serialization.XStringDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XJSON.type => JObject(JField("XJSON", net.liftweb.json.xschema.Serialization.XJSONDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XBoolean.type => JObject(JField("XBoolean", net.liftweb.json.xschema.Decomposers.XBooleanDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XInt.type => JObject(JField("XInt", net.liftweb.json.xschema.Decomposers.XIntDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XLong.type => JObject(JField("XLong", net.liftweb.json.xschema.Decomposers.XLongDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XFloat.type => JObject(JField("XFloat", net.liftweb.json.xschema.Decomposers.XFloatDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XDouble.type => JObject(JField("XDouble", net.liftweb.json.xschema.Decomposers.XDoubleDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XString.type => JObject(JField("XString", net.liftweb.json.xschema.Decomposers.XStringDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XJSON.type => JObject(JField("XJSON", net.liftweb.json.xschema.Decomposers.XJSONDecomposer.decompose(x)) :: Nil)
         }
       }
     }
@@ -1172,10 +1201,10 @@ package net.liftweb.json.xschema {
     implicit val XContainerRefDecomposer: Decomposer[net.liftweb.json.xschema.XContainerRef] = new Decomposer[net.liftweb.json.xschema.XContainerRef] {
       def decompose(tvalue: net.liftweb.json.xschema.XContainerRef): JValue = {
         tvalue match {
-          case x: net.liftweb.json.xschema.XCollection => JObject(JField("XCollection", net.liftweb.json.xschema.Serialization.XCollectionDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XMap => JObject(JField("XMap", net.liftweb.json.xschema.Serialization.XMapDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XOptional => JObject(JField("XOptional", net.liftweb.json.xschema.Serialization.XOptionalDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XTuple => JObject(JField("XTuple", net.liftweb.json.xschema.Serialization.XTupleDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XCollection => JObject(JField("XCollection", net.liftweb.json.xschema.Decomposers.XCollectionDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XMap => JObject(JField("XMap", net.liftweb.json.xschema.Decomposers.XMapDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XOptional => JObject(JField("XOptional", net.liftweb.json.xschema.Decomposers.XOptionalDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XTuple => JObject(JField("XTuple", net.liftweb.json.xschema.Decomposers.XTupleDecomposer.decompose(x)) :: Nil)
         }
       }
     }
@@ -1183,9 +1212,9 @@ package net.liftweb.json.xschema {
     implicit val XCollectionDecomposer: Decomposer[net.liftweb.json.xschema.XCollection] = new Decomposer[net.liftweb.json.xschema.XCollection] {
       def decompose(tvalue: net.liftweb.json.xschema.XCollection): JValue = {
         tvalue match {
-          case x: net.liftweb.json.xschema.XList => JObject(JField("XList", net.liftweb.json.xschema.Serialization.XListDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XSet => JObject(JField("XSet", net.liftweb.json.xschema.Serialization.XSetDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XArray => JObject(JField("XArray", net.liftweb.json.xschema.Serialization.XArrayDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XList => JObject(JField("XList", net.liftweb.json.xschema.Decomposers.XListDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XSet => JObject(JField("XSet", net.liftweb.json.xschema.Decomposers.XSetDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XArray => JObject(JField("XArray", net.liftweb.json.xschema.Decomposers.XArrayDecomposer.decompose(x)) :: Nil)
         }
       }
     }
@@ -1193,8 +1222,9 @@ package net.liftweb.json.xschema {
     implicit val XDefinitionDecomposer: Decomposer[net.liftweb.json.xschema.XDefinition] = new Decomposer[net.liftweb.json.xschema.XDefinition] {
       def decompose(tvalue: net.liftweb.json.xschema.XDefinition): JValue = {
         tvalue match {
-          case x: net.liftweb.json.xschema.XProduct => JObject(JField("XProduct", net.liftweb.json.xschema.Serialization.XProductDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XCoproduct => JObject(JField("XCoproduct", net.liftweb.json.xschema.Serialization.XCoproductDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XProduct => JObject(JField("XProduct", net.liftweb.json.xschema.Decomposers.XProductDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XCoproduct => JObject(JField("XCoproduct", net.liftweb.json.xschema.Decomposers.XCoproductDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XUnion => JObject(JField("XUnion", net.liftweb.json.xschema.Decomposers.XUnionDecomposer.decompose(x)) :: Nil)
         }
       }
     }
@@ -1202,9 +1232,9 @@ package net.liftweb.json.xschema {
     implicit val XFieldDecomposer: Decomposer[net.liftweb.json.xschema.XField] = new Decomposer[net.liftweb.json.xschema.XField] {
       def decompose(tvalue: net.liftweb.json.xschema.XField): JValue = {
         tvalue match {
-          case x: net.liftweb.json.xschema.XRealField => JObject(JField("XRealField", net.liftweb.json.xschema.Serialization.XRealFieldDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XViewField => JObject(JField("XViewField", net.liftweb.json.xschema.Serialization.XViewFieldDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XConstantField => JObject(JField("XConstantField", net.liftweb.json.xschema.Serialization.XConstantFieldDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XRealField => JObject(JField("XRealField", net.liftweb.json.xschema.Decomposers.XRealFieldDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XViewField => JObject(JField("XViewField", net.liftweb.json.xschema.Decomposers.XViewFieldDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XConstantField => JObject(JField("XConstantField", net.liftweb.json.xschema.Decomposers.XConstantFieldDecomposer.decompose(x)) :: Nil)
         }
       }
     }
@@ -1212,9 +1242,9 @@ package net.liftweb.json.xschema {
     implicit val XOrderDecomposer: Decomposer[net.liftweb.json.xschema.XOrder] = new Decomposer[net.liftweb.json.xschema.XOrder] {
       def decompose(tvalue: net.liftweb.json.xschema.XOrder): JValue = {
         tvalue match {
-          case x: net.liftweb.json.xschema.XOrderAscending.type => JObject(JField("XOrderAscending", net.liftweb.json.xschema.Serialization.XOrderAscendingDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XOrderDescending.type => JObject(JField("XOrderDescending", net.liftweb.json.xschema.Serialization.XOrderDescendingDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XOrderIgnore.type => JObject(JField("XOrderIgnore", net.liftweb.json.xschema.Serialization.XOrderIgnoreDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XOrderAscending.type => JObject(JField("XOrderAscending", net.liftweb.json.xschema.Decomposers.XOrderAscendingDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XOrderDescending.type => JObject(JField("XOrderDescending", net.liftweb.json.xschema.Decomposers.XOrderDescendingDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XOrderIgnore.type => JObject(JField("XOrderIgnore", net.liftweb.json.xschema.Decomposers.XOrderIgnoreDecomposer.decompose(x)) :: Nil)
         }
       }
     }
@@ -1234,14 +1264,6 @@ package net.liftweb.json.xschema {
         JObject(
           JField("name", tvalue.name.serialize) ::
           JField("namespace", tvalue.namespace.serialize) :: Nil
-        )
-      }
-    }
-    
-    implicit val XUnionRefDecomposer: Decomposer[net.liftweb.json.xschema.XUnionRef] = new Decomposer[net.liftweb.json.xschema.XUnionRef] {
-      def decompose(tvalue: net.liftweb.json.xschema.XUnionRef): JValue = {
-        JObject(
-          JField("terms", tvalue.terms.serialize) :: Nil
         )
       }
     }
@@ -1374,6 +1396,18 @@ package net.liftweb.json.xschema {
       }
     }
     
+    implicit val XUnionDecomposer: Decomposer[net.liftweb.json.xschema.XUnion] = new Decomposer[net.liftweb.json.xschema.XUnion] {
+      def decompose(tvalue: net.liftweb.json.xschema.XUnion): JValue = {
+        JObject(
+          JField("name", tvalue.name.serialize) ::
+          JField("namespace", tvalue.namespace.serialize) ::
+          JField("properties", tvalue.properties.serialize) ::
+          JField("terms", tvalue.terms.serialize) ::
+          JField("default", tvalue.default.serialize) :: Nil
+        )
+      }
+    }
+    
     implicit val XConstantDecomposer: Decomposer[net.liftweb.json.xschema.XConstant] = new Decomposer[net.liftweb.json.xschema.XConstant] {
       def decompose(tvalue: net.liftweb.json.xschema.XConstant): JValue = {
         JObject(
@@ -1446,7 +1480,7 @@ package net.liftweb.json.xschema {
   object Decomposers extends Decomposers
   
   object Serialization extends SerializationImplicits with Decomposers with Extractors with Orderings {
-    lazy val xschema: XRoot = net.liftweb.json.xschema.Extractors.XRootExtractor.extract(parse("""{"definitions":[{"XProduct":{"name":"XRoot","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"definitions","properties":[],"fieldType":{"XContainerRef":{"XCollection":{"XList":{"elementType":{"XDefinitionRef":{"name":"XDefinition","namespace":"net.liftweb.json.xschema"}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"constants","properties":[],"fieldType":{"XContainerRef":{"XCollection":{"XList":{"elementType":{"XDefinitionRef":{"name":"XConstant","namespace":"net.liftweb.json.xschema"}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}}]}},{"XCoproduct":{"name":"XSchema","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XDefinition","namespace":"net.liftweb.json.xschema"},{"name":"XReference","namespace":"net.liftweb.json.xschema"},{"name":"XField","namespace":"net.liftweb.json.xschema"},{"name":"XConstant","namespace":"net.liftweb.json.xschema"}],"default":{"XString":{}}}},{"XCoproduct":{"name":"XReference","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XPrimitiveRef","namespace":"net.liftweb.json.xschema"},{"name":"XContainerRef","namespace":"net.liftweb.json.xschema"},{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema"},{"name":"XUnionRef","namespace":"net.liftweb.json.xschema"}],"default":{"XString":{}}}},{"XCoproduct":{"name":"XPrimitiveRef","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XBoolean","namespace":"net.liftweb.json.xschema"},{"name":"XInt","namespace":"net.liftweb.json.xschema"},{"name":"XLong","namespace":"net.liftweb.json.xschema"},{"name":"XFloat","namespace":"net.liftweb.json.xschema"},{"name":"XDouble","namespace":"net.liftweb.json.xschema"},{"name":"XString","namespace":"net.liftweb.json.xschema"},{"name":"XJSON","namespace":"net.liftweb.json.xschema"}],"default":{"XString":{}}}},{"XCoproduct":{"name":"XContainerRef","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XCollection","namespace":"net.liftweb.json.xschema"},{"name":"XMap","namespace":"net.liftweb.json.xschema"},{"name":"XOptional","namespace":"net.liftweb.json.xschema"},{"name":"XTuple","namespace":"net.liftweb.json.xschema"}],"default":{"XList":{"elementType":{"XString":{}}}}}},{"XProduct":{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"namespace","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XUnionRef","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"terms","properties":[],"fieldType":{"XContainerRef":{"XCollection":{"XList":{"elementType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}}}}}},"default":[],"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XBoolean","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XInt","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XLong","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XFloat","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XDouble","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XString","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XJSON","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XCoproduct":{"name":"XCollection","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XList","namespace":"net.liftweb.json.xschema"},{"name":"XSet","namespace":"net.liftweb.json.xschema"},{"name":"XArray","namespace":"net.liftweb.json.xschema"}],"default":{"XList":{"elementType":{"XString":{}}}}}},{"XProduct":{"name":"XList","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"elementType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XSet","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"elementType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XArray","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"elementType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XMap","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"keyType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"valueType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XOptional","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"optionalType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XTuple","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"types","properties":[],"fieldType":{"XContainerRef":{"XCollection":{"XList":{"elementType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}}}}}},"default":[],"order":{"XOrderAscending":{}}}}]}},{"XCoproduct":{"name":"XDefinition","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XProduct","namespace":"net.liftweb.json.xschema"},{"name":"XCoproduct","namespace":"net.liftweb.json.xschema"}],"default":{"XProduct":{}}}},{"XCoproduct":{"name":"XField","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XRealField","namespace":"net.liftweb.json.xschema"},{"name":"XViewField","namespace":"net.liftweb.json.xschema"},{"name":"XConstantField","namespace":"net.liftweb.json.xschema"}],"default":{"XRealField":{}}}},{"XProduct":{"name":"XProduct","namespace":"net.liftweb.json.xschema","properties":[["scala.class.traits","net.liftweb.json.xschema.XProductBehavior"]],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"namespace","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"terms","properties":[],"fieldType":{"XContainerRef":{"XCollection":{"XList":{"elementType":{"XDefinitionRef":{"name":"XField","namespace":"net.liftweb.json.xschema"}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XViewField":{"name":"referenceTo","properties":[],"fieldType":{"XDefinitionRef":{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema"}}}}]}},{"XProduct":{"name":"XCoproduct","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"namespace","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"terms","properties":[],"fieldType":{"XContainerRef":{"XCollection":{"XList":{"elementType":{"XDefinitionRef":{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema"}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"default","properties":[],"fieldType":{"XPrimitiveRef":{"XJSON":{}}},"order":{"XOrderAscending":{}}}},{"XViewField":{"name":"referenceTo","properties":[],"fieldType":{"XDefinitionRef":{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema"}}}}]}},{"XProduct":{"name":"XConstant","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"namespace","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"constantType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XString":{}},"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"default","properties":[],"fieldType":{"XPrimitiveRef":{"XJSON":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XViewField":{"name":"referenceTo","properties":[],"fieldType":{"XDefinitionRef":{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema"}}}}]}},{"XProduct":{"name":"XRealField","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"fieldType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XString":{}},"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"default","properties":[],"fieldType":{"XPrimitiveRef":{"XJSON":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"order","properties":[],"fieldType":{"XDefinitionRef":{"name":"XOrder","namespace":"net.liftweb.json.xschema"}},"default":{"XOrderAscending":{}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XViewField","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"fieldType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XConstantField","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"fieldType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XString":{}},"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"default","properties":[],"fieldType":{"XPrimitiveRef":{"XJSON":{}}},"default":"","order":{"XOrderAscending":{}}}}]}},{"XCoproduct":{"name":"XOrder","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XOrderAscending","namespace":"net.liftweb.json.xschema"},{"name":"XOrderDescending","namespace":"net.liftweb.json.xschema"},{"name":"XOrderIgnore","namespace":"net.liftweb.json.xschema"}],"default":{"XOrderAscending":{}}}},{"XProduct":{"name":"XOrderAscending","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XOrderDescending","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XOrderIgnore","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}}],"constants":[],"properties":[]}"""))
+    lazy val xschema: XRoot = net.liftweb.json.xschema.Extractors.XRootExtractor.extract(parse("""{"definitions":[{"XProduct":{"name":"XRoot","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"definitions","properties":[],"fieldType":{"XContainerRef":{"XCollection":{"XList":{"elementType":{"XDefinitionRef":{"name":"XDefinition","namespace":"net.liftweb.json.xschema"}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"constants","properties":[],"fieldType":{"XContainerRef":{"XCollection":{"XList":{"elementType":{"XDefinitionRef":{"name":"XConstant","namespace":"net.liftweb.json.xschema"}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}}]}},{"XCoproduct":{"name":"XSchema","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XDefinition","namespace":"net.liftweb.json.xschema"},{"name":"XReference","namespace":"net.liftweb.json.xschema"},{"name":"XField","namespace":"net.liftweb.json.xschema"},{"name":"XConstant","namespace":"net.liftweb.json.xschema"}],"default":{"XString":{}}}},{"XCoproduct":{"name":"XReference","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XPrimitiveRef","namespace":"net.liftweb.json.xschema"},{"name":"XContainerRef","namespace":"net.liftweb.json.xschema"},{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema"}],"default":{"XString":{}}}},{"XCoproduct":{"name":"XPrimitiveRef","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XBoolean","namespace":"net.liftweb.json.xschema"},{"name":"XInt","namespace":"net.liftweb.json.xschema"},{"name":"XLong","namespace":"net.liftweb.json.xschema"},{"name":"XFloat","namespace":"net.liftweb.json.xschema"},{"name":"XDouble","namespace":"net.liftweb.json.xschema"},{"name":"XString","namespace":"net.liftweb.json.xschema"},{"name":"XJSON","namespace":"net.liftweb.json.xschema"}],"default":{"XString":{}}}},{"XCoproduct":{"name":"XContainerRef","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XCollection","namespace":"net.liftweb.json.xschema"},{"name":"XMap","namespace":"net.liftweb.json.xschema"},{"name":"XOptional","namespace":"net.liftweb.json.xschema"},{"name":"XTuple","namespace":"net.liftweb.json.xschema"}],"default":{"XList":{"elementType":{"XString":{}}}}}},{"XProduct":{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"namespace","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XBoolean","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XInt","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XLong","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XFloat","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XDouble","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XString","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XJSON","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XCoproduct":{"name":"XCollection","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XList","namespace":"net.liftweb.json.xschema"},{"name":"XSet","namespace":"net.liftweb.json.xschema"},{"name":"XArray","namespace":"net.liftweb.json.xschema"}],"default":{"XList":{"elementType":{"XString":{}}}}}},{"XProduct":{"name":"XList","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"elementType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XSet","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"elementType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XArray","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"elementType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XMap","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"keyType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"valueType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XOptional","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"optionalType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XTuple","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"types","properties":[],"fieldType":{"XContainerRef":{"XCollection":{"XList":{"elementType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}}}}}},"default":[],"order":{"XOrderAscending":{}}}}]}},{"XCoproduct":{"name":"XDefinition","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XProduct","namespace":"net.liftweb.json.xschema"},{"name":"XCoproduct","namespace":"net.liftweb.json.xschema"},{"name":"XUnion","namespace":"net.liftweb.json.xschema"}],"default":{"XProduct":{}}}},{"XCoproduct":{"name":"XField","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XRealField","namespace":"net.liftweb.json.xschema"},{"name":"XViewField","namespace":"net.liftweb.json.xschema"},{"name":"XConstantField","namespace":"net.liftweb.json.xschema"}],"default":{"XRealField":{}}}},{"XProduct":{"name":"XProduct","namespace":"net.liftweb.json.xschema","properties":[["scala.class.traits","net.liftweb.json.xschema.XProductBehavior"],["xschema.doc","A product is analogous to a record: it contains fields, which may be\n                              any type, have default values, and have a user-defined ordering.\n                              Products are the fundamental building blocks used to construct most \n                              data structures."]],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"namespace","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"terms","properties":[],"fieldType":{"XContainerRef":{"XCollection":{"XList":{"elementType":{"XDefinitionRef":{"name":"XField","namespace":"net.liftweb.json.xschema"}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XViewField":{"name":"referenceTo","properties":[],"fieldType":{"XDefinitionRef":{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema"}}}}]}},{"XProduct":{"name":"XCoproduct","namespace":"net.liftweb.json.xschema","properties":[["xschema.doc","A coproduct is a data structure that can assume one of N other types. \n                              These types must be either products, or other coproducts -- primitives\n                              are not allowed because they cannot be mapped cleanly to most languages\n                              (see unions for a disjoint structure that allows primitives)."]],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"namespace","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"terms","properties":[],"fieldType":{"XContainerRef":{"XCollection":{"XList":{"elementType":{"XDefinitionRef":{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema"}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"default","properties":[],"fieldType":{"XPrimitiveRef":{"XJSON":{}}},"order":{"XOrderAscending":{}}}},{"XViewField":{"name":"referenceTo","properties":[],"fieldType":{"XDefinitionRef":{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema"}}}}]}},{"XProduct":{"name":"XUnion","namespace":"net.liftweb.json.xschema","properties":[["xschema.doc","A union is a C-style union of N types -- referred to as terms. Unlike \n                              coproducts, unions have no effect on the type hierarchy of the specified \n                              terms, and the terms may include primitive types. Although unions \n                              have names and namespaces, most languages do not have explicit support \n                              for union types, and in such cases, no entity will be generated for them,\n                              and they will be translated into the supertype of all the terms."]],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"namespace","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"terms","properties":[],"fieldType":{"XContainerRef":{"XCollection":{"XList":{"elementType":{"XDefinitionRef":{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema"}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"default","properties":[],"fieldType":{"XPrimitiveRef":{"XJSON":{}}},"order":{"XOrderAscending":{}}}},{"XViewField":{"name":"referenceTo","properties":[],"fieldType":{"XDefinitionRef":{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema"}}}}]}},{"XProduct":{"name":"XConstant","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"namespace","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"constantType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XString":{}},"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"default","properties":[],"fieldType":{"XPrimitiveRef":{"XJSON":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XViewField":{"name":"referenceTo","properties":[],"fieldType":{"XDefinitionRef":{"name":"XDefinitionRef","namespace":"net.liftweb.json.xschema"}}}}]}},{"XProduct":{"name":"XRealField","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"fieldType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XString":{}},"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"default","properties":[],"fieldType":{"XPrimitiveRef":{"XJSON":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"order","properties":[],"fieldType":{"XDefinitionRef":{"name":"XOrder","namespace":"net.liftweb.json.xschema"}},"default":{"XOrderAscending":{}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XViewField","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"fieldType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XDefinitionRef":{"name":"","namespace":""}},"order":{"XOrderAscending":{}}}}]}},{"XProduct":{"name":"XConstantField","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"XRealField":{"name":"name","properties":[],"fieldType":{"XPrimitiveRef":{"XString":{}}},"default":"","order":{"XOrderAscending":{}}}},{"XRealField":{"name":"properties","properties":[],"fieldType":{"XContainerRef":{"XMap":{"keyType":{"XPrimitiveRef":{"XString":{}}},"valueType":{"XPrimitiveRef":{"XString":{}}}}}},"default":[],"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"fieldType","properties":[],"fieldType":{"XDefinitionRef":{"name":"XReference","namespace":"net.liftweb.json.xschema"}},"default":{"XString":{}},"order":{"XOrderAscending":{}}}},{"XRealField":{"name":"default","properties":[],"fieldType":{"XPrimitiveRef":{"XJSON":{}}},"default":"","order":{"XOrderAscending":{}}}}]}},{"XCoproduct":{"name":"XOrder","namespace":"net.liftweb.json.xschema","properties":[],"terms":[{"name":"XOrderAscending","namespace":"net.liftweb.json.xschema"},{"name":"XOrderDescending","namespace":"net.liftweb.json.xschema"},{"name":"XOrderIgnore","namespace":"net.liftweb.json.xschema"}],"default":{"XOrderAscending":{}}}},{"XProduct":{"name":"XOrderAscending","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XOrderDescending","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}},{"XProduct":{"name":"XOrderIgnore","namespace":"net.liftweb.json.xschema","properties":[],"terms":[]}}],"constants":[],"properties":[]}"""))
   }
   
   object Constants {

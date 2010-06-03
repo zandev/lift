@@ -27,6 +27,7 @@ object XSchemaTree {
   trait XSchemaWalker[T] {
     def begin(data: T, defn:  XProduct): T = data
     def begin(data: T, defn:  XCoproduct): T = data
+    def begin(data: T, defn:  XUnion): T = data
     def begin(data: T, field: XField): T = data
     def begin(data: T, opt:   XOptional): T = data
     def begin(data: T, col:   XCollection): T = data
@@ -38,10 +39,10 @@ object XSchemaTree {
     def walk(data: T, const:  XConstant): T = data
     def walk(data: T, prim:   XPrimitiveRef): T = data
     def walk(data: T, prim:   XDefinitionRef): T = data
-    def walk(data: T, prim:   XUnionRef): T = data
 
     def end(data: T, defn:  XProduct): T = data
     def end(data: T, defn:  XCoproduct): T = data
+    def end(data: T, defn:  XUnion): T = data
     def end(data: T, field: XField): T = data
     def end(data: T, opt:   XOptional): T = data
     def end(data: T, col:   XCollection): T = data
@@ -66,6 +67,7 @@ object XSchemaTree {
     s match {
       case x: XProduct     => walker.end(walkContainer(x.terms, walker.begin(initial, x)), x)
       case x: XCoproduct   => walker.end(walkContainer(x.terms, walker.begin(initial, x)), x)
+      case x: XUnion       => walker.end(walkContainer(x.terms, walker.begin(initial, x)), x)
       case x: XField       => walker.end(walkContainer(x.fieldType    :: Nil, walker.begin(initial, x)), x)
       case x: XOptional    => walker.end(walkContainer(x.optionalType :: Nil, walker.begin(initial, x)), x)
       case x: XCollection  => walker.end(walkContainer(x.elementType  :: Nil, walker.begin(initial, x)), x)
@@ -75,7 +77,6 @@ object XSchemaTree {
       case x: XConstant      => walker.walk(initial, x)
       case x: XDefinitionRef => walker.walk(initial, x)
       case x: XPrimitiveRef  => walker.walk(initial, x)
-      case x: XUnionRef      => walker.walk(initial, x)
     }
   }
 }

@@ -314,7 +314,7 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     }
     def buildXSchema() = {
       code.add("lazy val xschema: ${definitionType} = net.liftweb.json.xschema.Extractors.${definitionType}Extractor.extract(" + compact(renderScala(definition.serialize)) + ")",
-        "definitionType" -> (definition match { case _ : XProduct => "XProduct"; case _ => "XCoproduct" })
+        "definitionType" -> definition.productPrefix
       )
     }
     
@@ -374,6 +374,10 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
           code.add(coproductPrefix(x) + "trait ${name} extends " + withClauses.mkString(" with ") + " ").block {
             buildCoproductFields(x)
           }
+          
+          case x: XUnion =>
+            // Scala has no clean representation for union types; we don't generate any type for 
+            // them, but rather use Any, in combination with custom extractors/decomposers/orderings
       }
       
       // **********
@@ -408,7 +412,7 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
                   else {
                     code.add("${name}").paren {          
                       var isFirst = true
-          
+
                       code.join(x.realFields, code.add(",").newline) { field =>
                         code.add("extractField[${fieldType}](jvalue, \"${fieldName}\", " + compact(renderScala(field.default)) + ")", 
                           "fieldType" -> typeSignatureOf(field.fieldType, database),
@@ -425,7 +429,7 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
             code.using("name" -> x.name, "type" -> typeSignatureOf(x.referenceTo, database)) {
               code.add("private lazy val ${name}ExtractorFunction: PartialFunction[JField, ${type}] = (").block {
                 code.join(x.terms, code.newline) { typ =>
-                  code.add("""case JField("${subtypeName}", value) => ${subtypeString}.Serialization.${subtypeName}Extractor.extract(value)""",
+                  code.add("""case JField("${subtypeName}", value) => ${subtypeString}.Extractors.${subtypeName}Extractor.extract(value)""",
                     "subtypeName"   -> typ.name,
                     "subtypeString" -> typ.namespace
                   )
@@ -494,7 +498,7 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
                 code.add("def decompose(tvalue: ${type}): JValue = ").block {
                   code.add("tvalue match ").block {
                     code.join(x.terms, code.newline) { typ =>
-                      code.add("case x: ${productType} => JObject(JField(\"${productName}\", ${productString}.Serialization.${productName}Decomposer.decompose(x)) :: Nil)",
+                      code.add("case x: ${productType} => JObject(JField(\"${productName}\", ${productString}.Decomposers.${productName}Decomposer.decompose(x)) :: Nil)",
                         "productName"      -> typ.name,
                         "productType"      -> typeSignatureOf(typ, database),
                         "productString" -> typ.namespace
@@ -627,12 +631,6 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
 
         case _ => data += (defn.namespace + "." + defn.name)
       }
-    }
-    
-    override def walk(data: CodeBuilder, defn: XUnionRef) = {
-      val containsPrims = defn.terms.filter(_.isInstanceOf[XPrimitiveRef]).filter(_ != XJSON).length > 0
-      
-      data += (if (containsPrims) "Any" else "AnyRef")
     }
     
     override def end(data: CodeBuilder, opt: XOptional) = {

@@ -9,14 +9,12 @@ package net.liftweb.json.xschema {
   import net.liftweb.json.xschema.Serialization._
   import net.liftweb.json.xschema.Constants._
 
-  import net.liftweb.json.xschema.{XSchema, XReference, XPrimitiveRef, XContainerRef, XCollection, XDefinition, XField, XOrder, XRoot, XDefinitionRef, XUnionRef, XBoolean, XInt, XLong, XFloat, XDouble, XString, XJSON, XList, XSet, XArray, XMap, XOptional, XTuple, XProduct, XCoproduct, XConstant, XRealField, XViewField, XConstantField, XOrderAscending, XOrderDescending, XOrderIgnore}
+  import net.liftweb.json.xschema.{XSchema, XReference, XPrimitiveRef, XContainerRef, XCollection, XDefinition, XField, XOrder, XRoot, XDefinitionRef, XBoolean, XInt, XLong, XFloat, XDouble, XString, XJSON, XList, XSet, XArray, XMap, XOptional, XTuple, XProduct, XCoproduct, XUnion, XConstant, XRealField, XViewField, XConstantField, XOrderAscending, XOrderDescending, XOrderIgnore}
   
   object TestProductData {
     lazy val TestXRoot: net.liftweb.json.xschema.XRoot = JObject(Nil).deserialize[net.liftweb.json.xschema.XRoot]
     
     lazy val TestXDefinitionRef: net.liftweb.json.xschema.XDefinitionRef = JObject(Nil).deserialize[net.liftweb.json.xschema.XDefinitionRef]
-    
-    lazy val TestXUnionRef: net.liftweb.json.xschema.XUnionRef = JObject(Nil).deserialize[net.liftweb.json.xschema.XUnionRef]
     
     lazy val TestXBoolean: net.liftweb.json.xschema.XBoolean.type = Extractors.XBooleanExtractor.extract(JObject(Nil))
     
@@ -48,6 +46,8 @@ package net.liftweb.json.xschema {
     
     lazy val TestXCoproduct: net.liftweb.json.xschema.XCoproduct = JObject(Nil).deserialize[net.liftweb.json.xschema.XCoproduct]
     
+    lazy val TestXUnion: net.liftweb.json.xschema.XUnion = JObject(Nil).deserialize[net.liftweb.json.xschema.XUnion]
+    
     lazy val TestXConstant: net.liftweb.json.xschema.XConstant = JObject(Nil).deserialize[net.liftweb.json.xschema.XConstant]
     
     lazy val TestXRealField: net.liftweb.json.xschema.XRealField = JObject(Nil).deserialize[net.liftweb.json.xschema.XRealField]
@@ -77,14 +77,6 @@ package net.liftweb.json.xschema {
     }
     "Serialization of XDefinitionRef has non-zero information content" in {
       TestProductData.TestXDefinitionRef.serialize mustNot be (JObject(Nil))
-    }
-  
-    
-    "Deserialization of XUnionRef succeeds even when information is missing" in {
-      TestProductData.TestXUnionRef.isInstanceOf[net.liftweb.json.xschema.XUnionRef] must be (true)
-    }
-    "Serialization of XUnionRef has non-zero information content" in {
-      TestProductData.TestXUnionRef.serialize mustNot be (JObject(Nil))
     }
   
     
@@ -201,6 +193,14 @@ package net.liftweb.json.xschema {
     }
   
     
+    "Deserialization of XUnion succeeds even when information is missing" in {
+      TestProductData.TestXUnion.isInstanceOf[net.liftweb.json.xschema.XUnion] must be (true)
+    }
+    "Serialization of XUnion has non-zero information content" in {
+      TestProductData.TestXUnion.serialize mustNot be (JObject(Nil))
+    }
+  
+    
     "Deserialization of XConstant succeeds even when information is missing" in {
       TestProductData.TestXConstant.isInstanceOf[net.liftweb.json.xschema.XConstant] must be (true)
     }
@@ -258,6 +258,7 @@ package net.liftweb.json.xschema {
     lazy val TestXSchema: net.liftweb.json.xschema.XSchema = JObject(Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val TestXSchemaFromXProduct: net.liftweb.json.xschema.XSchema = JObject(JField("XProduct", net.liftweb.json.xschema.Decomposers.XProductDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXProduct)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val TestXSchemaFromXCoproduct: net.liftweb.json.xschema.XSchema = JObject(JField("XCoproduct", net.liftweb.json.xschema.Decomposers.XCoproductDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXCoproduct)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
+    lazy val TestXSchemaFromXUnion: net.liftweb.json.xschema.XSchema = JObject(JField("XUnion", net.liftweb.json.xschema.Decomposers.XUnionDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXUnion)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val TestXSchemaFromXBoolean: net.liftweb.json.xschema.XSchema = JObject(JField("XBoolean", net.liftweb.json.xschema.Decomposers.XBooleanDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXBoolean)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val TestXSchemaFromXInt: net.liftweb.json.xschema.XSchema = JObject(JField("XInt", net.liftweb.json.xschema.Decomposers.XIntDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXInt)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val TestXSchemaFromXLong: net.liftweb.json.xschema.XSchema = JObject(JField("XLong", net.liftweb.json.xschema.Decomposers.XLongDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXLong)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
@@ -272,7 +273,6 @@ package net.liftweb.json.xschema {
     lazy val TestXSchemaFromXOptional: net.liftweb.json.xschema.XSchema = JObject(JField("XOptional", net.liftweb.json.xschema.Decomposers.XOptionalDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXOptional)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val TestXSchemaFromXTuple: net.liftweb.json.xschema.XSchema = JObject(JField("XTuple", net.liftweb.json.xschema.Decomposers.XTupleDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXTuple)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val TestXSchemaFromXDefinitionRef: net.liftweb.json.xschema.XSchema = JObject(JField("XDefinitionRef", net.liftweb.json.xschema.Decomposers.XDefinitionRefDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXDefinitionRef)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
-    lazy val TestXSchemaFromXUnionRef: net.liftweb.json.xschema.XSchema = JObject(JField("XUnionRef", net.liftweb.json.xschema.Decomposers.XUnionRefDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXUnionRef)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val TestXSchemaFromXRealField: net.liftweb.json.xschema.XSchema = JObject(JField("XRealField", net.liftweb.json.xschema.Decomposers.XRealFieldDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXRealField)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val TestXSchemaFromXViewField: net.liftweb.json.xschema.XSchema = JObject(JField("XViewField", net.liftweb.json.xschema.Decomposers.XViewFieldDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXViewField)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val TestXSchemaFromXConstantField: net.liftweb.json.xschema.XSchema = JObject(JField("XConstantField", net.liftweb.json.xschema.Decomposers.XConstantFieldDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXConstantField)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
@@ -293,7 +293,6 @@ package net.liftweb.json.xschema {
     lazy val TestXReferenceFromXOptional: net.liftweb.json.xschema.XReference = JObject(JField("XOptional", net.liftweb.json.xschema.Decomposers.XOptionalDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXOptional)) :: Nil).deserialize[net.liftweb.json.xschema.XReference]
     lazy val TestXReferenceFromXTuple: net.liftweb.json.xschema.XReference = JObject(JField("XTuple", net.liftweb.json.xschema.Decomposers.XTupleDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXTuple)) :: Nil).deserialize[net.liftweb.json.xschema.XReference]
     lazy val TestXReferenceFromXDefinitionRef: net.liftweb.json.xschema.XReference = JObject(JField("XDefinitionRef", net.liftweb.json.xschema.Decomposers.XDefinitionRefDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXDefinitionRef)) :: Nil).deserialize[net.liftweb.json.xschema.XReference]
-    lazy val TestXReferenceFromXUnionRef: net.liftweb.json.xschema.XReference = JObject(JField("XUnionRef", net.liftweb.json.xschema.Decomposers.XUnionRefDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXUnionRef)) :: Nil).deserialize[net.liftweb.json.xschema.XReference]
     
     lazy val TestXPrimitiveRef: net.liftweb.json.xschema.XPrimitiveRef = JObject(Nil).deserialize[net.liftweb.json.xschema.XPrimitiveRef]
     lazy val TestXPrimitiveRefFromXBoolean: net.liftweb.json.xschema.XPrimitiveRef = JObject(JField("XBoolean", net.liftweb.json.xschema.Decomposers.XBooleanDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXBoolean)) :: Nil).deserialize[net.liftweb.json.xschema.XPrimitiveRef]
@@ -320,6 +319,7 @@ package net.liftweb.json.xschema {
     lazy val TestXDefinition: net.liftweb.json.xschema.XDefinition = JObject(Nil).deserialize[net.liftweb.json.xschema.XDefinition]
     lazy val TestXDefinitionFromXProduct: net.liftweb.json.xschema.XDefinition = JObject(JField("XProduct", net.liftweb.json.xschema.Decomposers.XProductDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXProduct)) :: Nil).deserialize[net.liftweb.json.xschema.XDefinition]
     lazy val TestXDefinitionFromXCoproduct: net.liftweb.json.xschema.XDefinition = JObject(JField("XCoproduct", net.liftweb.json.xschema.Decomposers.XCoproductDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXCoproduct)) :: Nil).deserialize[net.liftweb.json.xschema.XDefinition]
+    lazy val TestXDefinitionFromXUnion: net.liftweb.json.xschema.XDefinition = JObject(JField("XUnion", net.liftweb.json.xschema.Decomposers.XUnionDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXUnion)) :: Nil).deserialize[net.liftweb.json.xschema.XDefinition]
     
     lazy val TestXField: net.liftweb.json.xschema.XField = JObject(Nil).deserialize[net.liftweb.json.xschema.XField]
     lazy val TestXFieldFromXRealField: net.liftweb.json.xschema.XField = JObject(JField("XRealField", net.liftweb.json.xschema.Decomposers.XRealFieldDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXRealField)) :: Nil).deserialize[net.liftweb.json.xschema.XField]
@@ -351,6 +351,12 @@ package net.liftweb.json.xschema {
     }            
     "Serialization of XSchema (from XCoproduct) has non-zero information content" in {
       TestCoproductData.TestXSchemaFromXCoproduct.serialize mustNot be (JObject(Nil))
+    }
+    "Deserialization of XSchema (from XUnion) succeeds" in {
+      TestCoproductData.TestXSchemaFromXUnion.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+    }            
+    "Serialization of XSchema (from XUnion) has non-zero information content" in {
+      TestCoproductData.TestXSchemaFromXUnion.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XBoolean) succeeds" in {
       TestCoproductData.TestXSchemaFromXBoolean.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
@@ -435,12 +441,6 @@ package net.liftweb.json.xschema {
     }            
     "Serialization of XSchema (from XDefinitionRef) has non-zero information content" in {
       TestCoproductData.TestXSchemaFromXDefinitionRef.serialize mustNot be (JObject(Nil))
-    }
-    "Deserialization of XSchema (from XUnionRef) succeeds" in {
-      TestCoproductData.TestXSchemaFromXUnionRef.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
-    }            
-    "Serialization of XSchema (from XUnionRef) has non-zero information content" in {
-      TestCoproductData.TestXSchemaFromXUnionRef.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XRealField) succeeds" in {
       TestCoproductData.TestXSchemaFromXRealField.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
@@ -557,12 +557,6 @@ package net.liftweb.json.xschema {
     }            
     "Serialization of XReference (from XDefinitionRef) has non-zero information content" in {
       TestCoproductData.TestXReferenceFromXDefinitionRef.serialize mustNot be (JObject(Nil))
-    }
-    "Deserialization of XReference (from XUnionRef) succeeds" in {
-      TestCoproductData.TestXReferenceFromXUnionRef.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
-    }            
-    "Serialization of XReference (from XUnionRef) has non-zero information content" in {
-      TestCoproductData.TestXReferenceFromXUnionRef.serialize mustNot be (JObject(Nil))
     }
     
     "Deserialization of XPrimitiveRef succeeds even when information is missing" in {
@@ -703,6 +697,12 @@ package net.liftweb.json.xschema {
     }            
     "Serialization of XDefinition (from XCoproduct) has non-zero information content" in {
       TestCoproductData.TestXDefinitionFromXCoproduct.serialize mustNot be (JObject(Nil))
+    }
+    "Deserialization of XDefinition (from XUnion) succeeds" in {
+      TestCoproductData.TestXDefinitionFromXUnion.isInstanceOf[net.liftweb.json.xschema.XDefinition] must be (true)
+    }            
+    "Serialization of XDefinition (from XUnion) has non-zero information content" in {
+      TestCoproductData.TestXDefinitionFromXUnion.serialize mustNot be (JObject(Nil))
     }
     
     "Deserialization of XField succeeds even when information is missing" in {

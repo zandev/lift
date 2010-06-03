@@ -122,8 +122,7 @@ object TestSchemas {
         List(
           XDefinitionRef("XPrimitiveRef",  "net.liftweb.json.xschema"),
           XDefinitionRef("XContainerRef",  "net.liftweb.json.xschema"),
-          XDefinitionRef("XDefinitionRef", "net.liftweb.json.xschema"),
-          XDefinitionRef("XUnionRef",      "net.liftweb.json.xschema")
+          XDefinitionRef("XDefinitionRef", "net.liftweb.json.xschema")
         ),
         j("""{ "XString": {} } """)
       ),
@@ -158,13 +157,6 @@ object TestSchemas {
         List(
           XRealField("name", Map(), XString, JString(""), XOrderAscending),
           XRealField("namespace", Map(), XString, JString(""), XOrderAscending)
-        )
-      ),
-      XProduct(
-        "XUnionRef", "net.liftweb.json.xschema",
-        Map(),
-        List(
-          XRealField("terms", Map(), XList(XDefinitionRef("XReference", "net.liftweb.json.xschema")), j("""[]"""), XOrderAscending)
         )
       ),
       XProduct("XBoolean", "net.liftweb.json.xschema", Map(), List()),
@@ -210,7 +202,8 @@ object TestSchemas {
         Map(),
         List(
           XDefinitionRef("XProduct", "net.liftweb.json.xschema"),
-          XDefinitionRef("XCoproduct", "net.liftweb.json.xschema")
+          XDefinitionRef("XCoproduct", "net.liftweb.json.xschema"),
+          XDefinitionRef("XUnion", "net.liftweb.json.xschema")
         ),
         j(""" { "XProduct": {} } """)
       ),
@@ -227,7 +220,11 @@ object TestSchemas {
       XProduct(
         "XProduct", "net.liftweb.json.xschema",
         Map(
-          "scala.class.traits" -> "net.liftweb.json.xschema.XProductBehavior"
+          "scala.class.traits" -> "net.liftweb.json.xschema.XProductBehavior",
+          "xschema.doc" -> """A product is analogous to a record: it contains fields, which may be
+                              any type, have default values, and have a user-defined ordering.
+                              Products are the fundamental building blocks used to construct most 
+                              data structures."""
         ),
         List(
           XRealField("name",        Map(), XString, JString(""), XOrderAscending),
@@ -240,7 +237,32 @@ object TestSchemas {
       ),
       XProduct(
         "XCoproduct", "net.liftweb.json.xschema",
-        Map(),
+        Map(
+          "xschema.doc" -> """A coproduct is a data structure that can assume one of N other types. 
+                              These types must be either products, or other coproducts -- primitives
+                              are not allowed because they cannot be mapped cleanly to most languages
+                              (see unions for a disjoint structure that allows primitives)."""
+        ),
+        List(
+          XRealField("name",        Map(), XString, JString(""), XOrderAscending),
+          XRealField("namespace",   Map(), XString, JString(""), XOrderAscending),
+          XRealField("properties",  Map(), XMap(XString, XString), j("""[]"""), XOrderAscending),
+          XRealField("terms",       Map(), XList(XDefinitionRef("XDefinitionRef", "net.liftweb.json.xschema")), j("""[]"""), XOrderAscending),
+          XRealField("default",     Map(), XJSON, JNothing, XOrderAscending),
+          
+          XViewField("referenceTo", Map(), XDefinitionRef("XDefinitionRef", "net.liftweb.json.xschema"))
+        )
+      ),
+      XProduct(
+        "XUnion", "net.liftweb.json.xschema",
+        Map(
+          "xschema.doc" -> """A union is a C-style union of N types -- referred to as terms. Unlike 
+                              coproducts, unions have no effect on the type hierarchy of the specified 
+                              terms, and the terms may include primitive types. Although unions 
+                              have names and namespaces, most languages do not have explicit support 
+                              for union types, and in such cases, no entity will be generated for them,
+                              and they will be translated into the supertype of all the terms."""
+        ),
         List(
           XRealField("name",        Map(), XString, JString(""), XOrderAscending),
           XRealField("namespace",   Map(), XString, JString(""), XOrderAscending),
