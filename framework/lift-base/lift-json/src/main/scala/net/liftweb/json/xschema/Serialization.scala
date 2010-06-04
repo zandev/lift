@@ -45,6 +45,10 @@ trait DefaultExtractors {
     def extract(jvalue: JValue): String = jvalue match {
       case JString(str) => str
       
+      case JInt(i) => i.toString
+      case JDouble(d) => d.toString
+      case JBool(b) => b.toString
+      
       case _ => error("Expected string but found: " + jvalue)
     }
   }
@@ -177,10 +181,9 @@ trait DefaultExtractors {
     def extract(jvalue: JValue): Map[K, V] = Map(ListExtractor(Tuple2Extractor(keyExtractor, valueExtractor)).extract(jvalue): _*)
   }
 }
+object DefaultExtractors extends DefaultExtractors
 
 trait ExtractionHelpers extends SerializationImplicits {
-  import JsonParser._
-  
   protected def extractField[T](jvalue: JValue, name: String, default: JValue)(implicit e: Extractor[T]): T = {
     try {
       (jvalue \ name -->? classOf[JField]).map(_.value).getOrElse(default).deserialize[T]
@@ -190,81 +193,84 @@ trait ExtractionHelpers extends SerializationImplicits {
     }
   }
 }
+object ExtractionHelpers extends ExtractionHelpers
 
 /**
  * Decomposers for all basic types.
  */
 trait DefaultDecomposers {
-  implicit val jvalueDecomposer: Decomposer[JValue] = new Decomposer[JValue] {
+  implicit val JValueDecomposer: Decomposer[JValue] = new Decomposer[JValue] {
     def decompose(tvalue: JValue): JValue = tvalue
   }
   
-  implicit val stringDecomposer: Decomposer[String] = new Decomposer[String] {
+  implicit val StringDecomposer: Decomposer[String] = new Decomposer[String] {
     def decompose(tvalue: String): JValue = JString(tvalue)
   }
   
-  implicit val booleanDecomposer: Decomposer[Boolean] = new Decomposer[Boolean] {
+  implicit val BooleanDecomposer: Decomposer[Boolean] = new Decomposer[Boolean] {
     def decompose(tvalue: Boolean): JValue = JBool(tvalue)
   }
   
-  implicit val intDecomposer: Decomposer[Int] = new Decomposer[Int] {
+  implicit val IntDecomposer: Decomposer[Int] = new Decomposer[Int] {
     def decompose(tvalue: Int): JValue = JInt(BigInt(tvalue))
   }
   
-  implicit val longDecomposer: Decomposer[Long] = new Decomposer[Long] {
+  implicit val LongDecomposer: Decomposer[Long] = new Decomposer[Long] {
     def decompose(tvalue: Long): JValue = JInt(BigInt(tvalue))
   }
   
-  implicit val floatDecomposer: Decomposer[Float] = new Decomposer[Float] {
+  implicit val FloatDecomposer: Decomposer[Float] = new Decomposer[Float] {
     def decompose(tvalue: Float): JValue = JDouble(tvalue.toDouble)
   }
 
-  implicit val doubleDecomposer: Decomposer[Double] = new Decomposer[Double] {
+  implicit val DoubleDecomposer: Decomposer[Double] = new Decomposer[Double] {
     def decompose(tvalue: Double): JValue = JDouble(tvalue)
   }
   
-  implicit def optionDecomposer[T](implicit decomposer: Decomposer[T]): Decomposer[Option[T]] = new Decomposer[Option[T]] {
+  implicit def OptionDecomposer[T](implicit decomposer: Decomposer[T]): Decomposer[Option[T]] = new Decomposer[Option[T]] {
     def decompose(tvalue: Option[T]): JValue = tvalue match {
       case None    => JNull
       case Some(v) => decomposer.decompose(v)
     }
   }
   
-  implicit def tuple2Decomposer[T1, T2](implicit decomposer1: Decomposer[T1], decomposer2: Decomposer[T2]): Decomposer[(T1, T2)] = new Decomposer[(T1, T2)] {
+  implicit def Tuple2Decomposer[T1, T2](implicit decomposer1: Decomposer[T1], decomposer2: Decomposer[T2]): Decomposer[(T1, T2)] = new Decomposer[(T1, T2)] {
     def decompose(tvalue: (T1, T2)) = JArray(decomposer1(tvalue._1) :: decomposer2(tvalue._2) :: Nil)
   }
   
-  implicit def tuple3Decomposer[T1, T2, T3](implicit decomposer1: Decomposer[T1], decomposer2: Decomposer[T2], decomposer3: Decomposer[T3]): Decomposer[(T1, T2, T3)] = new Decomposer[(T1, T2, T3)] {
+  implicit def Tuple3Decomposer[T1, T2, T3](implicit decomposer1: Decomposer[T1], decomposer2: Decomposer[T2], decomposer3: Decomposer[T3]): Decomposer[(T1, T2, T3)] = new Decomposer[(T1, T2, T3)] {
     def decompose(tvalue: (T1, T2, T3)) = JArray(decomposer1(tvalue._1) :: decomposer2(tvalue._2) :: decomposer3(tvalue._3) :: Nil)
   }
   
-  implicit def tuple4Decomposer[T1, T2, T3, T4](implicit decomposer1: Decomposer[T1], decomposer2: Decomposer[T2], decomposer3: Decomposer[T3], decomposer4: Decomposer[T4]): Decomposer[(T1, T2, T3, T4)] = new Decomposer[(T1, T2, T3, T4)] {
+  implicit def Tuple4Decomposer[T1, T2, T3, T4](implicit decomposer1: Decomposer[T1], decomposer2: Decomposer[T2], decomposer3: Decomposer[T3], decomposer4: Decomposer[T4]): Decomposer[(T1, T2, T3, T4)] = new Decomposer[(T1, T2, T3, T4)] {
     def decompose(tvalue: (T1, T2, T3, T4)) = JArray(decomposer1(tvalue._1) :: decomposer2(tvalue._2) :: decomposer3(tvalue._3) :: decomposer4(tvalue._4) :: Nil)
   }
   
-  implicit def tuple5Decomposer[T1, T2, T3, T4, T5](implicit decomposer1: Decomposer[T1], decomposer2: Decomposer[T2], decomposer3: Decomposer[T3], decomposer4: Decomposer[T4], decomposer5: Decomposer[T5]): Decomposer[(T1, T2, T3, T4, T5)] = new Decomposer[(T1, T2, T3, T4, T5)] {
+  implicit def Tuple5Decomposer[T1, T2, T3, T4, T5](implicit decomposer1: Decomposer[T1], decomposer2: Decomposer[T2], decomposer3: Decomposer[T3], decomposer4: Decomposer[T4], decomposer5: Decomposer[T5]): Decomposer[(T1, T2, T3, T4, T5)] = new Decomposer[(T1, T2, T3, T4, T5)] {
     def decompose(tvalue: (T1, T2, T3, T4, T5)) = JArray(decomposer1(tvalue._1) :: decomposer2(tvalue._2) :: decomposer3(tvalue._3) :: decomposer4(tvalue._4) :: decomposer5(tvalue._5) :: Nil)
   }
   
-  implicit def arrayDecomposer[T](implicit elementDecomposer: Decomposer[T]): Decomposer[Array[T]] = new Decomposer[Array[T]] {
+  implicit def ArrayDecomposer[T](implicit elementDecomposer: Decomposer[T]): Decomposer[Array[T]] = new Decomposer[Array[T]] {
     def decompose(tvalue: Array[T]): JValue = JArray(tvalue.toList.map(elementDecomposer.decompose _))
   }
   
-  implicit def setDecomposer[T](implicit elementDecomposer: Decomposer[T]): Decomposer[Set[T]] = new Decomposer[Set[T]] {
+  implicit def SetDecomposer[T](implicit elementDecomposer: Decomposer[T]): Decomposer[Set[T]] = new Decomposer[Set[T]] {
     def decompose(tvalue: Set[T]): JValue = JArray(tvalue.toList.map(elementDecomposer.decompose _))
   }
   
-  implicit def listDecomposer[T](implicit elementDecomposer: Decomposer[T]): Decomposer[List[T]] = new Decomposer[List[T]] {
+  implicit def ListDecomposer[T](implicit elementDecomposer: Decomposer[T]): Decomposer[List[T]] = new Decomposer[List[T]] {
     def decompose(tvalue: List[T]): JValue = JArray(tvalue.toList.map(elementDecomposer.decompose _))
   }
   
-  implicit def mapDecomposer[K, V](implicit keyDecomposer: Decomposer[K], valueDecomposer: Decomposer[V]): Decomposer[Map[K, V]] = new Decomposer[Map[K, V]] {
-    def decompose(tvalue: Map[K, V]): JValue = listDecomposer(tuple2Decomposer(keyDecomposer, valueDecomposer)).decompose(tvalue.toList)
+  implicit def MapDecomposer[K, V](implicit keyDecomposer: Decomposer[K], valueDecomposer: Decomposer[V]): Decomposer[Map[K, V]] = new Decomposer[Map[K, V]] {
+    def decompose(tvalue: Map[K, V]): JValue = ListDecomposer(Tuple2Decomposer(keyDecomposer, valueDecomposer)).decompose(tvalue.toList)
   }
 }
+object DefaultDecomposers extends DefaultDecomposers
 
 trait DecomposerHelpers extends SerializationImplicits {
 }
+object DecomposerHelpers extends DecomposerHelpers
 
 trait DefaultOrderings {
   implicit def OptionToOrderedOption[T <% Ordered[T]](opt: Option[T]): OrderedOption[T] = OrderedOption[T](opt)
@@ -366,6 +372,7 @@ trait DefaultOrderings {
     }
   }
 }
+object DefaultOrderings extends DefaultOrderings
 
 object DefaultSerialization extends SerializationImplicits with DefaultExtractors with DefaultDecomposers with DefaultOrderings {
 }

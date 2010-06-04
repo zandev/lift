@@ -9,7 +9,7 @@ package net.liftweb.json.xschema {
   import net.liftweb.json.xschema.Serialization._
   import net.liftweb.json.xschema.Constants._
 
-  import net.liftweb.json.xschema.{XSchema, XReference, XPrimitiveRef, XContainerRef, XCollection, XDefinition, XField, XOrder, XRoot, XDefinitionRef, XBoolean, XInt, XLong, XFloat, XDouble, XString, XJSON, XList, XSet, XArray, XMap, XOptional, XTuple, XProduct, XCoproduct, XUnion, XConstant, XRealField, XViewField, XConstantField, XOrderAscending, XOrderDescending, XOrderIgnore}
+  import net.liftweb.json.xschema.{XSchema, XReference, XPrimitiveRef, XContainerRef, XCollection, XDefinition, XMultitype, XField, XOrder, XRoot, XDefinitionRef, XBoolean, XInt, XLong, XFloat, XDouble, XString, XJSON, XList, XSet, XArray, XMap, XOptional, XTuple, XProduct, XCoproduct, XUnion, XConstant, XRealField, XViewField, XConstantField, XOrderAscending, XOrderDescending, XOrderIgnore}
   
   object TestProductData {
     lazy val TestXRoot: net.liftweb.json.xschema.XRoot = JObject(Nil).deserialize[net.liftweb.json.xschema.XRoot]
@@ -320,6 +320,10 @@ package net.liftweb.json.xschema {
     lazy val TestXDefinitionFromXProduct: net.liftweb.json.xschema.XDefinition = JObject(JField("XProduct", net.liftweb.json.xschema.Decomposers.XProductDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXProduct)) :: Nil).deserialize[net.liftweb.json.xschema.XDefinition]
     lazy val TestXDefinitionFromXCoproduct: net.liftweb.json.xschema.XDefinition = JObject(JField("XCoproduct", net.liftweb.json.xschema.Decomposers.XCoproductDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXCoproduct)) :: Nil).deserialize[net.liftweb.json.xschema.XDefinition]
     lazy val TestXDefinitionFromXUnion: net.liftweb.json.xschema.XDefinition = JObject(JField("XUnion", net.liftweb.json.xschema.Decomposers.XUnionDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXUnion)) :: Nil).deserialize[net.liftweb.json.xschema.XDefinition]
+    
+    lazy val TestXMultitype: net.liftweb.json.xschema.XMultitype = JObject(Nil).deserialize[net.liftweb.json.xschema.XMultitype]
+    lazy val TestXMultitypeFromXCoproduct: net.liftweb.json.xschema.XMultitype = JObject(JField("XCoproduct", net.liftweb.json.xschema.Decomposers.XCoproductDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXCoproduct)) :: Nil).deserialize[net.liftweb.json.xschema.XMultitype]
+    lazy val TestXMultitypeFromXUnion: net.liftweb.json.xschema.XMultitype = JObject(JField("XUnion", net.liftweb.json.xschema.Decomposers.XUnionDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXUnion)) :: Nil).deserialize[net.liftweb.json.xschema.XMultitype]
     
     lazy val TestXField: net.liftweb.json.xschema.XField = JObject(Nil).deserialize[net.liftweb.json.xschema.XField]
     lazy val TestXFieldFromXRealField: net.liftweb.json.xschema.XField = JObject(JField("XRealField", net.liftweb.json.xschema.Decomposers.XRealFieldDecomposer.decompose(net.liftweb.json.xschema.TestProductData.TestXRealField)) :: Nil).deserialize[net.liftweb.json.xschema.XField]
@@ -703,6 +707,26 @@ package net.liftweb.json.xschema {
     }            
     "Serialization of XDefinition (from XUnion) has non-zero information content" in {
       TestCoproductData.TestXDefinitionFromXUnion.serialize mustNot be (JObject(Nil))
+    }
+    
+    "Deserialization of XMultitype succeeds even when information is missing" in {
+      TestCoproductData.TestXMultitype.isInstanceOf[net.liftweb.json.xschema.XMultitype] must be (true)
+    }            
+    "Serialization of XMultitype has non-zero information content" in {
+      TestCoproductData.TestXMultitype.serialize mustNot be (JObject(Nil))
+    }
+  
+    "Deserialization of XMultitype (from XCoproduct) succeeds" in {
+      TestCoproductData.TestXMultitypeFromXCoproduct.isInstanceOf[net.liftweb.json.xschema.XMultitype] must be (true)
+    }            
+    "Serialization of XMultitype (from XCoproduct) has non-zero information content" in {
+      TestCoproductData.TestXMultitypeFromXCoproduct.serialize mustNot be (JObject(Nil))
+    }
+    "Deserialization of XMultitype (from XUnion) succeeds" in {
+      TestCoproductData.TestXMultitypeFromXUnion.isInstanceOf[net.liftweb.json.xschema.XMultitype] must be (true)
+    }            
+    "Serialization of XMultitype (from XUnion) has non-zero information content" in {
+      TestCoproductData.TestXMultitypeFromXUnion.serialize mustNot be (JObject(Nil))
     }
     
     "Deserialization of XField succeeds even when information is missing" in {

@@ -202,6 +202,14 @@ object TestSchemas {
         Map(),
         List(
           XDefinitionRef("XProduct", "net.liftweb.json.xschema"),
+          XDefinitionRef("XMultitype", "net.liftweb.json.xschema")
+        ),
+        j(""" { "XProduct": {} } """)
+      ),
+      XCoproduct(
+        "XMultitype", "net.liftweb.json.xschema",
+        Map(),
+        List(
           XDefinitionRef("XCoproduct", "net.liftweb.json.xschema"),
           XDefinitionRef("XUnion", "net.liftweb.json.xschema")
         ),
@@ -241,7 +249,9 @@ object TestSchemas {
           "xschema.doc" -> """A coproduct is a data structure that can assume one of N other types. 
                               These types must be either products, or other coproducts -- primitives
                               are not allowed because they cannot be mapped cleanly to most languages
-                              (see unions for a disjoint structure that allows primitives)."""
+                              (see unions for a disjoint structure that allows primitives). <p>
+                              Note that most languages cannot handle coproducts of unions.
+                              """
         ),
         List(
           XRealField("name",        Map(), XString, JString(""), XOrderAscending),
@@ -258,16 +268,17 @@ object TestSchemas {
         Map(
           "xschema.doc" -> """A union is a C-style union of N types -- referred to as terms. Unlike 
                               coproducts, unions have no effect on the type hierarchy of the specified 
-                              terms, and the terms may include primitive types. Although unions 
-                              have names and namespaces, most languages do not have explicit support 
-                              for union types, and in such cases, no entity will be generated for them,
-                              and they will be translated into the supertype of all the terms."""
+                              terms, and the terms may include primitive types, in addition to references
+                              to products, coproducts, and other unions. Although unions have names and 
+                              namespaces, most languages do not have explicit support for union types, 
+                              and in such cases, no entity will be generated for them; they will be 
+                              translated into the supertype of all the terms."""
         ),
         List(
           XRealField("name",        Map(), XString, JString(""), XOrderAscending),
           XRealField("namespace",   Map(), XString, JString(""), XOrderAscending),
           XRealField("properties",  Map(), XMap(XString, XString), j("""[]"""), XOrderAscending),
-          XRealField("terms",       Map(), XList(XDefinitionRef("XDefinitionRef", "net.liftweb.json.xschema")), j("""[]"""), XOrderAscending),
+          XRealField("terms",       Map(), XList(XDefinitionRef("XReference", "net.liftweb.json.xschema")), j("""[]"""), XOrderAscending),
           XRealField("default",     Map(), XJSON, JNothing, XOrderAscending),
           
           XViewField("referenceTo", Map(), XDefinitionRef("XDefinitionRef", "net.liftweb.json.xschema"))

@@ -399,8 +399,79 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   }
   
   private def buildExtractorsFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): CodeBuilder = {
+    def getExtractorFor(ref: XReference): String = {
+      def extractorForPrimitive(ref: XPrimitiveRef): String = "net.liftweb.json.xschema.DefaultExtractors." + (ref match {
+        case XString  => "StringExtractor"
+        case XInt     => "IntExtractor"
+        case XLong    => "LongExtractor"
+        case XFloat   => "FloatExtractor"
+        case XDouble  => "DoubleExtractor"
+        case XBoolean => "BooleanExtractor"
+        case XJSON    => "JValueExtractor"
+      })
+      def extractorForContainer(ref: XContainerRef): String = "net.liftweb.json.xschema.DefaultExtractors." + (ref match {
+        case x: XCollection => x match {
+          case x: XSet   => "SetExtractor(" + getExtractorFor(x.elementType) + ")"
+          case x: XList  => "ListExtractor(" + getExtractorFor(x.elementType) + ")"
+          case x: XArray => "ArrayExtractor(" + getExtractorFor(x.elementType) + ")"
+        }
+        
+        case x: XMap => "net.liftweb.json.xschema.DefaultExtractors.MapExtractor(" + getExtractorFor(x.keyType) + ", " + getExtractorFor(x.valueType) + ")"
+        case x: XTuple => "net.liftweb.json.xschema.DefaultExtractors.Tuple" + x.types.length + "Extractor(" + x.types.map(getExtractorFor _ ).mkString(", ") + ")"
+        case x: XOptional => "net.liftweb.json.xschema.DefaultExtractors.OptionExtractor(" + getExtractorFor(x.optionalType) + ")"
+      })
+      def extractorForDefinition(ref: XDefinitionRef): String = ref.namespace + ".Extractors." + ref.name + "Extractor"      
+      
+      ref match {
+        case x: XPrimitiveRef  => extractorForPrimitive(x)
+        case x: XContainerRef  => extractorForContainer(x)
+        case x: XDefinitionRef => extractorForDefinition(x)
+      }
+    }
+    
+    def buildMultitype(defn: XMultitype, terms: List[XReference]) = {
+      code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
+        code.add("private lazy val ${name}ExtractorFunction: PartialFunction[JField, ${type}] = (").block {
+          code.join(terms, code.newline) { term =>
+            code.add("""case JField("${subtypeName}", value) => ${extractor}.extract(value)""",
+              "extractor" -> getExtractorFor(term)
+            )
+          }
+        }.add(": PartialFunction[JField, ${type}])")
+        
+        val coproductTerms = database.resolve(terms).filter(_.isInstanceOf[XCoproduct]).map(_.asInstanceOf[XCoproduct])
+        
+        coproductTerms.foreach { term =>
+          code.add(".orElse(${namespace}.Extractors.${name}ExtractorFunction)",
+            "namespace" -> term.namespace,
+            "name"      -> term.name
+          )
+        }
+      
+        code.newline.add("""
+          implicit val ${name}Extractor: Extractor[${type}] = new Extractor[${type}] {
+            def extract(jvalue: JValue): ${type} = {
+              def extract0(jvalue: JValue): Option[${type}] = {
+                (jvalue --> classOf[JObject]).obj.filter(${name}ExtractorFunction.isDefinedAt _) match {
+                  case field :: fields => Some(${name}ExtractorFunction(field))
+                  case Nil => None
+                }
+              }
+              
+              extract0(jvalue) match {
+                case Some(v) => v
+                case None => extract0(${defaultJValue}) match {
+                  case Some(v) => v
+                  case None => error("Expected to find ${type}, but found " + jvalue + ", and default value was invalid")
+                }
+              }
+            }
+          }""", "defaultJValue" -> compact(renderScala(defn.default)))
+      }
+    }
+    
     code.newline(2).add("trait Extractors extends DefaultExtractors with ExtractionHelpers ").block {    
-      code.join(database.coproductsIn(namespace) ++ database.productsIn(namespace), code.newline.newline) { definition =>
+      code.join(database.definitionsIn(namespace), code.newline.newline) { definition =>
         definition match {
           case x: XProduct => 
             code.using("name" -> x.name, "type" -> typeSignatureOf(x.referenceTo, database)) {
@@ -426,45 +497,10 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
             }
           
           case x: XCoproduct =>
-            code.using("name" -> x.name, "type" -> typeSignatureOf(x.referenceTo, database)) {
-              code.add("private lazy val ${name}ExtractorFunction: PartialFunction[JField, ${type}] = (").block {
-                code.join(x.terms, code.newline) { typ =>
-                  code.add("""case JField("${subtypeName}", value) => ${subtypeString}.Extractors.${subtypeName}Extractor.extract(value)""",
-                    "subtypeName"   -> typ.name,
-                    "subtypeString" -> typ.namespace
-                  )
-                }
-              }.add(": PartialFunction[JField, ${type}])")
-              
-              val coproductTerms = database.resolve(x.terms).filter(_.isInstanceOf[XCoproduct]).map(_.asInstanceOf[XCoproduct])
-              
-              coproductTerms.foreach { term =>
-                code.add(".orElse(${namespace}.Extractors.${name}ExtractorFunction)",
-                  "namespace" -> term.namespace,
-                  "name"      -> term.name
-                )
-              }
+            buildMultitype(x, x.terms)
             
-              code.newline.add("""
-                implicit val ${name}Extractor: Extractor[${type}] = new Extractor[${type}] {
-                  def extract(jvalue: JValue): ${type} = {
-                    def extract0(jvalue: JValue): Option[${type}] = {
-                      (jvalue --> classOf[JObject]).obj.filter(${name}ExtractorFunction.isDefinedAt _) match {
-                        case field :: fields => Some(${name}ExtractorFunction(field))
-                        case Nil => None
-                      }
-                    }
-                    
-                    extract0(jvalue) match {
-                      case Some(v) => v
-                      case None => extract0(${defaultJValue}) match {
-                        case Some(v) => v
-                        case None => error("Expected to find ${type}, but found " + jvalue + ", and default value was invalid")
-                      }
-                    }
-                  }
-                }""", "defaultJValue" -> compact(renderScala(x.default)))
-            }
+          case x: XUnion =>
+            buildMultitype(x, x.terms)
         }
       }
     }
@@ -479,9 +515,7 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
             code.using("name" -> x.name, "type" -> typeSignatureOf(x.referenceTo, database)) {
               code.add("implicit val ${name}Decomposer: Decomposer[${type}] = new Decomposer[${type}] ").block {
                 code.add("def decompose(tvalue: ${type}): JValue = ").block {
-                  code.add("JObject").paren {      
-                    var isFirst = true
-      
+                  code.add("JObject").paren {  
                     code.join(x.realFields, code.newline) { field =>
                       code.add("JField(\"${fieldType}\", tvalue.${fieldType}.serialize) ::", "fieldType" -> field.name)
                     }
@@ -498,10 +532,10 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
                 code.add("def decompose(tvalue: ${type}): JValue = ").block {
                   code.add("tvalue match ").block {
                     code.join(x.terms, code.newline) { typ =>
-                      code.add("case x: ${productType} => JObject(JField(\"${productName}\", ${productString}.Decomposers.${productName}Decomposer.decompose(x)) :: Nil)",
+                      code.add("case x: ${productType} => JObject(JField(\"${productName}\", ${productNamespace}.Decomposers.${productName}Decomposer.decompose(x)) :: Nil)",
                         "productName"      -> typ.name,
                         "productType"      -> typeSignatureOf(typ, database),
-                        "productString" -> typ.namespace
+                        "productNamespace" -> typ.namespace
                       )
                     }
                   }
@@ -577,7 +611,7 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       // Storing the root as text is not efficient but ensures we do not run 
       // into method size limitations of the JVM (root can be quite large):
       if (includeSchemas) {
-        code.add("lazy val xschema: XRoot = net.liftweb.json.xschema.Extractors.XRootExtractor.extract(parse(\"\"\"" + compact(render(subroot.serialize)) + "\"\"\"))")
+        code.add("lazy val xschema: XRoot = net.liftweb.json.xschema.Extractors.XRootExtractor.extract(parse(\"\"\"" + compact(render(subroot.serialize)) + " \"\"\"))")
       }
     }
   }
@@ -629,6 +663,15 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
             data += (defn.namespace + "." + defn.name)
           }
 
+        case x: XUnion => 
+          val containsVals = x.terms.filter(_.isInstanceOf[XPrimitiveRef]).filter(_ != XJSON).length > 0
+          val containsRefs = x.terms.filter(_.isInstanceOf[XPrimitiveRef]).filter(_ != XJSON).length < x.terms.length
+          
+          val allRefs = containsRefs && !containsVals
+          val allVals = containsVals && !containsRefs
+          
+          data += (if (allRefs) "AnyRef" else if (allVals) "AnyVal" else "Any")
+          
         case _ => data += (defn.namespace + "." + defn.name)
       }
     }
