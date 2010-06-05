@@ -398,43 +398,53 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     case Some(doc) => code.add("/** ").wrap(doc.replaceAll("\\s+", " "), " * ", 80).newline.add(" */").newline
   }
   
-  private def buildExtractorsFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): CodeBuilder = {
-    def getExtractorFor(ref: XReference): String = {
-      def extractorForPrimitive(ref: XPrimitiveRef): String = "net.liftweb.json.xschema.DefaultExtractors." + (ref match {
-        case XString  => "StringExtractor"
-        case XInt     => "IntExtractor"
-        case XLong    => "LongExtractor"
-        case XFloat   => "FloatExtractor"
-        case XDouble  => "DoubleExtractor"
-        case XBoolean => "BooleanExtractor"
-        case XJSON    => "JValueExtractor"
-      })
-      def extractorForContainer(ref: XContainerRef): String = "net.liftweb.json.xschema.DefaultExtractors." + (ref match {
-        case x: XCollection => x match {
-          case x: XSet   => "SetExtractor(" + getExtractorFor(x.elementType) + ")"
-          case x: XList  => "ListExtractor(" + getExtractorFor(x.elementType) + ")"
-          case x: XArray => "ArrayExtractor(" + getExtractorFor(x.elementType) + ")"
-        }
-        
-        case x: XMap => "net.liftweb.json.xschema.DefaultExtractors.MapExtractor(" + getExtractorFor(x.keyType) + ", " + getExtractorFor(x.valueType) + ")"
-        case x: XTuple => "net.liftweb.json.xschema.DefaultExtractors.Tuple" + x.types.length + "Extractor(" + x.types.map(getExtractorFor _ ).mkString(", ") + ")"
-        case x: XOptional => "net.liftweb.json.xschema.DefaultExtractors.OptionExtractor(" + getExtractorFor(x.optionalType) + ")"
-      })
-      def extractorForDefinition(ref: XDefinitionRef): String = ref.namespace + ".Extractors." + ref.name + "Extractor"      
-      
-      ref match {
-        case x: XPrimitiveRef  => extractorForPrimitive(x)
-        case x: XContainerRef  => extractorForContainer(x)
-        case x: XDefinitionRef => extractorForDefinition(x)
-      }
+  def getTypeHintFor(ref: XReference): String = ref match {
+    case x: XPrimitiveRef => x match {
+      case XString  => "String"
+      case XInt     => "Int"
+      case XLong    => "Long"
+      case XFloat   => "Float"
+      case XDouble  => "Double"
+      case XBoolean => "Boolean"
+      case XJSON    => "JValue"
     }
     
-    def buildMultitype(defn: XMultitype, terms: List[XReference]) = {
+    case x: XContainerRef => x match {
+      case x: XCollection => x match {
+        case x: XSet   => "Set"
+        case x: XList  => "List"
+        case x: XArray => "Array"
+      }
+      
+      case x: XMap => "Map"
+      case x: XTuple => "Tuple" + x.types.length
+      case x: XOptional => "Option"
+    }
+    
+    case x: XDefinitionRef => x.name
+  }
+  
+  private def buildExtractorsFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): CodeBuilder = {    
+    def getExtractorFor(ref: XReference): String = ref match {
+      case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor"
+      
+      case x: XContainerRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor(" + (x match {
+        case x: XCollection => getExtractorFor(x.elementType)        
+        case x: XMap        => getExtractorFor(x.keyType) + ", " + getExtractorFor(x.valueType)
+        case x: XTuple      => x.types.map(getExtractorFor _ ).mkString(", ")
+        case x: XOptional   => getExtractorFor(x.optionalType)
+      }) + ")"
+      
+      case x: XDefinitionRef => x.namespace + ".Extractors." + getTypeHintFor(x) + "Extractor"
+    }
+    
+    def buildMultitypeExtractor(defn: XMultitype, terms: List[XReference]) = {
       code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
         code.add("private lazy val ${name}ExtractorFunction: PartialFunction[JField, ${type}] = (").block {
           code.join(terms, code.newline) { term =>
-            code.add("""case JField("${subtypeName}", value) => ${extractor}.extract(value)""",
-              "extractor" -> getExtractorFor(term)
+            code.add("""case JField("${typeHint}", value) => ${extractor}.extract(value)""",
+              "extractor" -> getExtractorFor(term),
+              "typeHint"  -> getTypeHintFor(term)
             )
           }
         }.add(": PartialFunction[JField, ${type}])")
@@ -497,10 +507,10 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
             }
           
           case x: XCoproduct =>
-            buildMultitype(x, x.terms)
+            buildMultitypeExtractor(x, x.terms)
             
           case x: XUnion =>
-            buildMultitype(x, x.terms)
+            buildMultitypeExtractor(x, x.terms)
         }
       }
     }
