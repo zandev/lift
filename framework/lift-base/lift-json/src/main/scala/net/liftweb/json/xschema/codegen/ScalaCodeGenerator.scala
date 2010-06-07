@@ -9,8 +9,13 @@ import _root_.net.liftweb.json.xschema.Serialization._
 
 import java.io.{Writer}
 
-object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
-  def generate(root: XRoot, destPathCode: String, destPathTests: String)(implicit writerF: String => Writer) = {
+
+object ScalaCodeGenerator extends CodeGeneratorCLI {
+  val generator = new BaseScalaCodeGenerator
+}
+
+class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
+  def generate(root: XRoot, destPathCode: String, destPathTests: String, writerF: String => Writer) = {
     val includeSchemas = root.properties.get(PredefinedProperties.XSchemaIncludeSchemas).map(_.toLowerCase).map { 
       case "true" => true
       case _ => false
@@ -31,8 +36,8 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       testBundle += toFile(namespace, "DataTest", "scala") -> test
     }
 
-    bundle.create(destPathCode)
-    testBundle.create(destPathTests)
+    bundle.create(destPathCode, writerF)
+    testBundle.create(destPathTests, writerF)
   }
   
   private def buildCodeFor(namespace: String, code: CodeBuilder, root: XRoot, database: XSchemaDatabase, includeSchemas: Boolean): Unit = {
