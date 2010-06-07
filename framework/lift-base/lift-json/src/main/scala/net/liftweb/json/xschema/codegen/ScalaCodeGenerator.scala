@@ -425,20 +425,20 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   }
   
   private def buildExtractorsFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): CodeBuilder = {    
-    def getExtractorFor(ref: XReference): String = ref match {
-      case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor"
-      
-      case x: XContainerRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor(" + (x match {
-        case x: XCollection => getExtractorFor(x.elementType)        
-        case x: XMap        => getExtractorFor(x.keyType) + ", " + getExtractorFor(x.valueType)
-        case x: XTuple      => x.types.map(getExtractorFor _ ).mkString(", ")
-        case x: XOptional   => getExtractorFor(x.optionalType)
-      }) + ")"
-      
-      case x: XDefinitionRef => x.namespace + ".Extractors." + getTypeHintFor(x) + "Extractor"
-    }
-    
     def buildMultitypeExtractor(defn: XMultitype, terms: List[XReference]) = {
+      def getExtractorFor(ref: XReference): String = ref match {
+        case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor"
+
+        case x: XContainerRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor(" + (x match {
+          case x: XCollection => getExtractorFor(x.elementType)        
+          case x: XMap        => getExtractorFor(x.keyType) + ", " + getExtractorFor(x.valueType)
+          case x: XTuple      => x.types.map(getExtractorFor _ ).mkString(", ")
+          case x: XOptional   => getExtractorFor(x.optionalType)
+        }) + ")"
+
+        case x: XDefinitionRef => x.namespace + ".Extractors." + getTypeHintFor(x) + "Extractor"
+      }
+      
       code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
         code.add("private lazy val ${name}ExtractorFunction: PartialFunction[JField, ${type}] = (").block {
           code.join(terms, code.newline) { term =>
@@ -518,8 +518,39 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   }
   
   private def buildDecomposersFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): Unit = {
+    def buildMultitypeDecomposer(defn: XMultitype, terms: List[XReference]) = {
+      def getDecomposerFor(ref: XReference): String = ref match {
+        case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer"
+
+        case x: XContainerRef  => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer(" + (x match {
+          case x: XCollection => getDecomposerFor(x.elementType)        
+          case x: XMap        => getDecomposerFor(x.keyType) + ", " + getDecomposerFor(x.valueType)
+          case x: XTuple      => x.types.map(getDecomposerFor _ ).mkString(", ")
+          case x: XOptional   => getDecomposerFor(x.optionalType)
+        }) + ")"
+
+        case x: XDefinitionRef => x.namespace + ".Decomposers." + getTypeHintFor(x) + "Decomposer"
+      }
+      
+      code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
+        code.add("implicit val ${name}Decomposer: Decomposer[${type}] = new Decomposer[${type}] ").block {
+          code.add("def decompose(tvalue: ${type}): JValue = ").block {
+            code.add("tvalue match ").block {
+              code.join(terms, code.newline) { term =>
+                code.add("case x: ${termType} => JObject(JField(\"${typeHint}\", ${decomposer}.decompose(x)) :: Nil)",
+                  "termType"   -> typeSignatureOf(term, database),
+                  "typeHint"   -> getTypeHintFor(term),
+                  "decomposer" -> getDecomposerFor(term)
+                )
+              }
+            }
+          }
+        }
+      }
+    }
+    
     code.newline(2).add("trait Decomposers extends DefaultDecomposers with DecomposerHelpers ").block {    
-      code.join(database.coproductsIn(namespace) ++ database.productsIn(namespace), code.newline.newline) { definition =>
+      code.join(database.definitionsIn(namespace), code.newline.newline) { definition =>
         definition match {
           case x: XProduct => 
             code.using("name" -> x.name, "type" -> typeSignatureOf(x.referenceTo, database)) {
@@ -536,22 +567,9 @@ object ScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
               }
             }
         
-          case x: XCoproduct =>
-            code.using("name" -> x.name, "type" -> typeSignatureOf(x.referenceTo, database)) {
-              code.add("implicit val ${name}Decomposer: Decomposer[${type}] = new Decomposer[${type}] ").block {
-                code.add("def decompose(tvalue: ${type}): JValue = ").block {
-                  code.add("tvalue match ").block {
-                    code.join(x.terms, code.newline) { typ =>
-                      code.add("case x: ${productType} => JObject(JField(\"${productName}\", ${productNamespace}.Decomposers.${productName}Decomposer.decompose(x)) :: Nil)",
-                        "productName"      -> typ.name,
-                        "productType"      -> typeSignatureOf(typ, database),
-                        "productNamespace" -> typ.namespace
-                      )
-                    }
-                  }
-                }
-              }
-            }
+          case x: XCoproduct => buildMultitypeDecomposer(x, x.terms)
+          
+          case x: XUnion => buildMultitypeDecomposer(x, x.terms)
         }
       }
     }

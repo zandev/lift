@@ -777,6 +777,16 @@ package net.liftweb.json.xschema {
   }
   
   trait Extractors extends DefaultExtractors with ExtractionHelpers {
+    implicit val XRootExtractor: Extractor[net.liftweb.json.xschema.XRoot] = new Extractor[net.liftweb.json.xschema.XRoot] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XRoot = {
+        XRoot(
+          extractField[List[net.liftweb.json.xschema.XDefinition]](jvalue, "definitions", JArray(Nil)),
+          extractField[List[net.liftweb.json.xschema.XConstant]](jvalue, "constants", JArray(Nil)),
+          extractField[Map[String, String]](jvalue, "properties", JArray(Nil))
+        )
+      }
+    }
+    
     private lazy val XSchemaExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XSchema] = ({
       case JField("XDefinition", value) => net.liftweb.json.xschema.Extractors.XDefinitionExtractor.extract(value)
       case JField("XReference", value) => net.liftweb.json.xschema.Extractors.XReferenceExtractor.extract(value)
@@ -879,6 +889,57 @@ package net.liftweb.json.xschema {
       }
     }
     
+    implicit val XDefinitionRefExtractor: Extractor[net.liftweb.json.xschema.XDefinitionRef] = new Extractor[net.liftweb.json.xschema.XDefinitionRef] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XDefinitionRef = {
+        XDefinitionRef(
+          extractField[String](jvalue, "name", JString("")),
+          extractField[String](jvalue, "namespace", JString(""))
+        )
+      }
+    }
+    
+    implicit val XBooleanExtractor: Extractor[net.liftweb.json.xschema.XBoolean.type] = new Extractor[net.liftweb.json.xschema.XBoolean.type] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XBoolean.type = {
+        XBoolean
+      }
+    }
+    
+    implicit val XIntExtractor: Extractor[net.liftweb.json.xschema.XInt.type] = new Extractor[net.liftweb.json.xschema.XInt.type] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XInt.type = {
+        XInt
+      }
+    }
+    
+    implicit val XLongExtractor: Extractor[net.liftweb.json.xschema.XLong.type] = new Extractor[net.liftweb.json.xschema.XLong.type] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XLong.type = {
+        XLong
+      }
+    }
+    
+    implicit val XFloatExtractor: Extractor[net.liftweb.json.xschema.XFloat.type] = new Extractor[net.liftweb.json.xschema.XFloat.type] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XFloat.type = {
+        XFloat
+      }
+    }
+    
+    implicit val XDoubleExtractor: Extractor[net.liftweb.json.xschema.XDouble.type] = new Extractor[net.liftweb.json.xschema.XDouble.type] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XDouble.type = {
+        XDouble
+      }
+    }
+    
+    implicit val XStringExtractor: Extractor[net.liftweb.json.xschema.XString.type] = new Extractor[net.liftweb.json.xschema.XString.type] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XString.type = {
+        XString
+      }
+    }
+    
+    implicit val XJSONExtractor: Extractor[net.liftweb.json.xschema.XJSON.type] = new Extractor[net.liftweb.json.xschema.XJSON.type] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XJSON.type = {
+        XJSON
+      }
+    }
+    
     private lazy val XCollectionExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XCollection] = ({
       case JField("XList", value) => net.liftweb.json.xschema.Extractors.XListExtractor.extract(value)
       case JField("XSet", value) => net.liftweb.json.xschema.Extractors.XSetExtractor.extract(value)
@@ -900,6 +961,55 @@ package net.liftweb.json.xschema {
             case None => error("Expected to find net.liftweb.json.xschema.XCollection, but found " + jvalue + ", and default value was invalid")
           }
         }
+      }
+    }
+    
+    implicit val XListExtractor: Extractor[net.liftweb.json.xschema.XList] = new Extractor[net.liftweb.json.xschema.XList] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XList = {
+        XList(
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "elementType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
+        )
+      }
+    }
+    
+    implicit val XSetExtractor: Extractor[net.liftweb.json.xschema.XSet] = new Extractor[net.liftweb.json.xschema.XSet] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XSet = {
+        XSet(
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "elementType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
+        )
+      }
+    }
+    
+    implicit val XArrayExtractor: Extractor[net.liftweb.json.xschema.XArray] = new Extractor[net.liftweb.json.xschema.XArray] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XArray = {
+        XArray(
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "elementType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
+        )
+      }
+    }
+    
+    implicit val XMapExtractor: Extractor[net.liftweb.json.xschema.XMap] = new Extractor[net.liftweb.json.xschema.XMap] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XMap = {
+        XMap(
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "keyType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil)),
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "valueType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
+        )
+      }
+    }
+    
+    implicit val XOptionalExtractor: Extractor[net.liftweb.json.xschema.XOptional] = new Extractor[net.liftweb.json.xschema.XOptional] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XOptional = {
+        XOptional(
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "optionalType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
+        )
+      }
+    }
+    
+    implicit val XTupleExtractor: Extractor[net.liftweb.json.xschema.XTuple] = new Extractor[net.liftweb.json.xschema.XTuple] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XTuple = {
+        XTuple(
+          extractField[List[net.liftweb.json.xschema.XReference]](jvalue, "types", JArray(Nil))
+        )
       }
     }
     
@@ -970,140 +1080,6 @@ package net.liftweb.json.xschema {
             case None => error("Expected to find net.liftweb.json.xschema.XField, but found " + jvalue + ", and default value was invalid")
           }
         }
-      }
-    }
-    
-    private lazy val XOrderExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XOrder] = ({
-      case JField("XOrderAscending", value) => net.liftweb.json.xschema.Extractors.XOrderAscendingExtractor.extract(value)
-      case JField("XOrderDescending", value) => net.liftweb.json.xschema.Extractors.XOrderDescendingExtractor.extract(value)
-      case JField("XOrderIgnore", value) => net.liftweb.json.xschema.Extractors.XOrderIgnoreExtractor.extract(value)
-    }: PartialFunction[JField, net.liftweb.json.xschema.XOrder])
-    implicit val XOrderExtractor: Extractor[net.liftweb.json.xschema.XOrder] = new Extractor[net.liftweb.json.xschema.XOrder] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XOrder = {
-        def extract0(jvalue: JValue): Option[net.liftweb.json.xschema.XOrder] = {
-          (jvalue --> classOf[JObject]).obj.filter(XOrderExtractorFunction.isDefinedAt _) match {
-            case field :: fields => Some(XOrderExtractorFunction(field))
-            case Nil => None
-          }
-        }
-        
-        extract0(jvalue) match {
-          case Some(v) => v
-          case None => extract0(JObject(JField("XOrderAscending",JObject(Nil))::Nil)) match {
-            case Some(v) => v
-            case None => error("Expected to find net.liftweb.json.xschema.XOrder, but found " + jvalue + ", and default value was invalid")
-          }
-        }
-      }
-    }
-    
-    implicit val XRootExtractor: Extractor[net.liftweb.json.xschema.XRoot] = new Extractor[net.liftweb.json.xschema.XRoot] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XRoot = {
-        XRoot(
-          extractField[List[net.liftweb.json.xschema.XDefinition]](jvalue, "definitions", JArray(Nil)),
-          extractField[List[net.liftweb.json.xschema.XConstant]](jvalue, "constants", JArray(Nil)),
-          extractField[Map[String, String]](jvalue, "properties", JArray(Nil))
-        )
-      }
-    }
-    
-    implicit val XDefinitionRefExtractor: Extractor[net.liftweb.json.xschema.XDefinitionRef] = new Extractor[net.liftweb.json.xschema.XDefinitionRef] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XDefinitionRef = {
-        XDefinitionRef(
-          extractField[String](jvalue, "name", JString("")),
-          extractField[String](jvalue, "namespace", JString(""))
-        )
-      }
-    }
-    
-    implicit val XBooleanExtractor: Extractor[net.liftweb.json.xschema.XBoolean.type] = new Extractor[net.liftweb.json.xschema.XBoolean.type] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XBoolean.type = {
-        XBoolean
-      }
-    }
-    
-    implicit val XIntExtractor: Extractor[net.liftweb.json.xschema.XInt.type] = new Extractor[net.liftweb.json.xschema.XInt.type] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XInt.type = {
-        XInt
-      }
-    }
-    
-    implicit val XLongExtractor: Extractor[net.liftweb.json.xschema.XLong.type] = new Extractor[net.liftweb.json.xschema.XLong.type] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XLong.type = {
-        XLong
-      }
-    }
-    
-    implicit val XFloatExtractor: Extractor[net.liftweb.json.xschema.XFloat.type] = new Extractor[net.liftweb.json.xschema.XFloat.type] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XFloat.type = {
-        XFloat
-      }
-    }
-    
-    implicit val XDoubleExtractor: Extractor[net.liftweb.json.xschema.XDouble.type] = new Extractor[net.liftweb.json.xschema.XDouble.type] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XDouble.type = {
-        XDouble
-      }
-    }
-    
-    implicit val XStringExtractor: Extractor[net.liftweb.json.xschema.XString.type] = new Extractor[net.liftweb.json.xschema.XString.type] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XString.type = {
-        XString
-      }
-    }
-    
-    implicit val XJSONExtractor: Extractor[net.liftweb.json.xschema.XJSON.type] = new Extractor[net.liftweb.json.xschema.XJSON.type] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XJSON.type = {
-        XJSON
-      }
-    }
-    
-    implicit val XListExtractor: Extractor[net.liftweb.json.xschema.XList] = new Extractor[net.liftweb.json.xschema.XList] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XList = {
-        XList(
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "elementType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
-        )
-      }
-    }
-    
-    implicit val XSetExtractor: Extractor[net.liftweb.json.xschema.XSet] = new Extractor[net.liftweb.json.xschema.XSet] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XSet = {
-        XSet(
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "elementType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
-        )
-      }
-    }
-    
-    implicit val XArrayExtractor: Extractor[net.liftweb.json.xschema.XArray] = new Extractor[net.liftweb.json.xschema.XArray] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XArray = {
-        XArray(
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "elementType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
-        )
-      }
-    }
-    
-    implicit val XMapExtractor: Extractor[net.liftweb.json.xschema.XMap] = new Extractor[net.liftweb.json.xschema.XMap] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XMap = {
-        XMap(
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "keyType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil)),
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "valueType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
-        )
-      }
-    }
-    
-    implicit val XOptionalExtractor: Extractor[net.liftweb.json.xschema.XOptional] = new Extractor[net.liftweb.json.xschema.XOptional] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XOptional = {
-        XOptional(
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "optionalType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
-        )
-      }
-    }
-    
-    implicit val XTupleExtractor: Extractor[net.liftweb.json.xschema.XTuple] = new Extractor[net.liftweb.json.xschema.XTuple] {
-      def extract(jvalue: JValue): net.liftweb.json.xschema.XTuple = {
-        XTuple(
-          extractField[List[net.liftweb.json.xschema.XReference]](jvalue, "types", JArray(Nil))
-        )
       }
     }
     
@@ -1187,6 +1163,30 @@ package net.liftweb.json.xschema {
       }
     }
     
+    private lazy val XOrderExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XOrder] = ({
+      case JField("XOrderAscending", value) => net.liftweb.json.xschema.Extractors.XOrderAscendingExtractor.extract(value)
+      case JField("XOrderDescending", value) => net.liftweb.json.xschema.Extractors.XOrderDescendingExtractor.extract(value)
+      case JField("XOrderIgnore", value) => net.liftweb.json.xschema.Extractors.XOrderIgnoreExtractor.extract(value)
+    }: PartialFunction[JField, net.liftweb.json.xschema.XOrder])
+    implicit val XOrderExtractor: Extractor[net.liftweb.json.xschema.XOrder] = new Extractor[net.liftweb.json.xschema.XOrder] {
+      def extract(jvalue: JValue): net.liftweb.json.xschema.XOrder = {
+        def extract0(jvalue: JValue): Option[net.liftweb.json.xschema.XOrder] = {
+          (jvalue --> classOf[JObject]).obj.filter(XOrderExtractorFunction.isDefinedAt _) match {
+            case field :: fields => Some(XOrderExtractorFunction(field))
+            case Nil => None
+          }
+        }
+        
+        extract0(jvalue) match {
+          case Some(v) => v
+          case None => extract0(JObject(JField("XOrderAscending",JObject(Nil))::Nil)) match {
+            case Some(v) => v
+            case None => error("Expected to find net.liftweb.json.xschema.XOrder, but found " + jvalue + ", and default value was invalid")
+          }
+        }
+      }
+    }
+    
     implicit val XOrderAscendingExtractor: Extractor[net.liftweb.json.xschema.XOrderAscending.type] = new Extractor[net.liftweb.json.xschema.XOrderAscending.type] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XOrderAscending.type = {
         XOrderAscending
@@ -1208,6 +1208,16 @@ package net.liftweb.json.xschema {
   object Extractors extends Extractors
   
   trait Decomposers extends DefaultDecomposers with DecomposerHelpers {
+    implicit val XRootDecomposer: Decomposer[net.liftweb.json.xschema.XRoot] = new Decomposer[net.liftweb.json.xschema.XRoot] {
+      def decompose(tvalue: net.liftweb.json.xschema.XRoot): JValue = {
+        JObject(
+          JField("definitions", tvalue.definitions.serialize) ::
+          JField("constants", tvalue.constants.serialize) ::
+          JField("properties", tvalue.properties.serialize) :: Nil
+        )
+      }
+    }
+    
     implicit val XSchemaDecomposer: Decomposer[net.liftweb.json.xschema.XSchema] = new Decomposer[net.liftweb.json.xschema.XSchema] {
       def decompose(tvalue: net.liftweb.json.xschema.XSchema): JValue = {
         tvalue match {
@@ -1251,64 +1261,6 @@ package net.liftweb.json.xschema {
           case x: net.liftweb.json.xschema.XOptional => JObject(JField("XOptional", net.liftweb.json.xschema.Decomposers.XOptionalDecomposer.decompose(x)) :: Nil)
           case x: net.liftweb.json.xschema.XTuple => JObject(JField("XTuple", net.liftweb.json.xschema.Decomposers.XTupleDecomposer.decompose(x)) :: Nil)
         }
-      }
-    }
-    
-    implicit val XCollectionDecomposer: Decomposer[net.liftweb.json.xschema.XCollection] = new Decomposer[net.liftweb.json.xschema.XCollection] {
-      def decompose(tvalue: net.liftweb.json.xschema.XCollection): JValue = {
-        tvalue match {
-          case x: net.liftweb.json.xschema.XList => JObject(JField("XList", net.liftweb.json.xschema.Decomposers.XListDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XSet => JObject(JField("XSet", net.liftweb.json.xschema.Decomposers.XSetDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XArray => JObject(JField("XArray", net.liftweb.json.xschema.Decomposers.XArrayDecomposer.decompose(x)) :: Nil)
-        }
-      }
-    }
-    
-    implicit val XDefinitionDecomposer: Decomposer[net.liftweb.json.xschema.XDefinition] = new Decomposer[net.liftweb.json.xschema.XDefinition] {
-      def decompose(tvalue: net.liftweb.json.xschema.XDefinition): JValue = {
-        tvalue match {
-          case x: net.liftweb.json.xschema.XProduct => JObject(JField("XProduct", net.liftweb.json.xschema.Decomposers.XProductDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XMultitype => JObject(JField("XMultitype", net.liftweb.json.xschema.Decomposers.XMultitypeDecomposer.decompose(x)) :: Nil)
-        }
-      }
-    }
-    
-    implicit val XMultitypeDecomposer: Decomposer[net.liftweb.json.xschema.XMultitype] = new Decomposer[net.liftweb.json.xschema.XMultitype] {
-      def decompose(tvalue: net.liftweb.json.xschema.XMultitype): JValue = {
-        tvalue match {
-          case x: net.liftweb.json.xschema.XCoproduct => JObject(JField("XCoproduct", net.liftweb.json.xschema.Decomposers.XCoproductDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XUnion => JObject(JField("XUnion", net.liftweb.json.xschema.Decomposers.XUnionDecomposer.decompose(x)) :: Nil)
-        }
-      }
-    }
-    
-    implicit val XFieldDecomposer: Decomposer[net.liftweb.json.xschema.XField] = new Decomposer[net.liftweb.json.xschema.XField] {
-      def decompose(tvalue: net.liftweb.json.xschema.XField): JValue = {
-        tvalue match {
-          case x: net.liftweb.json.xschema.XRealField => JObject(JField("XRealField", net.liftweb.json.xschema.Decomposers.XRealFieldDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XViewField => JObject(JField("XViewField", net.liftweb.json.xschema.Decomposers.XViewFieldDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XConstantField => JObject(JField("XConstantField", net.liftweb.json.xschema.Decomposers.XConstantFieldDecomposer.decompose(x)) :: Nil)
-        }
-      }
-    }
-    
-    implicit val XOrderDecomposer: Decomposer[net.liftweb.json.xschema.XOrder] = new Decomposer[net.liftweb.json.xschema.XOrder] {
-      def decompose(tvalue: net.liftweb.json.xschema.XOrder): JValue = {
-        tvalue match {
-          case x: net.liftweb.json.xschema.XOrderAscending.type => JObject(JField("XOrderAscending", net.liftweb.json.xschema.Decomposers.XOrderAscendingDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XOrderDescending.type => JObject(JField("XOrderDescending", net.liftweb.json.xschema.Decomposers.XOrderDescendingDecomposer.decompose(x)) :: Nil)
-          case x: net.liftweb.json.xschema.XOrderIgnore.type => JObject(JField("XOrderIgnore", net.liftweb.json.xschema.Decomposers.XOrderIgnoreDecomposer.decompose(x)) :: Nil)
-        }
-      }
-    }
-    
-    implicit val XRootDecomposer: Decomposer[net.liftweb.json.xschema.XRoot] = new Decomposer[net.liftweb.json.xschema.XRoot] {
-      def decompose(tvalue: net.liftweb.json.xschema.XRoot): JValue = {
-        JObject(
-          JField("definitions", tvalue.definitions.serialize) ::
-          JField("constants", tvalue.constants.serialize) ::
-          JField("properties", tvalue.properties.serialize) :: Nil
-        )
       }
     }
     
@@ -1377,6 +1329,16 @@ package net.liftweb.json.xschema {
       }
     }
     
+    implicit val XCollectionDecomposer: Decomposer[net.liftweb.json.xschema.XCollection] = new Decomposer[net.liftweb.json.xschema.XCollection] {
+      def decompose(tvalue: net.liftweb.json.xschema.XCollection): JValue = {
+        tvalue match {
+          case x: net.liftweb.json.xschema.XList => JObject(JField("XList", net.liftweb.json.xschema.Decomposers.XListDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XSet => JObject(JField("XSet", net.liftweb.json.xschema.Decomposers.XSetDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XArray => JObject(JField("XArray", net.liftweb.json.xschema.Decomposers.XArrayDecomposer.decompose(x)) :: Nil)
+        }
+      }
+    }
+    
     implicit val XListDecomposer: Decomposer[net.liftweb.json.xschema.XList] = new Decomposer[net.liftweb.json.xschema.XList] {
       def decompose(tvalue: net.liftweb.json.xschema.XList): JValue = {
         JObject(
@@ -1423,6 +1385,34 @@ package net.liftweb.json.xschema {
         JObject(
           JField("types", tvalue.types.serialize) :: Nil
         )
+      }
+    }
+    
+    implicit val XDefinitionDecomposer: Decomposer[net.liftweb.json.xschema.XDefinition] = new Decomposer[net.liftweb.json.xschema.XDefinition] {
+      def decompose(tvalue: net.liftweb.json.xschema.XDefinition): JValue = {
+        tvalue match {
+          case x: net.liftweb.json.xschema.XProduct => JObject(JField("XProduct", net.liftweb.json.xschema.Decomposers.XProductDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XMultitype => JObject(JField("XMultitype", net.liftweb.json.xschema.Decomposers.XMultitypeDecomposer.decompose(x)) :: Nil)
+        }
+      }
+    }
+    
+    implicit val XMultitypeDecomposer: Decomposer[net.liftweb.json.xschema.XMultitype] = new Decomposer[net.liftweb.json.xschema.XMultitype] {
+      def decompose(tvalue: net.liftweb.json.xschema.XMultitype): JValue = {
+        tvalue match {
+          case x: net.liftweb.json.xschema.XCoproduct => JObject(JField("XCoproduct", net.liftweb.json.xschema.Decomposers.XCoproductDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XUnion => JObject(JField("XUnion", net.liftweb.json.xschema.Decomposers.XUnionDecomposer.decompose(x)) :: Nil)
+        }
+      }
+    }
+    
+    implicit val XFieldDecomposer: Decomposer[net.liftweb.json.xschema.XField] = new Decomposer[net.liftweb.json.xschema.XField] {
+      def decompose(tvalue: net.liftweb.json.xschema.XField): JValue = {
+        tvalue match {
+          case x: net.liftweb.json.xschema.XRealField => JObject(JField("XRealField", net.liftweb.json.xschema.Decomposers.XRealFieldDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XViewField => JObject(JField("XViewField", net.liftweb.json.xschema.Decomposers.XViewFieldDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XConstantField => JObject(JField("XConstantField", net.liftweb.json.xschema.Decomposers.XConstantFieldDecomposer.decompose(x)) :: Nil)
+        }
       }
     }
     
@@ -1503,6 +1493,16 @@ package net.liftweb.json.xschema {
           JField("fieldType", tvalue.fieldType.serialize) ::
           JField("default", tvalue.default.serialize) :: Nil
         )
+      }
+    }
+    
+    implicit val XOrderDecomposer: Decomposer[net.liftweb.json.xschema.XOrder] = new Decomposer[net.liftweb.json.xschema.XOrder] {
+      def decompose(tvalue: net.liftweb.json.xschema.XOrder): JValue = {
+        tvalue match {
+          case x: net.liftweb.json.xschema.XOrderAscending.type => JObject(JField("XOrderAscending", net.liftweb.json.xschema.Decomposers.XOrderAscendingDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XOrderDescending.type => JObject(JField("XOrderDescending", net.liftweb.json.xschema.Decomposers.XOrderDescendingDecomposer.decompose(x)) :: Nil)
+          case x: net.liftweb.json.xschema.XOrderIgnore.type => JObject(JField("XOrderIgnore", net.liftweb.json.xschema.Decomposers.XOrderIgnoreDecomposer.decompose(x)) :: Nil)
+        }
       }
     }
     
