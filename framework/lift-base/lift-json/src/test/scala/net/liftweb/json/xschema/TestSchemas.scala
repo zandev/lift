@@ -213,7 +213,7 @@ object TestSchemas {
           XDefinitionRef("XCoproduct", "net.liftweb.json.xschema"),
           XDefinitionRef("XUnion", "net.liftweb.json.xschema")
         ),
-        j(""" { "XProduct": {} } """)
+        j(""" { "XCoproduct": {} } """)
       ),
       XCoproduct(
         "XField", "net.liftweb.json.xschema",
@@ -272,7 +272,8 @@ object TestSchemas {
                               to products, coproducts, and other unions. Although unions have names and 
                               namespaces, most languages do not have explicit support for union types, 
                               and in such cases, no entity will be generated for them; they will be 
-                              translated into the supertype of all the terms."""
+                              translated into the supertype of all the terms. <p>Some code generators 
+                              may not be able to handle unions or coproducts that contain unions."""
         ),
         List(
           XRealField("name",        Map(), XString, JString(""), XOrderAscending),
