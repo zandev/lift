@@ -1,0 +1,159 @@
+{
+    "definitions": [{
+        "XProduct": {
+            "name": "Project",
+            "namespace": "ser",
+            "terms": [{
+                "XRealField": {
+                    "name": "name",
+                    "fieldType": {
+                        "XPrimitiveRef": {
+                            "XString": {
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "XRealField": {
+                    "name": "startDate",
+                    "fieldType": {
+                        "XPrimitiveRef": {
+                            "XString": {
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "XRealField": {
+                    "name": "lang",
+                    "fieldType": {
+                        "XContainerRef": {
+                            "XOptional": {
+                                "optionalType": {
+                                    "XDefinitionRef": {
+                                        "name": "Language",
+                                        "namespace": "ser"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "XRealField": {
+                    "name": "teams",
+                    "fieldType": {
+                        "XContainerRef": {
+                            "XCollection": {
+                                "XList": {
+                                    "elementType": {
+                                      "XDefinitionRef": {
+                                          "name": "Team",
+                                          "namespace": "ser"
+                                      }
+                                   }
+                                }
+                            }
+                        }
+                    }
+                }
+            }]
+        }
+    },
+    {
+        "XProduct": {
+            "name": "Language",
+            "namespace": "ser",
+            "terms": [{
+                "XRealField": {
+                    "name": "name",
+                    "fieldType": {
+                        "XPrimitiveRef": {
+                            "XString": {
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "XRealField": {
+                    "name": "version",
+                    "fieldType": {
+                        "XPrimitiveRef": {
+                            "XDouble": {
+                            }
+                        }
+                    }
+                }
+            }]
+        }
+    },
+    {
+        "XProduct": {
+            "name": "Team",
+            "namespace": "ser",
+            "terms": [{
+                "XRealField": {
+                    "name": "role",
+                    "fieldType": {
+                        "XPrimitiveRef": {
+                            "XString": {
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "XRealField": {
+                    "name": "members",
+                    "fieldType": {
+                        "XContainerRef": {
+                            "XCollection": {
+                                "XList": {
+                                    "elementType": {
+                                      "XDefinitionRef": {
+                                          "name": "Employee",
+                                          "namespace": "ser"
+                                      }
+                                   }
+                                }
+                            }
+                        }
+                    }
+                }
+            }]
+        }
+    },
+    {
+        "XProduct": {
+            "name": "Employee",
+            "namespace": "ser",
+            "terms": [{
+                "XRealField": {
+                    "name": "name",
+                    "fieldType": {
+                        "XPrimitiveRef": {
+                            "XString": {
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "XRealField": {
+                    "name": "experience",
+                    "fieldType": {
+                        "XPrimitiveRef": {
+                            "XInt": {
+                            }
+                        }
+                    }
+                }
+            }]
+        }
+    }],
+    "constants": []
+}
