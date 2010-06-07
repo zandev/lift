@@ -9,7 +9,7 @@ class LiftJson(info: ProjectInfo) extends DefaultProject(info) {
   val specs      = "org.scala-tools.testing" % "specs" % "1.6.1" % "test"
   val scalacheck = "org.scala-tools.testing" % "scalacheck" % "1.6" % "test"
 
-  override def crossScalaVersions = List("2.7.7", "2.8.0.Beta1-RC1")
+  override def crossScalaVersions = List("2.7.7", "2.8.0.RC3")
 
   val DefaultXSchemaFileName = "xschema.json"
   val DefaultGeneratedSourcesDirectoryName = "main"
