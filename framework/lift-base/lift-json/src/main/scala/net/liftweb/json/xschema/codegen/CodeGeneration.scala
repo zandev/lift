@@ -5,7 +5,7 @@ import _root_.net.liftweb.json.xschema.{XRoot}
 import _root_.net.liftweb.json.xschema.Serialization._
 
 import java.lang.StringBuilder
-import java.io.{Writer}
+import java.io._
 
 import scala.collection.mutable.{Map => MutableMap}
 
@@ -217,7 +217,7 @@ case class CodeBundle(fileToCG: MutableMap[String, CodeBuilder]) {
     fileToCG += file -> (oldCG += newCG)
   }
   
-  def create(root: String)(implicit writerF: String => Writer) = {
+  def create(root: String, writerF: String => Writer) = {
     for ((file, cg) <- fileToCG) {
       val absPath = root + "/" + file
       
@@ -250,9 +250,32 @@ trait CodeGeneratorHelpers {
   def toFile(ns: String, name: String, extension: String): String = toDirectory(ns) + name + "." + extension
 }
 
-trait CodeGenerator {
-  def generate(root: XRoot, destPathCode: String, destPathTests: String)(implicit writerF: String => Writer)
-  
+abstract class CodeGenerator {
+  def generate(root: XRoot, destCodePath: String, destTestsPath: String, writerF: String => Writer)
+
+  def generateFromFiles(xschemaFiles: Array[String], destCodePath: String, destTestsPath: String) {
+    def using[T <: Closeable, S](c: => T)(f: T => S): S = { val resource = c; try { f(resource) } finally { resource.close } }
+    def load(file: String): XRoot = using(new InputStreamReader(new FileInputStream(file))) {
+      r => JsonParser.parse(r).deserialize[XRoot]
+    }
+        
+    val root = xschemaFiles.map(load).foldLeft(XRoot(Nil, Nil, Map())) { (accum, part) =>
+      XRoot(accum.definitions ++ part.definitions, accum.constants ++ part.constants, accum.properties ++ part.properties)
+    }
+
+    def writer(s: String) = {
+      val outFile = new File(s)
+      outFile.getParentFile.mkdirs
+      new FileWriter(outFile)
+    }
+        
+    generate(root, destCodePath, destTestsPath, writer _)
+  }
+}
+
+trait CodeGeneratorCLI {
+  val generator: CodeGenerator
+
   def main(args: Array[String]) {
     import java.io._
     
@@ -264,18 +287,8 @@ trait CodeGenerator {
         val destCodePath  = args(0)
         val destTestsPath = args(1)
         val xschemaFiles  = args.toList.drop(2)
-        
-        def using[T <: Closeable, S](c: => T)(f: T => S): S = { val resource = c; try { f(resource) } finally { resource.close } }
-        def load(file: String): String = using(new DataInputStream(new FileInputStream(file))) { _.readUTF }
-        
-        val root = xschemaFiles.map { f => JsonParser.parse(load(f)).deserialize[XRoot] }.foldLeft(XRoot(Nil, Nil, Map())) { (accum, part) => 
-          XRoot(accum.definitions ++ part.definitions, accum.constants ++ part.constants, accum.properties ++ part.properties)
-        }
-        
-        implicit def writerF(file: String): Writer = new FileWriter(file)
-        
-        generate(root, destCodePath, destTestsPath)
-        
+       
+        generator.generateFromFiles(xschemaFiles.toArray, destCodePath, destTestsPath)
         println("Successfully generated code at " + destCodePath + " and tests at " + destTestsPath)
         
         System.exit(0)
