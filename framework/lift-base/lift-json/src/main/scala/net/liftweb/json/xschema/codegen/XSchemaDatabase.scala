@@ -21,11 +21,11 @@ trait XSchemaDatabase extends Iterable[XSchema] {
     XSchemaValidation(warnings, errors)
   }
   
-  def findProductTerms(x: XCoproduct): List[XProduct] = resolve(x.terms).flatMap {
+  def findProductTerms(x: XCoproduct): List[XProduct] = (resolve(x.terms).flatMap {
     case x: XProduct   => x :: Nil
     case x: XCoproduct => findProductTerms(x)
     case _ => Nil
-  }
+  }).removeDuplicates
   
   /** Attempts to find the definition for the specified reference.
    */
