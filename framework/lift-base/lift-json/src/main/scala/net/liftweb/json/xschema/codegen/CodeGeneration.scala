@@ -1,5 +1,7 @@
 package net.liftweb.json.xschema.codegen
 
+import _root_.net.liftweb.json.JsonDSL._
+import _root_.net.liftweb.json.JsonAST._
 import _root_.net.liftweb.json.JsonParser
 import _root_.net.liftweb.json.xschema.{XRoot}
 import _root_.net.liftweb.json.xschema.Serialization._
@@ -250,10 +252,21 @@ trait CodeGeneratorHelpers {
   def toFile(ns: String, name: String, extension: String): String = toDirectory(ns) + name + "." + extension
 }
 
+object CodeGenerator {
+  def using[T <: Closeable, S](c: => T)(f: T => S): S = { val resource = c; try { f(resource) } finally { resource.close } }
+
+  def writer(s: String) = {
+    val outFile = new File(s)
+    outFile.getParentFile.mkdirs
+    new FileWriter(outFile)
+  }
+}
+
 abstract class CodeGenerator {
+  import CodeGenerator._
   def generate(root: XRoot, destCodePath: String, destTestsPath: String, namespaces: List[String], writerF: String => Writer)
 
-  def generateFromFiles(xschemaFiles: Array[String], destCodePath: String, destTestsPath: String, namespaces: List[String]) {
+  def generateFromFiles(xschemaFiles: Array[String], destCodePath: String, destTestsPath: String, namespaces: Array[String]) {
     def using[T <: Closeable, S](c: => T)(f: T => S): S = { val resource = c; try { f(resource) } finally { resource.close } }
     def load(file: String): XRoot = using(new InputStreamReader(new FileInputStream(file))) {
       r => JsonParser.parse(r).deserialize[XRoot]
@@ -263,13 +276,13 @@ abstract class CodeGenerator {
       XRoot(accum.definitions ++ part.definitions, accum.constants ++ part.constants, accum.properties ++ part.properties)
     }
 
-    def writer(s: String) = {
-      val outFile = new File(s)
-      outFile.getParentFile.mkdirs
-      new FileWriter(outFile)
+    generate(root, destCodePath, destTestsPath, namespaces.toList, writer _)
+  }
+
+  def generateXSchema(root: XRoot, destSchemaPath: String) {
+    using(new PrintWriter(writer(destSchemaPath))) {
+      out => out.print(pretty(render(root.serialize))) 
     }
-        
-    generate(root, destCodePath, destTestsPath, namespaces, writer _)
   }
 }
 
@@ -296,7 +309,7 @@ trait CodeGeneratorCLI {
         val destCodePath  = codeDir.get
         val destTestsPath = testsDir.get
        
-        generator.generateFromFiles(xschemaFiles.toArray, destCodePath, destTestsPath, namespace.toList)
+        generator.generateFromFiles(xschemaFiles.toArray, destCodePath, destTestsPath, namespace.toList.toArray)
         println("Successfully generated code at " + destCodePath + " and tests at " + destTestsPath)
         
         System.exit(0)

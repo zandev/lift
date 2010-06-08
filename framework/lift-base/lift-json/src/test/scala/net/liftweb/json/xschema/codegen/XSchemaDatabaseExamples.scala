@@ -12,7 +12,7 @@ object XSchemaDatabaseExamples extends Specification {
   import _root_.net.liftweb.json.JsonParser._
   import _root_.net.liftweb.json.xschema._
   import _root_.net.liftweb.json.xschema.DefaultSerialization._
-  import _root_.net.liftweb.json.xschema.TestSchemas._
+  import _root_.net.liftweb.json.xschema.SampleSchemas._
   
   "Common primitive fields in products of a coproduct are identified" in {
     val db = XSchemaDatabase(DataSocialGenderSchema)

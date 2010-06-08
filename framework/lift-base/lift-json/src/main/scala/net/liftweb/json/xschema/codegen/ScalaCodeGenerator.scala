@@ -122,7 +122,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   private def buildSerializationTestFor(namespace: String, code: CodeBuilder, root: XRoot, database: XSchemaDatabase, includeSchemas: Boolean): Unit = {
     // For every product we generate some test data constructed by 
     // deserializing the product from nothing:
-    code.newline.add("object TestProductData ").block {
+    code.newline.add("object ProductTestData ").block {
       code.join(database.productsIn(namespace), code.newline.newline) { defn =>
         code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
           defn match { 
@@ -145,19 +145,19 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
           code.add("""
             "Deserialization of ${name} succeeds even when information is missing" in {
-              TestProductData.Test${name}.isInstanceOf[${type}] must be (true)
+              ProductTestData.Test${name}.isInstanceOf[${type}] must be (true)
             }""").newline
           
           if (defn.isSingleton) {
             code.add("""
               "Serialization of ${name} has non-zero information content" in {
-                Decomposers.${name}Decomposer.decompose(TestProductData.Test${name}) mustNot be (JObject(Nil))
+                Decomposers.${name}Decomposer.decompose(ProductTestData.Test${name}) mustNot be (JObject(Nil))
               }""")
           }
           else {
             code.add("""
               "Serialization of ${name} has non-zero information content" in {
-                TestProductData.Test${name}.serialize mustNot be (JObject(Nil))
+                ProductTestData.Test${name}.serialize mustNot be (JObject(Nil))
               }
             """)
           }
@@ -167,13 +167,13 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     
     // For every coproduct we generate some test data constructed by 
     // deserializing every product which is type-compatible with the coproduct:
-    code.newline.add("object TestCoproductData ").block {
+    code.newline.add("object CoproductTestData ").block {
       code.join(database.coproductsIn(namespace), code.newline.newline) { defn =>
         code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
           code.addln("""lazy val Test${name}: ${type} = JObject(Nil).deserialize[${type}]""")
           
           code.join(database.findProductTerms(defn), code.newline) { product =>   
-            code.add("""lazy val Test${name}From${productName}: ${type} = JObject(JField("${productName}", ${productNamespace}.Decomposers.${productName}Decomposer.decompose(${productNamespace}.TestProductData.Test${productName})) :: Nil).deserialize[${type}]""",
+            code.add("""lazy val Test${name}From${productName}: ${type} = JObject(JField("${productName}", ${productNamespace}.Decomposers.${productName}Decomposer.decompose(${productNamespace}.ProductTestData.Test${productName})) :: Nil).deserialize[${type}]""",
               "productName"      -> product.name,
               "productNamespace" -> product.namespace
             )
@@ -189,20 +189,20 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
           code.add("""
             "Deserialization of ${name} succeeds even when information is missing" in {
-              TestCoproductData.Test${name}.isInstanceOf[${type}] must be (true)
+              CoproductTestData.Test${name}.isInstanceOf[${type}] must be (true)
             }            
             "Serialization of ${name} has non-zero information content" in {
-              TestCoproductData.Test${name}.serialize mustNot be (JObject(Nil))
+              CoproductTestData.Test${name}.serialize mustNot be (JObject(Nil))
             }
           """).newline
           
           code.join(database.findProductTerms(defn), code.newline) { product =>   
             code.add("""
               "Deserialization of ${name} (from ${productName}) succeeds" in {
-                TestCoproductData.Test${name}From${productName}.isInstanceOf[${type}] must be (true)
+                CoproductTestData.Test${name}From${productName}.isInstanceOf[${type}] must be (true)
               }            
               "Serialization of ${name} (from ${productName}) has non-zero information content" in {
-                TestCoproductData.Test${name}From${productName}.serialize mustNot be (JObject(Nil))
+                CoproductTestData.Test${name}From${productName}.serialize mustNot be (JObject(Nil))
               }""",
               "productName" -> product.name
             )
