@@ -22,7 +22,7 @@ class DefaultSerializationExamplesTest extends Runner(DefaultSerializationExampl
 object DefaultSerializationExamples extends Specification {
   import _root_.net.liftweb.json.JsonAST._
   
-  import Serialization._
+  import DefaultSerialization._
   
   "Primitives can be extracted from strings" in {
     IntExtractor(JString("12")) mustEqual 12

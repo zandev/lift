@@ -183,7 +183,7 @@ trait DefaultExtractors {
 }
 object DefaultExtractors extends DefaultExtractors
 
-trait ExtractionHelpers {
+trait ExtractorHelpers {
   protected def extractField[T](jvalue: JValue, name: String, default: JValue)(e: Extractor[T]): T = {
     try {
       e.extract((jvalue \ name -->? classOf[JField]).map(_.value).getOrElse(default))
@@ -193,7 +193,7 @@ trait ExtractionHelpers {
     }
   }
 }
-object ExtractionHelpers extends ExtractionHelpers
+object ExtractorHelpers extends ExtractorHelpers
 
 /**
  * Decomposers for all basic types.
@@ -378,7 +378,7 @@ trait DefaultOrderings {
 }
 object DefaultOrderings extends DefaultOrderings
 
-object DefaultSerialization extends SerializationImplicits with DefaultExtractors with DefaultDecomposers with DefaultOrderings {
+object DefaultSerialization extends DefaultExtractors with DefaultDecomposers with DefaultOrderings with SerializationImplicits {
 }
 
 }

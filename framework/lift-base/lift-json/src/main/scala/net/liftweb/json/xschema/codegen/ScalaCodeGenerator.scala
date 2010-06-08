@@ -50,7 +50,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
            addln("import net.liftweb.json.JsonAST._")
            
       if (namespace != "net.liftweb.json.xschema") {
-        code.addln("import net.liftweb.json.xschema.{SerializationImplicits, Extractor, ExtractionHelpers, Decomposer, DecomposerHelpers, DefaultExtractors, DefaultDecomposers, DefaultOrderings}")
+        code.addln("import net.liftweb.json.xschema.{SerializationImplicits, Extractor, ExtractorHelpers, Decomposer, DecomposerHelpers}")
         
         if (includeSchemas) {
           code.addln("import net.liftweb.json.xschema.{XRoot, XProduct, XCoproduct, XSchemaDerived}")
@@ -122,16 +122,16 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   private def buildSerializationTestFor(namespace: String, code: CodeBuilder, root: XRoot, database: XSchemaDatabase, includeSchemas: Boolean): Unit = {
     // For every product we generate some test data constructed by 
     // deserializing the product from nothing:
-    code.newline.add("object TestProductData ").block {
+    code.newline.add("object ExampleProductData ").block {
       code.join(database.productsIn(namespace), code.newline.newline) { defn =>
         code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
           defn match { 
             case x: XProduct if (x.isSingleton) => 
               // Due to apparent bug in Scala compiler (implicits for singleton types), we must treat this case specially:
-              code.add("lazy val Test${name}: ${type} = Extractors.${name}Extractor.extract(JObject(Nil))")
+              code.add("lazy val Example${name}: ${type} = Extractors.${name}Extractor.extract(JObject(Nil))")
           
             case x: XProduct => 
-              code.add("lazy val Test${name}: ${type} = JObject(Nil).deserialize[${type}]")
+              code.add("lazy val Example${name}: ${type} = JObject(Nil).deserialize[${type}]")
           }
         }
       }
@@ -145,19 +145,19 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
           code.add("""
             "Deserialization of ${name} succeeds even when information is missing" in {
-              TestProductData.Test${name}.isInstanceOf[${type}] must be (true)
+              ExampleProductData.Example${name}.isInstanceOf[${type}] must be (true)
             }""").newline
           
           if (defn.isSingleton) {
             code.add("""
               "Serialization of ${name} has non-zero information content" in {
-                Decomposers.${name}Decomposer.decompose(TestProductData.Test${name}) mustNot be (JObject(Nil))
+                Decomposers.${name}Decomposer.decompose(ExampleProductData.Example${name}) mustNot be (JObject(Nil))
               }""")
           }
           else {
             code.add("""
               "Serialization of ${name} has non-zero information content" in {
-                TestProductData.Test${name}.serialize mustNot be (JObject(Nil))
+                ExampleProductData.Example${name}.serialize mustNot be (JObject(Nil))
               }
             """)
           }
@@ -167,13 +167,13 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     
     // For every coproduct we generate some test data constructed by 
     // deserializing every product which is type-compatible with the coproduct:
-    code.newline.add("object TestCoproductData ").block {
+    code.newline.add("object ExampleCoproductData ").block {
       code.join(database.coproductsIn(namespace), code.newline.newline) { defn =>
         code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
-          code.addln("""lazy val Test${name}: ${type} = JObject(Nil).deserialize[${type}]""")
+          code.addln("""lazy val Example${name}: ${type} = JObject(Nil).deserialize[${type}]""")
           
           code.join(database.findProductTerms(defn), code.newline) { product =>   
-            code.add("""lazy val Test${name}From${productName}: ${type} = JObject(JField("${productName}", ${productNamespace}.Decomposers.${productName}Decomposer.decompose(${productNamespace}.TestProductData.Test${productName})) :: Nil).deserialize[${type}]""",
+            code.add("""lazy val Example${name}From${productName}: ${type} = JObject(JField("${productName}", ${productNamespace}.Decomposers.${productName}Decomposer.decompose(${productNamespace}.ExampleProductData.Example${productName})) :: Nil).deserialize[${type}]""",
               "productName"      -> product.name,
               "productNamespace" -> product.namespace
             )
@@ -189,20 +189,20 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
           code.add("""
             "Deserialization of ${name} succeeds even when information is missing" in {
-              TestCoproductData.Test${name}.isInstanceOf[${type}] must be (true)
+              ExampleCoproductData.Example${name}.isInstanceOf[${type}] must be (true)
             }            
             "Serialization of ${name} has non-zero information content" in {
-              TestCoproductData.Test${name}.serialize mustNot be (JObject(Nil))
+              ExampleCoproductData.Example${name}.serialize mustNot be (JObject(Nil))
             }
           """).newline
           
           code.join(database.findProductTerms(defn), code.newline) { product =>   
             code.add("""
               "Deserialization of ${name} (from ${productName}) succeeds" in {
-                TestCoproductData.Test${name}From${productName}.isInstanceOf[${type}] must be (true)
+                ExampleCoproductData.Example${name}From${productName}.isInstanceOf[${type}] must be (true)
               }            
               "Serialization of ${name} (from ${productName}) has non-zero information content" in {
-                TestCoproductData.Test${name}From${productName}.serialize mustNot be (JObject(Nil))
+                ExampleCoproductData.Example${name}From${productName}.serialize mustNot be (JObject(Nil))
               }""",
               "productName" -> product.name
             )
@@ -487,7 +487,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       }
     }
     
-    code.newline(2).add("trait Extractors extends DefaultExtractors with ExtractionHelpers ").block {    
+    code.newline(2).add("trait Extractors extends ExtractorHelpers ").block {    
       code.join(database.definitionsIn(namespace), code.newline.newline) { definition =>
         definition match {
           case x: XProduct => 
@@ -525,20 +525,20 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   }
   
   private def buildDecomposersFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): Unit = {
+    def getDecomposerFor(ref: XReference): String = ref match {
+      case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer"
+
+      case x: XContainerRef  => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer(" + (x match {
+        case x: XCollection => getDecomposerFor(x.elementType)        
+        case x: XMap        => getDecomposerFor(x.keyType) + ", " + getDecomposerFor(x.valueType)
+        case x: XTuple      => x.types.map(getDecomposerFor _ ).mkString(", ")
+        case x: XOptional   => getDecomposerFor(x.optionalType)
+      }) + ")"
+
+      case x: XDefinitionRef => x.namespace + ".Decomposers." + getTypeHintFor(x) + "Decomposer"
+    }
+    
     def buildMultitypeDecomposer(defn: XMultitype, terms: List[XReference]) = {
-      def getDecomposerFor(ref: XReference): String = ref match {
-        case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer"
-
-        case x: XContainerRef  => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer(" + (x match {
-          case x: XCollection => getDecomposerFor(x.elementType)        
-          case x: XMap        => getDecomposerFor(x.keyType) + ", " + getDecomposerFor(x.valueType)
-          case x: XTuple      => x.types.map(getDecomposerFor _ ).mkString(", ")
-          case x: XOptional   => getDecomposerFor(x.optionalType)
-        }) + ")"
-
-        case x: XDefinitionRef => x.namespace + ".Decomposers." + getTypeHintFor(x) + "Decomposer"
-      }
-      
       code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
         code.add("implicit val ${name}Decomposer: Decomposer[${type}] = new Decomposer[${type}] ").block {
           code.add("def decompose(tvalue: ${type}): JValue = ").block {
@@ -556,7 +556,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       }
     }
     
-    code.newline(2).add("trait Decomposers extends DefaultDecomposers with DecomposerHelpers ").block {    
+    code.newline(2).add("trait Decomposers extends DecomposerHelpers ").block {    
       code.join(database.definitionsIn(namespace), code.newline.newline) { definition =>
         definition match {
           case x: XProduct => 
@@ -565,7 +565,10 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
                 code.add("def decompose(tvalue: ${type}): JValue = ").block {
                   code.add("JObject").paren {  
                     code.join(x.realFields, code.newline) { field =>
-                      code.add("JField(\"${fieldType}\", tvalue.${fieldType}.serialize) ::", "fieldType" -> field.name)
+                      code.add("JField(\"${fieldName}\", ${decomposer}.decompose(tvalue.${fieldName})) ::", 
+                        "fieldName"  -> field.name,
+                        "decomposer" -> getDecomposerFor(field.fieldType)
+                      )
                     }
       
                     code.add(" Nil")
@@ -663,7 +666,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   private def buildPackageObjectFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase, properties: Map[String, String], includeSchemas: Boolean): Unit = {
     val subroot = XRoot(database.definitionsIn(namespace), database.constantsIn(namespace), properties)
     
-    code.newline(2).add("object Serialization extends SerializationImplicits with Decomposers with Extractors with Orderings ").block {
+    code.newline(2).add("object Serialization extends Decomposers with Extractors with Orderings with SerializationImplicits ").block {
       // Storing the root as text is not efficient but ensures we do not run 
       // into method size limitations of the JVM (root can be quite large):
       if (includeSchemas) {
