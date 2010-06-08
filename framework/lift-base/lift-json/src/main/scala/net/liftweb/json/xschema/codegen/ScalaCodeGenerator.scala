@@ -55,7 +55,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         }
       }
            
-      code.addln("import net.liftweb.json.xschema.DefaultSerialization._")
+      code.addln("import net.liftweb.json.xschema.DefaultOrderings._")
            
       root.properties.get("scala.imports") match {
         case None => 
@@ -430,20 +430,20 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   }
   
   private def buildExtractorsFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): CodeBuilder = {    
+    def getExtractorFor(ref: XReference): String = ref match {
+      case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor"
+
+      case x: XContainerRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor(" + (x match {
+        case x: XCollection => getExtractorFor(x.elementType)        
+        case x: XMap        => getExtractorFor(x.keyType) + ", " + getExtractorFor(x.valueType)
+        case x: XTuple      => x.types.map(getExtractorFor _ ).mkString(", ")
+        case x: XOptional   => getExtractorFor(x.optionalType)
+      }) + ")"
+
+      case x: XDefinitionRef => x.namespace + ".Extractors." + getTypeHintFor(x) + "Extractor"
+    }
+    
     def buildMultitypeExtractor(defn: XMultitype, terms: List[XReference]) = {
-      def getExtractorFor(ref: XReference): String = ref match {
-        case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor"
-
-        case x: XContainerRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor(" + (x match {
-          case x: XCollection => getExtractorFor(x.elementType)        
-          case x: XMap        => getExtractorFor(x.keyType) + ", " + getExtractorFor(x.valueType)
-          case x: XTuple      => x.types.map(getExtractorFor _ ).mkString(", ")
-          case x: XOptional   => getExtractorFor(x.optionalType)
-        }) + ")"
-
-        case x: XDefinitionRef => x.namespace + ".Extractors." + getTypeHintFor(x) + "Extractor"
-      }
-      
       code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
         code.add("private lazy val ${name}ExtractorFunction: PartialFunction[JField, ${type}] = (").block {
           code.join(terms, code.newline) { term =>
@@ -500,7 +500,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
                       var isFirst = true
 
                       code.join(x.realFields, code.add(",").newline) { field =>
-                        code.add("extractField[${fieldType}](jvalue, \"${fieldName}\", " + compact(renderScala(field.default)) + ")", 
+                        code.add("extractField[${fieldType}](jvalue, \"${fieldName}\", " + compact(renderScala(field.default)) + ")(" + getExtractorFor(field.fieldType) + ")", 
                           "fieldType" -> typeSignatureOf(field.fieldType, database),
                           "fieldName" -> field.name
                         )
@@ -597,6 +597,25 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   }
   
   private def buildOrderingsFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): Unit = {
+    /*def getComparisonInvocation(term1: XReference, var1: String, var2: String) = {
+      term1 match {
+        case x: XPrimitiveRef  => x match {
+          case x: XJSON => "net.liftweb.json.xschema.JValueToOrderedJValue(" + var1 + ").compare(" + var2 + ")"
+          
+          case _ => var1 + ".compare(" + var2 + ")"
+        }
+
+        case x: XContainerRef  => "net.liftweb.json.xschema.DefaultOrderings." + getTypeHintFor(ref) + "ToOrdered" + getTypeHintFor(ref) + "(" + var1 + ").compare(" + val2 + ")"(x match {
+          case x: XCollection => getComparisonInvocation(x.elementType)        
+          case x: XMap        => getComparisonInvocation(x.keyType) + ", " + getComparisonInvocation(x.valueType)
+          case x: XTuple      => x.types.map(getComparisonInvocation _ ).mkString(", ")
+          case x: XOptional   => getComparisonInvocation(x.optionalType)
+        }) + ")"
+
+        case x: XDefinitionRef => x.namespace + ".Decomposers." + getTypeHintFor(x) + "Decomposer"
+      }
+    }*/
+    
     code.newline(2).add("trait Orderings ").block {
       code.join(database.coproductsIn(namespace), code.newline) { coproduct => 
         code.using("type" -> coproduct.name) {

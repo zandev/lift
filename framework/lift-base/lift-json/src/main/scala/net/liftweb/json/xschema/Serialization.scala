@@ -358,7 +358,11 @@ trait DefaultOrderings {
         case JString(v2) => v1.compare(v2)
         case _ => -1
       }
-      case JField(_, _) => jvalue.compare(that)
+      case v1 @ JField(_, _) => that match {
+        case JNothing | JNull | JBool(_) | JInt(_) | JDouble(_) | JString(_) => 1
+        case v2 @ JField(_, _) => v1.compare(v2)
+        case _ => -1
+      }
       case JObject(v1) => that match {
         case JNothing | JNull | JBool(_) | JInt(_) | JDouble(_) | JString(_) | JField(_, _) => 1
         case JObject(v2) => v1.compare(v2)

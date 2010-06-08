@@ -2,7 +2,7 @@
 package net.liftweb.json.xschema {
   import net.liftweb.json.JsonParser._
   import net.liftweb.json.JsonAST._
-  import net.liftweb.json.xschema.DefaultSerialization._
+  import net.liftweb.json.xschema.DefaultOrderings._
   
   
   trait Orderings {
@@ -781,9 +781,9 @@ package net.liftweb.json.xschema {
     implicit val XRootExtractor: Extractor[net.liftweb.json.xschema.XRoot] = new Extractor[net.liftweb.json.xschema.XRoot] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XRoot = {
         XRoot(
-          extractField[List[net.liftweb.json.xschema.XDefinition]](jvalue, "definitions", JArray(Nil)),
-          extractField[List[net.liftweb.json.xschema.XConstant]](jvalue, "constants", JArray(Nil)),
-          extractField[Map[String, String]](jvalue, "properties", JArray(Nil))
+          extractField[List[net.liftweb.json.xschema.XDefinition]](jvalue, "definitions", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.ListExtractor(net.liftweb.json.xschema.Extractors.XDefinitionExtractor)),
+          extractField[List[net.liftweb.json.xschema.XConstant]](jvalue, "constants", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.ListExtractor(net.liftweb.json.xschema.Extractors.XConstantExtractor)),
+          extractField[Map[String, String]](jvalue, "properties", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.MapExtractor(net.liftweb.json.xschema.DefaultExtractors.StringExtractor, net.liftweb.json.xschema.DefaultExtractors.StringExtractor))
         )
       }
     }
@@ -893,8 +893,8 @@ package net.liftweb.json.xschema {
     implicit val XDefinitionRefExtractor: Extractor[net.liftweb.json.xschema.XDefinitionRef] = new Extractor[net.liftweb.json.xschema.XDefinitionRef] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XDefinitionRef = {
         XDefinitionRef(
-          extractField[String](jvalue, "name", JString("")),
-          extractField[String](jvalue, "namespace", JString(""))
+          extractField[String](jvalue, "name", JString(""))(net.liftweb.json.xschema.DefaultExtractors.StringExtractor),
+          extractField[String](jvalue, "namespace", JString(""))(net.liftweb.json.xschema.DefaultExtractors.StringExtractor)
         )
       }
     }
@@ -968,7 +968,7 @@ package net.liftweb.json.xschema {
     implicit val XListExtractor: Extractor[net.liftweb.json.xschema.XList] = new Extractor[net.liftweb.json.xschema.XList] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XList = {
         XList(
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "elementType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "elementType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))(net.liftweb.json.xschema.Extractors.XReferenceExtractor)
         )
       }
     }
@@ -976,7 +976,7 @@ package net.liftweb.json.xschema {
     implicit val XSetExtractor: Extractor[net.liftweb.json.xschema.XSet] = new Extractor[net.liftweb.json.xschema.XSet] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XSet = {
         XSet(
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "elementType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "elementType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))(net.liftweb.json.xschema.Extractors.XReferenceExtractor)
         )
       }
     }
@@ -984,7 +984,7 @@ package net.liftweb.json.xschema {
     implicit val XArrayExtractor: Extractor[net.liftweb.json.xschema.XArray] = new Extractor[net.liftweb.json.xschema.XArray] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XArray = {
         XArray(
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "elementType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "elementType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))(net.liftweb.json.xschema.Extractors.XReferenceExtractor)
         )
       }
     }
@@ -992,8 +992,8 @@ package net.liftweb.json.xschema {
     implicit val XMapExtractor: Extractor[net.liftweb.json.xschema.XMap] = new Extractor[net.liftweb.json.xschema.XMap] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XMap = {
         XMap(
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "keyType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil)),
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "valueType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "keyType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))(net.liftweb.json.xschema.Extractors.XReferenceExtractor),
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "valueType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))(net.liftweb.json.xschema.Extractors.XReferenceExtractor)
         )
       }
     }
@@ -1001,7 +1001,7 @@ package net.liftweb.json.xschema {
     implicit val XOptionalExtractor: Extractor[net.liftweb.json.xschema.XOptional] = new Extractor[net.liftweb.json.xschema.XOptional] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XOptional = {
         XOptional(
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "optionalType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "optionalType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))(net.liftweb.json.xschema.Extractors.XReferenceExtractor)
         )
       }
     }
@@ -1009,7 +1009,7 @@ package net.liftweb.json.xschema {
     implicit val XTupleExtractor: Extractor[net.liftweb.json.xschema.XTuple] = new Extractor[net.liftweb.json.xschema.XTuple] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XTuple = {
         XTuple(
-          extractField[List[net.liftweb.json.xschema.XReference]](jvalue, "types", JArray(Nil))
+          extractField[List[net.liftweb.json.xschema.XReference]](jvalue, "types", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.ListExtractor(net.liftweb.json.xschema.Extractors.XReferenceExtractor))
         )
       }
     }
@@ -1087,10 +1087,10 @@ package net.liftweb.json.xschema {
     implicit val XProductExtractor: Extractor[net.liftweb.json.xschema.XProduct] = new Extractor[net.liftweb.json.xschema.XProduct] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XProduct = {
         XProduct(
-          extractField[String](jvalue, "name", JString("")),
-          extractField[String](jvalue, "namespace", JString("")),
-          extractField[Map[String, String]](jvalue, "properties", JArray(Nil)),
-          extractField[List[net.liftweb.json.xschema.XField]](jvalue, "terms", JArray(Nil))
+          extractField[String](jvalue, "name", JString(""))(net.liftweb.json.xschema.DefaultExtractors.StringExtractor),
+          extractField[String](jvalue, "namespace", JString(""))(net.liftweb.json.xschema.DefaultExtractors.StringExtractor),
+          extractField[Map[String, String]](jvalue, "properties", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.MapExtractor(net.liftweb.json.xschema.DefaultExtractors.StringExtractor, net.liftweb.json.xschema.DefaultExtractors.StringExtractor)),
+          extractField[List[net.liftweb.json.xschema.XField]](jvalue, "terms", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.ListExtractor(net.liftweb.json.xschema.Extractors.XFieldExtractor))
         )
       }
     }
@@ -1098,11 +1098,11 @@ package net.liftweb.json.xschema {
     implicit val XCoproductExtractor: Extractor[net.liftweb.json.xschema.XCoproduct] = new Extractor[net.liftweb.json.xschema.XCoproduct] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XCoproduct = {
         XCoproduct(
-          extractField[String](jvalue, "name", JString("")),
-          extractField[String](jvalue, "namespace", JString("")),
-          extractField[Map[String, String]](jvalue, "properties", JArray(Nil)),
-          extractField[List[net.liftweb.json.xschema.XDefinitionRef]](jvalue, "terms", JArray(Nil)),
-          extractField[net.liftweb.json.JsonAST.JValue](jvalue, "default", JNothing)
+          extractField[String](jvalue, "name", JString(""))(net.liftweb.json.xschema.DefaultExtractors.StringExtractor),
+          extractField[String](jvalue, "namespace", JString(""))(net.liftweb.json.xschema.DefaultExtractors.StringExtractor),
+          extractField[Map[String, String]](jvalue, "properties", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.MapExtractor(net.liftweb.json.xschema.DefaultExtractors.StringExtractor, net.liftweb.json.xschema.DefaultExtractors.StringExtractor)),
+          extractField[List[net.liftweb.json.xschema.XDefinitionRef]](jvalue, "terms", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.ListExtractor(net.liftweb.json.xschema.Extractors.XDefinitionRefExtractor)),
+          extractField[net.liftweb.json.JsonAST.JValue](jvalue, "default", JNothing)(net.liftweb.json.xschema.DefaultExtractors.JValueExtractor)
         )
       }
     }
@@ -1110,11 +1110,11 @@ package net.liftweb.json.xschema {
     implicit val XUnionExtractor: Extractor[net.liftweb.json.xschema.XUnion] = new Extractor[net.liftweb.json.xschema.XUnion] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XUnion = {
         XUnion(
-          extractField[String](jvalue, "name", JString("")),
-          extractField[String](jvalue, "namespace", JString("")),
-          extractField[Map[String, String]](jvalue, "properties", JArray(Nil)),
-          extractField[List[net.liftweb.json.xschema.XReference]](jvalue, "terms", JArray(Nil)),
-          extractField[net.liftweb.json.JsonAST.JValue](jvalue, "default", JNothing)
+          extractField[String](jvalue, "name", JString(""))(net.liftweb.json.xschema.DefaultExtractors.StringExtractor),
+          extractField[String](jvalue, "namespace", JString(""))(net.liftweb.json.xschema.DefaultExtractors.StringExtractor),
+          extractField[Map[String, String]](jvalue, "properties", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.MapExtractor(net.liftweb.json.xschema.DefaultExtractors.StringExtractor, net.liftweb.json.xschema.DefaultExtractors.StringExtractor)),
+          extractField[List[net.liftweb.json.xschema.XReference]](jvalue, "terms", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.ListExtractor(net.liftweb.json.xschema.Extractors.XReferenceExtractor)),
+          extractField[net.liftweb.json.JsonAST.JValue](jvalue, "default", JNothing)(net.liftweb.json.xschema.DefaultExtractors.JValueExtractor)
         )
       }
     }
@@ -1122,11 +1122,11 @@ package net.liftweb.json.xschema {
     implicit val XConstantExtractor: Extractor[net.liftweb.json.xschema.XConstant] = new Extractor[net.liftweb.json.xschema.XConstant] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XConstant = {
         XConstant(
-          extractField[String](jvalue, "name", JString("")),
-          extractField[String](jvalue, "namespace", JString("")),
-          extractField[Map[String, String]](jvalue, "properties", JArray(Nil)),
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "constantType", JObject(JField("XString",JObject(Nil))::Nil)),
-          extractField[net.liftweb.json.JsonAST.JValue](jvalue, "default", JString(""))
+          extractField[String](jvalue, "name", JString(""))(net.liftweb.json.xschema.DefaultExtractors.StringExtractor),
+          extractField[String](jvalue, "namespace", JString(""))(net.liftweb.json.xschema.DefaultExtractors.StringExtractor),
+          extractField[Map[String, String]](jvalue, "properties", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.MapExtractor(net.liftweb.json.xschema.DefaultExtractors.StringExtractor, net.liftweb.json.xschema.DefaultExtractors.StringExtractor)),
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "constantType", JObject(JField("XString",JObject(Nil))::Nil))(net.liftweb.json.xschema.Extractors.XReferenceExtractor),
+          extractField[net.liftweb.json.JsonAST.JValue](jvalue, "default", JString(""))(net.liftweb.json.xschema.DefaultExtractors.JValueExtractor)
         )
       }
     }
@@ -1134,11 +1134,11 @@ package net.liftweb.json.xschema {
     implicit val XRealFieldExtractor: Extractor[net.liftweb.json.xschema.XRealField] = new Extractor[net.liftweb.json.xschema.XRealField] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XRealField = {
         XRealField(
-          extractField[String](jvalue, "name", JString("")),
-          extractField[Map[String, String]](jvalue, "properties", JArray(Nil)),
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "fieldType", JObject(JField("XString",JObject(Nil))::Nil)),
-          extractField[net.liftweb.json.JsonAST.JValue](jvalue, "default", JString("")),
-          extractField[net.liftweb.json.xschema.XOrder](jvalue, "order", JObject(JField("XOrderAscending",JObject(Nil))::Nil))
+          extractField[String](jvalue, "name", JString(""))(net.liftweb.json.xschema.DefaultExtractors.StringExtractor),
+          extractField[Map[String, String]](jvalue, "properties", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.MapExtractor(net.liftweb.json.xschema.DefaultExtractors.StringExtractor, net.liftweb.json.xschema.DefaultExtractors.StringExtractor)),
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "fieldType", JObject(JField("XString",JObject(Nil))::Nil))(net.liftweb.json.xschema.Extractors.XReferenceExtractor),
+          extractField[net.liftweb.json.JsonAST.JValue](jvalue, "default", JString(""))(net.liftweb.json.xschema.DefaultExtractors.JValueExtractor),
+          extractField[net.liftweb.json.xschema.XOrder](jvalue, "order", JObject(JField("XOrderAscending",JObject(Nil))::Nil))(net.liftweb.json.xschema.Extractors.XOrderExtractor)
         )
       }
     }
@@ -1146,9 +1146,9 @@ package net.liftweb.json.xschema {
     implicit val XViewFieldExtractor: Extractor[net.liftweb.json.xschema.XViewField] = new Extractor[net.liftweb.json.xschema.XViewField] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XViewField = {
         XViewField(
-          extractField[String](jvalue, "name", JString("")),
-          extractField[Map[String, String]](jvalue, "properties", JArray(Nil)),
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "fieldType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))
+          extractField[String](jvalue, "name", JString(""))(net.liftweb.json.xschema.DefaultExtractors.StringExtractor),
+          extractField[Map[String, String]](jvalue, "properties", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.MapExtractor(net.liftweb.json.xschema.DefaultExtractors.StringExtractor, net.liftweb.json.xschema.DefaultExtractors.StringExtractor)),
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "fieldType", JObject(JField("XDefinitionRef",JObject(JField("name",JString(""))::JField("namespace",JString(""))::Nil))::Nil))(net.liftweb.json.xschema.Extractors.XReferenceExtractor)
         )
       }
     }
@@ -1156,10 +1156,10 @@ package net.liftweb.json.xschema {
     implicit val XConstantFieldExtractor: Extractor[net.liftweb.json.xschema.XConstantField] = new Extractor[net.liftweb.json.xschema.XConstantField] {
       def extract(jvalue: JValue): net.liftweb.json.xschema.XConstantField = {
         XConstantField(
-          extractField[String](jvalue, "name", JString("")),
-          extractField[Map[String, String]](jvalue, "properties", JArray(Nil)),
-          extractField[net.liftweb.json.xschema.XReference](jvalue, "fieldType", JObject(JField("XString",JObject(Nil))::Nil)),
-          extractField[net.liftweb.json.JsonAST.JValue](jvalue, "default", JString(""))
+          extractField[String](jvalue, "name", JString(""))(net.liftweb.json.xschema.DefaultExtractors.StringExtractor),
+          extractField[Map[String, String]](jvalue, "properties", JArray(Nil))(net.liftweb.json.xschema.DefaultExtractors.MapExtractor(net.liftweb.json.xschema.DefaultExtractors.StringExtractor, net.liftweb.json.xschema.DefaultExtractors.StringExtractor)),
+          extractField[net.liftweb.json.xschema.XReference](jvalue, "fieldType", JObject(JField("XString",JObject(Nil))::Nil))(net.liftweb.json.xschema.Extractors.XReferenceExtractor),
+          extractField[net.liftweb.json.JsonAST.JValue](jvalue, "default", JString(""))(net.liftweb.json.xschema.DefaultExtractors.JValueExtractor)
         )
       }
     }
