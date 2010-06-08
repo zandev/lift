@@ -3,7 +3,7 @@ package net.liftweb.json.xschema {
 import _root_.net.liftweb.json.JsonAST._
 import _root_.net.liftweb.json.JsonParser._
 
-object TestSchemas {
+object SampleSchemas {
   private def j(s: String) = parse(s)
   
   val DataSocialGenderSchema = XRoot(

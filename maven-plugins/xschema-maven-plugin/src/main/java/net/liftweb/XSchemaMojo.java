@@ -59,6 +59,16 @@ public class XSchemaMojo extends AbstractMojo {
     private String[] excludes = new String[0];
 
     /**
+     * A set of namespaces (packages) for which classes will be generated.
+     * By default, this set is empty, which will cause all classes defined
+     * in the XSchema file to be generated; if this set is nonempty then
+     * the restriction is applied.
+     * 
+     * @parameter
+     */
+    private String[] namespaces = new String[0];
+
+    /**
     * The current Maven project.
     *
     * @parameter default-value="${project}"
@@ -94,7 +104,8 @@ public class XSchemaMojo extends AbstractMojo {
         generator.generateFromFiles(
             includedFiles, 
             outputDirectory.getAbsolutePath(), 
-            testOutputDirectory.getAbsolutePath()
+            testOutputDirectory.getAbsolutePath(),
+            namespaces
         );
 
         project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
