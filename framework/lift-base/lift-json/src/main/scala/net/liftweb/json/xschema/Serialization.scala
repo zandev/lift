@@ -184,12 +184,12 @@ trait DefaultExtractors {
 object DefaultExtractors extends DefaultExtractors
 
 trait ExtractionHelpers extends SerializationImplicits {
-  protected def extractField[T](jvalue: JValue, name: String, default: JValue)(implicit e: Extractor[T]): T = {
+  protected def extractField[T](jvalue: JValue, name: String, default: JValue)(e: Extractor[T]): T = {
     try {
-      (jvalue \ name -->? classOf[JField]).map(_.value).getOrElse(default).deserialize[T]
+      e.extract((jvalue \ name -->? classOf[JField]).map(_.value).getOrElse(default))
     }
     catch {
-      case _ => default.deserialize[T]
+      case _ => e.extract(default)
     }
   }
 }

@@ -15,7 +15,7 @@ object ScalaCodeGenerator extends CodeGeneratorCLI {
 }
 
 class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
-  def generate(root: XRoot, destPathCode: String, destPathTests: String, writerF: String => Writer) = {
+  def generate(root: XRoot, destPathCode: String, destPathTests: String, namespaceSpec: List[String], writerF: String => Writer) = {
     val includeSchemas = root.properties.get(PredefinedProperties.XSchemaIncludeSchemas).map(_.toLowerCase).map { 
       case "true" => true
       case _ => false
@@ -25,7 +25,9 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     val testBundle  = CodeBundle.empty
     val database    = XSchemaDatabase(root.definitions, root.constants)
     
-    for (namespace <- database.namespaces) {
+    val namespaces  = (if (namespaceSpec.length == 0) database.namespaces else namespaceSpec)
+    
+    for (namespace <- namespaces) {
       val code = CodeBuilder.empty
       val test = CodeBuilder.empty
 
@@ -605,8 +607,10 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
           case _ => var1 + ".compare(" + var2 + ")"
         }
 
-        case x: XContainerRef  => "net.liftweb.json.xschema.DefaultOrderings." + getTypeHintFor(ref) + "ToOrdered" + getTypeHintFor(ref) + "(" + var1 + ").compare(" + val2 + ")"(x match {
-          case x: XCollection => getComparisonInvocation(x.elementType)        
+        case x: XContainerRef  => "net.liftweb.json.xschema.DefaultOrderings." + (x match {
+          case x: XCollection => 
+          }
+          
           case x: XMap        => getComparisonInvocation(x.keyType) + ", " + getComparisonInvocation(x.valueType)
           case x: XTuple      => x.types.map(getComparisonInvocation _ ).mkString(", ")
           case x: XOptional   => getComparisonInvocation(x.optionalType)

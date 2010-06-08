@@ -22,6 +22,6 @@ package net.liftweb.json.xschema.codegen {
       new UnclosablePrintWriter
     }
   
-    ScalaCodeGenerator.generator.generate(XSchemaSchema, "src/main/scala", "src/test/scala", writerF _)
+    ScalaCodeGenerator.generator.generate(XSchemaSchema, "src/main/scala", "src/test/scala", Nil, writerF _)
   }
 }

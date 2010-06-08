@@ -251,9 +251,9 @@ trait CodeGeneratorHelpers {
 }
 
 abstract class CodeGenerator {
-  def generate(root: XRoot, destCodePath: String, destTestsPath: String, writerF: String => Writer)
+  def generate(root: XRoot, destCodePath: String, destTestsPath: String, namespaces: List[String], writerF: String => Writer)
 
-  def generateFromFiles(xschemaFiles: Array[String], destCodePath: String, destTestsPath: String) {
+  def generateFromFiles(xschemaFiles: Array[String], destCodePath: String, destTestsPath: String, namespaces: List[String]) {
     def using[T <: Closeable, S](c: => T)(f: T => S): S = { val resource = c; try { f(resource) } finally { resource.close } }
     def load(file: String): XRoot = using(new InputStreamReader(new FileInputStream(file))) {
       r => JsonParser.parse(r).deserialize[XRoot]
@@ -269,7 +269,7 @@ abstract class CodeGenerator {
       new FileWriter(outFile)
     }
         
-    generate(root, destCodePath, destTestsPath, writer _)
+    generate(root, destCodePath, destTestsPath, namespaces, writer _)
   }
 }
 
@@ -280,15 +280,23 @@ trait CodeGeneratorCLI {
     import java.io._
     
     try {
+      var parsed = parseArgs(args.toList)
+      
+      val codeDir      = parsed.config.get("codeDir")
+      val testsDir     = parsed.config.get("testsDir")
+      val xschemaFiles = parsed.elements
+      val namespace    = parsed.config.get("namespace")
+      
+      val valid = !codeDir.isEmpty && !testsDir.isEmpty && xschemaFiles.length > 0
+      
       if (args.length < 3) {
-        println("Usage: [dest code path] [dest tests path] [xschema file(s)]")
+        println("Usage: --codeDir [code directory] --testsDir [tests directory] [XSchema files] [--namespace [namespace]]")
       }
       else {
-        val destCodePath  = args(0)
-        val destTestsPath = args(1)
-        val xschemaFiles  = args.toList.drop(2)
+        val destCodePath  = codeDir.get
+        val destTestsPath = testsDir.get
        
-        generator.generateFromFiles(xschemaFiles.toArray, destCodePath, destTestsPath)
+        generator.generateFromFiles(xschemaFiles.toArray, destCodePath, destTestsPath, namespace.toList)
         println("Successfully generated code at " + destCodePath + " and tests at " + destTestsPath)
         
         System.exit(0)
@@ -299,6 +307,27 @@ trait CodeGeneratorCLI {
         println("Encountered error during code generation: " + t.getMessage)
         
         System.exit(1)
+    }
+  }
+  
+  case class ParsedOptions(elements: List[String], flags: List[String], config: Map[String, String]) {
+    def + (that: ParsedOptions): ParsedOptions = ParsedOptions(elements ++ that.elements, flags ++ that.flags, config ++ that.config)
+  }
+  
+  def parseArgs(args: List[String]): ParsedOptions = {
+    import scala.util.matching.Regex
+    
+    val parsed = ParsedOptions(Nil, Nil, Map())
+    
+    val Key   = """-+([a-zA-Z0-9_\-]+)""".r
+    val Value = """([^-]+)""".r
+    
+    args match {
+      case Key(key) :: Value(value) :: rest => ParsedOptions(parsed.elements, parsed.flags, parsed.config + (key -> value)) + parseArgs(rest)
+      case Key(key) :: rest                 => ParsedOptions(parsed.elements, parsed.flags ++ List(key), parsed.config) + parseArgs(rest)
+      case element :: rest                  => ParsedOptions(parsed.elements ++ List(element), parsed.flags, parsed.config) + parseArgs(rest)
+      
+      case Nil => parsed
     }
   }
 }
