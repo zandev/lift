@@ -268,7 +268,7 @@ trait DefaultDecomposers {
 }
 object DefaultDecomposers extends DefaultDecomposers
 
-trait DecomposerHelpers extends SerializationImplicits {
+trait DecomposerHelpers {
 }
 object DecomposerHelpers extends DecomposerHelpers
 
