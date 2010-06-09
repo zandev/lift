@@ -32,6 +32,7 @@ trait SerializationImplicits {
   
   implicit def tvalueToJValue[T](tvalue: T): SerializableTValue[T] = SerializableTValue[T](tvalue)
 }
+object SerializationImplicits extends SerializationImplicits
 
 /**
  * Extractors for all basic types.
@@ -268,7 +269,7 @@ trait DefaultDecomposers {
 }
 object DefaultDecomposers extends DefaultDecomposers
 
-trait DecomposerHelpers extends SerializationImplicits {
+trait DecomposerHelpers {
 }
 object DecomposerHelpers extends DecomposerHelpers
 
