@@ -39,6 +39,28 @@ class LiftJson(info: ProjectInfo) extends DefaultProject(info) {
     None
   }
 
+  var xSchemaRootProvider = "net.liftweb.json.xschema.BootstrapXSchema"
+  var xSchemaOutputFile = mainResourcesPath / DefaultXSchemaFileName
+
+  lazy val regenerateXschema = regenerateXschemaTask dependsOn(testCompile)
+  def regenerateXschemaTask = task {
+    val classLoader = new URLClassLoader(testClasspath.getURLs, this.getClass.getClassLoader)
+
+    val xrootClass     = Class.forName("net.liftweb.json.xschema.XRoot", true, classLoader)
+    val providerClass  = Class.forName(xSchemaRootProvider, true, classLoader)
+    val generatorClass = Class.forName("net.liftweb.json.xschema.codegen.BaseScalaCodeGenerator", true, classLoader)
+
+    val provider = providerClass.newInstance
+    val providerCall = providerClass.getMethod("apply")
+    val xroot = providerCall.invoke(provider)
+
+    val generator = generatorClass.newInstance
+    val genCall = generatorClass.getMethod("generateXSchema", xrootClass, classOf[String])
+    genCall.invoke(generator, xroot, xSchemaOutputFile.absolutePath)
+
+    None
+  }
+
   override def ivyXML =
     <publications>
       <artifact name="lift-json" type="jar" ext="jar"/>

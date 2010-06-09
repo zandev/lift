@@ -1,100 +1,10 @@
 package net.liftweb.json.xschema {
 
 import _root_.net.liftweb.json.JsonAST._
-import _root_.net.liftweb.json.JsonParser._
+import _root_.net.liftweb.json.JsonParser.{parse => j}
 
-object SampleSchemas {
-  private def j(s: String) = parse(s)
-  
-  val DataSocialGenderSchema = XRoot(
-    List(
-      XCoproduct(
-        "Gender", "data.social",
-        Map(
-          "xschema.doc" -> "This is the coproduct that includes male and female. The normal way to translate this into OOP is as a superclass/superinterface.",
-          "scala.class.traits" -> "java.io.Serializable, java.lang.Cloneable",
-          "scala.object.traits" -> "java.io.Serializable, java.lang.Cloneable"
-        ),
-        List(
-          XDefinitionRef("Male", "data.social"),
-          XDefinitionRef("Female", "data.social")
-        ),
-        j(""" { "Male": { "text": "foo" } } """)
-      ),
-      XProduct(
-        "Male", "data.social",
-        Map("scala.class.traits" -> "java.io.Serializable, java.lang.Cloneable"),
-        List(
-          XRealField("text", Map(), XString, JString("male"), XOrderDescending),
-          XViewField("asFemale", Map(), XDefinitionRef("Female", "data.social"))
-        )
-      ),
-      XProduct(
-        "Female", "data.social",
-        Map("scala.class.traits" -> "java.io.Serializable, java.lang.Cloneable"),
-        List(
-          XRealField("text", Map(), XString, JString("female"), XOrderAscending),
-          XViewField("asMale", Map(), XDefinitionRef("Male", "data.social"))
-        )
-      ),
-      XProduct(
-        "Morning", "data.social",
-        Map(),
-        List()
-      ),
-      XProduct(
-        "Noon", "data.social",
-        Map(),
-        List()
-      ),
-      XProduct(
-        "Night", "data.social",
-        Map(),
-        List()
-      ),
-      XCoproduct(
-        "Time", "data.social",
-        Map(),
-        List(
-          XDefinitionRef("Morning", "data.social"),
-          XDefinitionRef("Noon", "data.social"),
-          XDefinitionRef("Night", "data.social")
-        ),
-        j(""" { "Morning": {} } """)
-      )
-    ),
-    List(
-      XConstant(
-        "DefaultFemale", "data.social",
-        Map(),
-        XDefinitionRef("Gender", "data.social"),
-        JObject(
-          JField("Female",
-            JObject(
-              JField("text", JString("female")) :: Nil
-            )
-          ) :: Nil
-        )
-      ),
-      XConstant(
-        "DefaultMale", "data.social",
-        Map(),
-        XDefinitionRef("Gender", "data.social"),
-        JObject(
-          JField("Male",
-            JObject(
-              JField("text", JString("male")) :: Nil
-            )
-          ) :: Nil
-        )
-      )
-    ),
-    Map(
-      "scala.imports" -> "net.liftweb.json.xschema.{SerializationImplicits => XSerializationImplicits, DefaultExtractors => XDefaultExtractors}, java.lang.reflect._"
-    )
-  )
-  
-  val XSchemaSchema = XRoot(
+class BootstrapXSchema {
+  def apply: XRoot = XRoot(
     List(
       XProduct(
         "XRoot", "net.liftweb.json.xschema",
@@ -348,6 +258,97 @@ object SampleSchemas {
   )
 }
 
+object SampleSchemas {
+  val DataSocialGenderSchema = XRoot(
+    List(
+      XCoproduct(
+        "Gender", "data.social",
+        Map(
+          "xschema.doc" -> "This is the coproduct that includes male and female. The normal way to translate this into OOP is as a superclass/superinterface.",
+          "scala.class.traits" -> "java.io.Serializable, java.lang.Cloneable",
+          "scala.object.traits" -> "java.io.Serializable, java.lang.Cloneable"
+        ),
+        List(
+          XDefinitionRef("Male", "data.social"),
+          XDefinitionRef("Female", "data.social")
+        ),
+        j(""" { "Male": { "text": "foo" } } """)
+      ),
+      XProduct(
+        "Male", "data.social",
+        Map("scala.class.traits" -> "java.io.Serializable, java.lang.Cloneable"),
+        List(
+          XRealField("text", Map(), XString, JString("male"), XOrderDescending),
+          XViewField("asFemale", Map(), XDefinitionRef("Female", "data.social"))
+        )
+      ),
+      XProduct(
+        "Female", "data.social",
+        Map("scala.class.traits" -> "java.io.Serializable, java.lang.Cloneable"),
+        List(
+          XRealField("text", Map(), XString, JString("female"), XOrderAscending),
+          XViewField("asMale", Map(), XDefinitionRef("Male", "data.social"))
+        )
+      ),
+      XProduct(
+        "Morning", "data.social",
+        Map(),
+        List()
+      ),
+      XProduct(
+        "Noon", "data.social",
+        Map(),
+        List()
+      ),
+      XProduct(
+        "Night", "data.social",
+        Map(),
+        List()
+      ),
+      XCoproduct(
+        "Time", "data.social",
+        Map(),
+        List(
+          XDefinitionRef("Morning", "data.social"),
+          XDefinitionRef("Noon", "data.social"),
+          XDefinitionRef("Night", "data.social")
+        ),
+        j(""" { "Morning": {} } """)
+      )
+    ),
+    List(
+      XConstant(
+        "DefaultFemale", "data.social",
+        Map(),
+        XDefinitionRef("Gender", "data.social"),
+        JObject(
+          JField("Female",
+            JObject(
+              JField("text", JString("female")) :: Nil
+            )
+          ) :: Nil
+        )
+      ),
+      XConstant(
+        "DefaultMale", "data.social",
+        Map(),
+        XDefinitionRef("Gender", "data.social"),
+        JObject(
+          JField("Male",
+            JObject(
+              JField("text", JString("male")) :: Nil
+            )
+          ) :: Nil
+        )
+      )
+    ),
+    Map(
+      "scala.imports" -> "net.liftweb.json.xschema.{SerializationImplicits => XSerializationImplicits, DefaultExtractors => XDefaultExtractors}, java.lang.reflect._"
+    )
+  )
+  
+  val XSchemaSchema = (new BootstrapXSchema).apply
+}
 }
 
 
