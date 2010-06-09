@@ -1217,7 +1217,7 @@ package net.liftweb.json.xschema {
   }
   object Extractors extends Extractors
   
-  trait Decomposers extends DecomposerHelpers {
+  trait Decomposers {
     implicit val XRootDecomposer: Decomposer[net.liftweb.json.xschema.XRoot] = new Decomposer[net.liftweb.json.xschema.XRoot] {
       def decompose(tvalue: net.liftweb.json.xschema.XRoot): JValue = {
         JObject(
