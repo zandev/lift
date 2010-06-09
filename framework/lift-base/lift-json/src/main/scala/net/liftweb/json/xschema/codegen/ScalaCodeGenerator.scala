@@ -566,7 +566,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       }
     }
     
-    code.newline(2).add("trait Decomposers extends DecomposerHelpers ").block {    
+    code.newline(2).add("trait Decomposers ").block {    
       code.join(database.definitionsIn(namespace), code.newline.newline) { definition =>
         definition match {
           case x: XProduct => 

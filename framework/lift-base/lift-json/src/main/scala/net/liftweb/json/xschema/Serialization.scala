@@ -184,7 +184,7 @@ trait DefaultExtractors {
 }
 object DefaultExtractors extends DefaultExtractors
 
-trait ExtractorHelpers {
+/*trait ExtractorHelpers {
   protected def extractField[T](jvalue: JValue, name: String, default: JValue)(e: Extractor[T]): T = {
     try {
       e.extract((jvalue \ name -->? classOf[JField]).map(_.value).getOrElse(default))
@@ -194,7 +194,7 @@ trait ExtractorHelpers {
     }
   }
 }
-object ExtractorHelpers extends ExtractorHelpers
+object ExtractorHelpers extends ExtractorHelpers*/
 
 /**
  * Decomposers for all basic types.
@@ -268,10 +268,6 @@ trait DefaultDecomposers {
   }
 }
 object DefaultDecomposers extends DefaultDecomposers
-
-trait DecomposerHelpers {
-}
-object DecomposerHelpers extends DecomposerHelpers
 
 trait DefaultOrderings {
   implicit def OptionToOrderedOption[T <% Ordered[T]](opt: Option[T]): OrderedOption[T] = OrderedOption[T](opt)
