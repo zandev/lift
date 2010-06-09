@@ -19,6 +19,7 @@ class LiftJson(info: ProjectInfo) extends DefaultProject(info) {
   var xSchemaGenerationBasePath = sourcePath
   var xSchemaGeneratedSourcesPath = xSchemaGenerationBasePath / DefaultGeneratedSourcesDirectoryName / "scala" 
   var xSchemaGeneratedTestSourcesPath = xSchemaGenerationBasePath / DefaultGeneratedTestSourcesDirectoryName / "scala"
+  var xSchemaNamespaces = Array[String]()
 
   lazy val regenerateSources = regenerateSourcesTask dependsOn(`package`)
   def regenerateSourcesTask = task {
@@ -26,12 +27,13 @@ class LiftJson(info: ProjectInfo) extends DefaultProject(info) {
 
     val generatorClass = Class.forName("net.liftweb.json.xschema.codegen.BaseScalaCodeGenerator", true, classLoader)
     val generator = generatorClass.newInstance
-    val genCall = generatorClass.getMethod("generateFromFiles", classOf[Array[String]], classOf[String], classOf[String])
+    val genCall = generatorClass.getMethod("generateFromFiles", classOf[Array[String]], classOf[String], classOf[String], classOf[Array[String]])
     genCall.invoke(
       generator, 
       xSchemaFiles.map(_.absolutePath).toArray.asInstanceOf[runtime.BoxedAnyArray].unbox(classOf[String]), 
       xSchemaGeneratedSourcesPath.absolutePath, 
-      xSchemaGeneratedTestSourcesPath.absolutePath
+      xSchemaGeneratedTestSourcesPath.absolutePath,
+      xSchemaNamespaces
     )
 
     None
