@@ -343,7 +343,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
             code.add("case object ${name}")
             
             if (includeSchemas) {
-              initialExtends = List("XSchemaDerived")
+              initialExtends = "XSchemaDerived" :: formMixinsClauseFromProperty("scala.object.traits")
             }
           }
           else {
