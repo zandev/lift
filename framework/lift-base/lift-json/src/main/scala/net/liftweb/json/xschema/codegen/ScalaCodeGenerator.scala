@@ -50,7 +50,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
            addln("import net.liftweb.json.JsonAST._")
            
       if (namespace != "net.liftweb.json.xschema") {
-        code.addln("import net.liftweb.json.xschema.{SerializationImplicits, Extractor, ExtractorHelpers, Decomposer, DecomposerHelpers}")
+        code.addln("import net.liftweb.json.xschema.{SerializationImplicits, Extractor, Decomposer}")
         
         if (includeSchemas) {
           code.addln("import net.liftweb.json.xschema.{XRoot, XProduct, XCoproduct, XSchemaDerived}")
@@ -487,7 +487,17 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       }
     }
     
-    code.newline(2).add("trait Extractors extends ExtractorHelpers ").block {    
+    code.newline(2).add("trait Extractors ").block {    
+      code.add("""
+        protected def extractField[T](jvalue: JValue, name: String, default: JValue, e: Extractor[T]): T = {
+          try {
+            e.extract((jvalue \ name -->? classOf[JField]).map(_.value).getOrElse(default))
+          }
+          catch {
+            case _ => e.extract(default)
+          }
+        }""").newline(2)
+        
       code.join(database.definitionsIn(namespace), code.newline.newline) { definition =>
         definition match {
           case x: XProduct => 
@@ -502,7 +512,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
                       var isFirst = true
 
                       code.join(x.realFields, code.add(",").newline) { field =>
-                        code.add("extractField[${fieldType}](jvalue, \"${fieldName}\", " + compact(renderScala(field.default)) + ")(" + getExtractorFor(field.fieldType) + ")", 
+                        code.add("extractField[${fieldType}](jvalue, \"${fieldName}\", " + compact(renderScala(field.default)) + ", " + getExtractorFor(field.fieldType) + ")", 
                           "fieldType" -> typeSignatureOf(field.fieldType, database),
                           "fieldName" -> field.name
                         )
