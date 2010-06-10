@@ -313,29 +313,29 @@ package net.liftweb.json.xschema {
   }
   
   sealed trait XDefinition extends Product with net.liftweb.json.xschema.XSchema {
-    def name: String
-    def namespace: String
+    def referenceTo: net.liftweb.json.xschema.XDefinitionRef
     def properties: Map[String, String]
-    def referenceTo: net.liftweb.json.xschema.XReference
+    def namespace: String
+    def name: String
   }
   object XDefinition extends XSchemaDerived {
     lazy val xschema: XCoproduct = net.liftweb.json.xschema.Extractors.XCoproductExtractor.extract(JObject(JField("XMultitype",JObject(JField("XCoproduct",JObject(JField("name",JString("XDefinition"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(Nil))::JField("terms",JArray(JObject(JField("name",JString("XProduct"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::JObject(JField("name",JString("XMultitype"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::Nil))::JField("default",JObject(JField("XProduct",JObject(Nil))::Nil))::Nil))::Nil))::Nil))
   }
   
   sealed trait XMultitype extends Product with net.liftweb.json.xschema.XDefinition {
-    def name: String
-    def namespace: String
+    def referenceTo: net.liftweb.json.xschema.XDefinitionRef
     def properties: Map[String, String]
+    def namespace: String
+    def name: String
     def default: net.liftweb.json.JsonAST.JValue
-    def referenceTo: net.liftweb.json.xschema.XReference
   }
   object XMultitype extends XSchemaDerived {
     lazy val xschema: XCoproduct = net.liftweb.json.xschema.Extractors.XCoproductExtractor.extract(JObject(JField("XMultitype",JObject(JField("XCoproduct",JObject(JField("name",JString("XMultitype"))::JField("namespace",JString("net.liftweb.json.xschema"))::JField("properties",JArray(Nil))::JField("terms",JArray(JObject(JField("name",JString("XCoproduct"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::JObject(JField("name",JString("XUnion"))::JField("namespace",JString("net.liftweb.json.xschema"))::Nil)::Nil))::JField("default",JObject(JField("XCoproduct",JObject(Nil))::Nil))::Nil))::Nil))::Nil))
   }
   
   sealed trait XField extends Product with net.liftweb.json.xschema.XSchema {
-    def name: String
     def properties: Map[String, String]
+    def name: String
     def fieldType: net.liftweb.json.xschema.XReference
   }
   object XField extends XSchemaDerived {

@@ -254,7 +254,7 @@ package net.liftweb.json.xschema {
       Decomposers.XOrderIgnoreDecomposer.decompose(ExampleProductData.ExampleXOrderIgnore) mustNot be (JObject(Nil))
     }
   }
-  object ExampleCoproductData {
+  object ExampleMultitypeData {
     lazy val ExampleXSchema: net.liftweb.json.xschema.XSchema = JObject(Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val ExampleXSchemaFromXProduct: net.liftweb.json.xschema.XSchema = JObject(JField("XProduct", net.liftweb.json.xschema.Decomposers.XProductDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXProduct)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val ExampleXSchemaFromXCoproduct: net.liftweb.json.xschema.XSchema = JObject(JField("XCoproduct", net.liftweb.json.xschema.Decomposers.XCoproductDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXCoproduct)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
@@ -338,447 +338,447 @@ package net.liftweb.json.xschema {
   class DataCoproductSerializationTest extends Runner(DataCoproductSerializationExamples) with JUnit
   object DataCoproductSerializationExamples extends Specification {
     "Deserialization of XSchema succeeds even when information is missing" in {
-      ExampleCoproductData.ExampleXSchema.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchema.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchema.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchema.serialize mustNot be (JObject(Nil))
     }
   
     "Deserialization of XSchema (from XProduct) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXProduct.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXProduct.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XProduct) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXProduct.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXProduct.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XCoproduct) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXCoproduct.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXCoproduct.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XCoproduct) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXCoproduct.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXCoproduct.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XUnion) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXUnion.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXUnion.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XUnion) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXUnion.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXUnion.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XBoolean) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXBoolean.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXBoolean.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XBoolean) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXBoolean.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXBoolean.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XInt) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXInt.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXInt.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XInt) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXInt.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXInt.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XLong) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXLong.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXLong.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XLong) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXLong.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXLong.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XFloat) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXFloat.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXFloat.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XFloat) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXFloat.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXFloat.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XDouble) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXDouble.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXDouble.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XDouble) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXDouble.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXDouble.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XString) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXString.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXString.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XString) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXString.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXString.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XJSON) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXJSON.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXJSON.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XJSON) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXJSON.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXJSON.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XList) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXList.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXList.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XList) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXList.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXList.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XSet) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXSet.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXSet.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XSet) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXSet.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXSet.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XArray) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXArray.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXArray.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XArray) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXArray.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXArray.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XMap) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXMap.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXMap.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XMap) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXMap.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXMap.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XOptional) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXOptional.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXOptional.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XOptional) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXOptional.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXOptional.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XTuple) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXTuple.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXTuple.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XTuple) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXTuple.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXTuple.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XDefinitionRef) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXDefinitionRef.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXDefinitionRef.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XDefinitionRef) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXDefinitionRef.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXDefinitionRef.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XRealField) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXRealField.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXRealField.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XRealField) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXRealField.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXRealField.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XViewField) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXViewField.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXViewField.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XViewField) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXViewField.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXViewField.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XConstantField) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXConstantField.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXConstantField.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XConstantField) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXConstantField.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXConstantField.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XConstant) succeeds" in {
-      ExampleCoproductData.ExampleXSchemaFromXConstant.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+      ExampleMultitypeData.ExampleXSchemaFromXConstant.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
     }            
     "Serialization of XSchema (from XConstant) has non-zero information content" in {
-      ExampleCoproductData.ExampleXSchemaFromXConstant.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXSchemaFromXConstant.serialize mustNot be (JObject(Nil))
     }
     
     "Deserialization of XReference succeeds even when information is missing" in {
-      ExampleCoproductData.ExampleXReference.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReference.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference has non-zero information content" in {
-      ExampleCoproductData.ExampleXReference.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReference.serialize mustNot be (JObject(Nil))
     }
   
     "Deserialization of XReference (from XBoolean) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXBoolean.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXBoolean.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XBoolean) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXBoolean.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXBoolean.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XReference (from XInt) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXInt.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXInt.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XInt) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXInt.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXInt.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XReference (from XLong) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXLong.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXLong.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XLong) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXLong.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXLong.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XReference (from XFloat) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXFloat.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXFloat.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XFloat) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXFloat.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXFloat.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XReference (from XDouble) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXDouble.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXDouble.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XDouble) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXDouble.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXDouble.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XReference (from XString) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXString.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXString.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XString) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXString.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXString.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XReference (from XJSON) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXJSON.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXJSON.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XJSON) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXJSON.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXJSON.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XReference (from XList) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXList.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXList.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XList) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXList.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXList.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XReference (from XSet) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXSet.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXSet.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XSet) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXSet.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXSet.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XReference (from XArray) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXArray.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXArray.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XArray) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXArray.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXArray.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XReference (from XMap) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXMap.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXMap.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XMap) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXMap.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXMap.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XReference (from XOptional) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXOptional.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXOptional.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XOptional) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXOptional.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXOptional.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XReference (from XTuple) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXTuple.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXTuple.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XTuple) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXTuple.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXTuple.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XReference (from XDefinitionRef) succeeds" in {
-      ExampleCoproductData.ExampleXReferenceFromXDefinitionRef.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+      ExampleMultitypeData.ExampleXReferenceFromXDefinitionRef.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
     "Serialization of XReference (from XDefinitionRef) has non-zero information content" in {
-      ExampleCoproductData.ExampleXReferenceFromXDefinitionRef.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXReferenceFromXDefinitionRef.serialize mustNot be (JObject(Nil))
     }
     
     "Deserialization of XPrimitiveRef succeeds even when information is missing" in {
-      ExampleCoproductData.ExampleXPrimitiveRef.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
+      ExampleMultitypeData.ExampleXPrimitiveRef.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
     }            
     "Serialization of XPrimitiveRef has non-zero information content" in {
-      ExampleCoproductData.ExampleXPrimitiveRef.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXPrimitiveRef.serialize mustNot be (JObject(Nil))
     }
   
     "Deserialization of XPrimitiveRef (from XBoolean) succeeds" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXBoolean.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXBoolean.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
     }            
     "Serialization of XPrimitiveRef (from XBoolean) has non-zero information content" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXBoolean.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXBoolean.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XPrimitiveRef (from XInt) succeeds" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXInt.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXInt.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
     }            
     "Serialization of XPrimitiveRef (from XInt) has non-zero information content" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXInt.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXInt.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XPrimitiveRef (from XLong) succeeds" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXLong.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXLong.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
     }            
     "Serialization of XPrimitiveRef (from XLong) has non-zero information content" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXLong.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXLong.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XPrimitiveRef (from XFloat) succeeds" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXFloat.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXFloat.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
     }            
     "Serialization of XPrimitiveRef (from XFloat) has non-zero information content" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXFloat.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXFloat.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XPrimitiveRef (from XDouble) succeeds" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXDouble.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXDouble.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
     }            
     "Serialization of XPrimitiveRef (from XDouble) has non-zero information content" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXDouble.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXDouble.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XPrimitiveRef (from XString) succeeds" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXString.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXString.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
     }            
     "Serialization of XPrimitiveRef (from XString) has non-zero information content" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXString.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXString.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XPrimitiveRef (from XJSON) succeeds" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXJSON.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXJSON.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
     }            
     "Serialization of XPrimitiveRef (from XJSON) has non-zero information content" in {
-      ExampleCoproductData.ExampleXPrimitiveRefFromXJSON.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXJSON.serialize mustNot be (JObject(Nil))
     }
     
     "Deserialization of XContainerRef succeeds even when information is missing" in {
-      ExampleCoproductData.ExampleXContainerRef.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
+      ExampleMultitypeData.ExampleXContainerRef.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
     }            
     "Serialization of XContainerRef has non-zero information content" in {
-      ExampleCoproductData.ExampleXContainerRef.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXContainerRef.serialize mustNot be (JObject(Nil))
     }
   
     "Deserialization of XContainerRef (from XList) succeeds" in {
-      ExampleCoproductData.ExampleXContainerRefFromXList.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
+      ExampleMultitypeData.ExampleXContainerRefFromXList.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
     }            
     "Serialization of XContainerRef (from XList) has non-zero information content" in {
-      ExampleCoproductData.ExampleXContainerRefFromXList.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXContainerRefFromXList.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XContainerRef (from XSet) succeeds" in {
-      ExampleCoproductData.ExampleXContainerRefFromXSet.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
+      ExampleMultitypeData.ExampleXContainerRefFromXSet.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
     }            
     "Serialization of XContainerRef (from XSet) has non-zero information content" in {
-      ExampleCoproductData.ExampleXContainerRefFromXSet.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXContainerRefFromXSet.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XContainerRef (from XArray) succeeds" in {
-      ExampleCoproductData.ExampleXContainerRefFromXArray.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
+      ExampleMultitypeData.ExampleXContainerRefFromXArray.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
     }            
     "Serialization of XContainerRef (from XArray) has non-zero information content" in {
-      ExampleCoproductData.ExampleXContainerRefFromXArray.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXContainerRefFromXArray.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XContainerRef (from XMap) succeeds" in {
-      ExampleCoproductData.ExampleXContainerRefFromXMap.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
+      ExampleMultitypeData.ExampleXContainerRefFromXMap.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
     }            
     "Serialization of XContainerRef (from XMap) has non-zero information content" in {
-      ExampleCoproductData.ExampleXContainerRefFromXMap.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXContainerRefFromXMap.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XContainerRef (from XOptional) succeeds" in {
-      ExampleCoproductData.ExampleXContainerRefFromXOptional.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
+      ExampleMultitypeData.ExampleXContainerRefFromXOptional.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
     }            
     "Serialization of XContainerRef (from XOptional) has non-zero information content" in {
-      ExampleCoproductData.ExampleXContainerRefFromXOptional.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXContainerRefFromXOptional.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XContainerRef (from XTuple) succeeds" in {
-      ExampleCoproductData.ExampleXContainerRefFromXTuple.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
+      ExampleMultitypeData.ExampleXContainerRefFromXTuple.isInstanceOf[net.liftweb.json.xschema.XContainerRef] must be (true)
     }            
     "Serialization of XContainerRef (from XTuple) has non-zero information content" in {
-      ExampleCoproductData.ExampleXContainerRefFromXTuple.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXContainerRefFromXTuple.serialize mustNot be (JObject(Nil))
     }
     
     "Deserialization of XCollection succeeds even when information is missing" in {
-      ExampleCoproductData.ExampleXCollection.isInstanceOf[net.liftweb.json.xschema.XCollection] must be (true)
+      ExampleMultitypeData.ExampleXCollection.isInstanceOf[net.liftweb.json.xschema.XCollection] must be (true)
     }            
     "Serialization of XCollection has non-zero information content" in {
-      ExampleCoproductData.ExampleXCollection.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXCollection.serialize mustNot be (JObject(Nil))
     }
   
     "Deserialization of XCollection (from XList) succeeds" in {
-      ExampleCoproductData.ExampleXCollectionFromXList.isInstanceOf[net.liftweb.json.xschema.XCollection] must be (true)
+      ExampleMultitypeData.ExampleXCollectionFromXList.isInstanceOf[net.liftweb.json.xschema.XCollection] must be (true)
     }            
     "Serialization of XCollection (from XList) has non-zero information content" in {
-      ExampleCoproductData.ExampleXCollectionFromXList.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXCollectionFromXList.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XCollection (from XSet) succeeds" in {
-      ExampleCoproductData.ExampleXCollectionFromXSet.isInstanceOf[net.liftweb.json.xschema.XCollection] must be (true)
+      ExampleMultitypeData.ExampleXCollectionFromXSet.isInstanceOf[net.liftweb.json.xschema.XCollection] must be (true)
     }            
     "Serialization of XCollection (from XSet) has non-zero information content" in {
-      ExampleCoproductData.ExampleXCollectionFromXSet.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXCollectionFromXSet.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XCollection (from XArray) succeeds" in {
-      ExampleCoproductData.ExampleXCollectionFromXArray.isInstanceOf[net.liftweb.json.xschema.XCollection] must be (true)
+      ExampleMultitypeData.ExampleXCollectionFromXArray.isInstanceOf[net.liftweb.json.xschema.XCollection] must be (true)
     }            
     "Serialization of XCollection (from XArray) has non-zero information content" in {
-      ExampleCoproductData.ExampleXCollectionFromXArray.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXCollectionFromXArray.serialize mustNot be (JObject(Nil))
     }
     
     "Deserialization of XDefinition succeeds even when information is missing" in {
-      ExampleCoproductData.ExampleXDefinition.isInstanceOf[net.liftweb.json.xschema.XDefinition] must be (true)
+      ExampleMultitypeData.ExampleXDefinition.isInstanceOf[net.liftweb.json.xschema.XDefinition] must be (true)
     }            
     "Serialization of XDefinition has non-zero information content" in {
-      ExampleCoproductData.ExampleXDefinition.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXDefinition.serialize mustNot be (JObject(Nil))
     }
   
     "Deserialization of XDefinition (from XProduct) succeeds" in {
-      ExampleCoproductData.ExampleXDefinitionFromXProduct.isInstanceOf[net.liftweb.json.xschema.XDefinition] must be (true)
+      ExampleMultitypeData.ExampleXDefinitionFromXProduct.isInstanceOf[net.liftweb.json.xschema.XDefinition] must be (true)
     }            
     "Serialization of XDefinition (from XProduct) has non-zero information content" in {
-      ExampleCoproductData.ExampleXDefinitionFromXProduct.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXDefinitionFromXProduct.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XDefinition (from XCoproduct) succeeds" in {
-      ExampleCoproductData.ExampleXDefinitionFromXCoproduct.isInstanceOf[net.liftweb.json.xschema.XDefinition] must be (true)
+      ExampleMultitypeData.ExampleXDefinitionFromXCoproduct.isInstanceOf[net.liftweb.json.xschema.XDefinition] must be (true)
     }            
     "Serialization of XDefinition (from XCoproduct) has non-zero information content" in {
-      ExampleCoproductData.ExampleXDefinitionFromXCoproduct.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXDefinitionFromXCoproduct.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XDefinition (from XUnion) succeeds" in {
-      ExampleCoproductData.ExampleXDefinitionFromXUnion.isInstanceOf[net.liftweb.json.xschema.XDefinition] must be (true)
+      ExampleMultitypeData.ExampleXDefinitionFromXUnion.isInstanceOf[net.liftweb.json.xschema.XDefinition] must be (true)
     }            
     "Serialization of XDefinition (from XUnion) has non-zero information content" in {
-      ExampleCoproductData.ExampleXDefinitionFromXUnion.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXDefinitionFromXUnion.serialize mustNot be (JObject(Nil))
     }
     
     "Deserialization of XMultitype succeeds even when information is missing" in {
-      ExampleCoproductData.ExampleXMultitype.isInstanceOf[net.liftweb.json.xschema.XMultitype] must be (true)
+      ExampleMultitypeData.ExampleXMultitype.isInstanceOf[net.liftweb.json.xschema.XMultitype] must be (true)
     }            
     "Serialization of XMultitype has non-zero information content" in {
-      ExampleCoproductData.ExampleXMultitype.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXMultitype.serialize mustNot be (JObject(Nil))
     }
   
     "Deserialization of XMultitype (from XCoproduct) succeeds" in {
-      ExampleCoproductData.ExampleXMultitypeFromXCoproduct.isInstanceOf[net.liftweb.json.xschema.XMultitype] must be (true)
+      ExampleMultitypeData.ExampleXMultitypeFromXCoproduct.isInstanceOf[net.liftweb.json.xschema.XMultitype] must be (true)
     }            
     "Serialization of XMultitype (from XCoproduct) has non-zero information content" in {
-      ExampleCoproductData.ExampleXMultitypeFromXCoproduct.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXMultitypeFromXCoproduct.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XMultitype (from XUnion) succeeds" in {
-      ExampleCoproductData.ExampleXMultitypeFromXUnion.isInstanceOf[net.liftweb.json.xschema.XMultitype] must be (true)
+      ExampleMultitypeData.ExampleXMultitypeFromXUnion.isInstanceOf[net.liftweb.json.xschema.XMultitype] must be (true)
     }            
     "Serialization of XMultitype (from XUnion) has non-zero information content" in {
-      ExampleCoproductData.ExampleXMultitypeFromXUnion.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXMultitypeFromXUnion.serialize mustNot be (JObject(Nil))
     }
     
     "Deserialization of XField succeeds even when information is missing" in {
-      ExampleCoproductData.ExampleXField.isInstanceOf[net.liftweb.json.xschema.XField] must be (true)
+      ExampleMultitypeData.ExampleXField.isInstanceOf[net.liftweb.json.xschema.XField] must be (true)
     }            
     "Serialization of XField has non-zero information content" in {
-      ExampleCoproductData.ExampleXField.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXField.serialize mustNot be (JObject(Nil))
     }
   
     "Deserialization of XField (from XRealField) succeeds" in {
-      ExampleCoproductData.ExampleXFieldFromXRealField.isInstanceOf[net.liftweb.json.xschema.XField] must be (true)
+      ExampleMultitypeData.ExampleXFieldFromXRealField.isInstanceOf[net.liftweb.json.xschema.XField] must be (true)
     }            
     "Serialization of XField (from XRealField) has non-zero information content" in {
-      ExampleCoproductData.ExampleXFieldFromXRealField.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXFieldFromXRealField.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XField (from XViewField) succeeds" in {
-      ExampleCoproductData.ExampleXFieldFromXViewField.isInstanceOf[net.liftweb.json.xschema.XField] must be (true)
+      ExampleMultitypeData.ExampleXFieldFromXViewField.isInstanceOf[net.liftweb.json.xschema.XField] must be (true)
     }            
     "Serialization of XField (from XViewField) has non-zero information content" in {
-      ExampleCoproductData.ExampleXFieldFromXViewField.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXFieldFromXViewField.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XField (from XConstantField) succeeds" in {
-      ExampleCoproductData.ExampleXFieldFromXConstantField.isInstanceOf[net.liftweb.json.xschema.XField] must be (true)
+      ExampleMultitypeData.ExampleXFieldFromXConstantField.isInstanceOf[net.liftweb.json.xschema.XField] must be (true)
     }            
     "Serialization of XField (from XConstantField) has non-zero information content" in {
-      ExampleCoproductData.ExampleXFieldFromXConstantField.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXFieldFromXConstantField.serialize mustNot be (JObject(Nil))
     }
     
     "Deserialization of XOrder succeeds even when information is missing" in {
-      ExampleCoproductData.ExampleXOrder.isInstanceOf[net.liftweb.json.xschema.XOrder] must be (true)
+      ExampleMultitypeData.ExampleXOrder.isInstanceOf[net.liftweb.json.xschema.XOrder] must be (true)
     }            
     "Serialization of XOrder has non-zero information content" in {
-      ExampleCoproductData.ExampleXOrder.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXOrder.serialize mustNot be (JObject(Nil))
     }
   
     "Deserialization of XOrder (from XOrderAscending) succeeds" in {
-      ExampleCoproductData.ExampleXOrderFromXOrderAscending.isInstanceOf[net.liftweb.json.xschema.XOrder] must be (true)
+      ExampleMultitypeData.ExampleXOrderFromXOrderAscending.isInstanceOf[net.liftweb.json.xschema.XOrder] must be (true)
     }            
     "Serialization of XOrder (from XOrderAscending) has non-zero information content" in {
-      ExampleCoproductData.ExampleXOrderFromXOrderAscending.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXOrderFromXOrderAscending.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XOrder (from XOrderDescending) succeeds" in {
-      ExampleCoproductData.ExampleXOrderFromXOrderDescending.isInstanceOf[net.liftweb.json.xschema.XOrder] must be (true)
+      ExampleMultitypeData.ExampleXOrderFromXOrderDescending.isInstanceOf[net.liftweb.json.xschema.XOrder] must be (true)
     }            
     "Serialization of XOrder (from XOrderDescending) has non-zero information content" in {
-      ExampleCoproductData.ExampleXOrderFromXOrderDescending.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXOrderFromXOrderDescending.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XOrder (from XOrderIgnore) succeeds" in {
-      ExampleCoproductData.ExampleXOrderFromXOrderIgnore.isInstanceOf[net.liftweb.json.xschema.XOrder] must be (true)
+      ExampleMultitypeData.ExampleXOrderFromXOrderIgnore.isInstanceOf[net.liftweb.json.xschema.XOrder] must be (true)
     }            
     "Serialization of XOrder (from XOrderIgnore) has non-zero information content" in {
-      ExampleCoproductData.ExampleXOrderFromXOrderIgnore.serialize mustNot be (JObject(Nil))
+      ExampleMultitypeData.ExampleXOrderFromXOrderIgnore.serialize mustNot be (JObject(Nil))
     }
   }
   class DataConstantsSerializationTest extends Runner(DataConstantsSerializationExamples) with JUnit
