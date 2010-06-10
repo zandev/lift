@@ -53,7 +53,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         code.addln("import net.liftweb.json.xschema.{SerializationImplicits, Extractor, Decomposer}")
         
         if (includeSchemas) {
-          code.addln("import net.liftweb.json.xschema.{XRoot, XProduct, XCoproduct, XSchemaDerived}")
+          code.addln("import net.liftweb.json.xschema.{XRoot, XProduct, XCoproduct}")
         }
       }
            
@@ -232,6 +232,11 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     }
   }
   
+  private def formCompleteExtensionClause(traits: List[String]) = traits match {
+    case Nil => ""
+    case xs => "extends " + xs.mkString(" with ") + " "
+  }
+  
   private def buildDataFor(definition: XDefinition, code: CodeBuilder, database: XSchemaDatabase, includeSchemas: Boolean): Unit = {
     def coproductPrefix(x: XCoproduct): String = if (database.namespacesOf(x).removeDuplicates.length <= 1) "sealed " else ""
     def buildProductFields(x: XProduct): Unit = {
@@ -342,10 +347,10 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
           var initialExtends: List[String] = Nil
           
           if (isSingleton) {
-            code.add("case object ${name}")
+            code.add("case object ${name} ")
             
             if (includeSchemas) {
-              initialExtends = "XSchemaDerived" :: formMixinsClauseFromProperty("scala.object.traits")
+              initialExtends = formMixinsClauseFromProperty("scala.object.traits")
             }
           }
           else {
@@ -357,10 +362,8 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
           }
       
           val withClauses = initialExtends ::: definitionTraits
-
-          if (withClauses.length > 0) {
-            code.add(" extends " + withClauses.mkString(" with ") + " ")
-          }
+          
+          code += formCompleteExtensionClause(withClauses)
           
           if (!isSingleton) {
             code.block {
@@ -380,7 +383,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         case x: XCoproduct => 
           val withClauses = "Product" :: definitionTraits
           
-          code.add(coproductPrefix(x) + "trait ${name} extends " + withClauses.mkString(" with ") + " ").block {
+          code.add(coproductPrefix(x) + "trait ${name} " + formCompleteExtensionClause(withClauses)).block {
             buildCoproductFields(x)
           }
           
@@ -393,9 +396,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       val objectMixins = formMixinsClauseFromProperty("scala.object.traits")
       
       if (!isSingleton && (includeSchemas || objectMixins.length > 0)) {
-        val withClauses: List[String] = if (includeSchemas) "XSchemaDerived" :: objectMixins else objectMixins
-      
-        code.newline.add("object ${name} extends " + withClauses.mkString(" with ") + " ").block {
+        code.newline.add("object ${name} " + formCompleteExtensionClause(objectMixins)).block {
           buildXSchema()
         }
       }

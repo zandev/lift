@@ -7,10 +7,6 @@ object PredefinedProperties {
   val XSchemaIncludeSchemas = "xschema.includeSchemas"
 }
 
-trait XSchemaDerived {
-  def xschema: XSchema
-}
-
 trait XProductBehavior {
   def terms: List[XField]
   
