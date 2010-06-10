@@ -95,7 +95,7 @@ trait ProtoUser[T <: ProtoUser[T]] extends KeyedMapper[Long, T] with UserIdAsStr
 }
 
 trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMetaMapper[Long, ModelType]
-        with UserService[ModelType] with UserOperations[ModelType] with MapperUserFinders[ModelType]
+        with MapperUserService[ModelType] with UserOperations[ModelType] with MapperUserFinders[ModelType]
         with MapperUserSnippet[ModelType] {
   self: ModelType => 
 
@@ -151,6 +151,14 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
     case _ => false
   }
 
+  def userOperations = this
+
+  def userService = this
+}
+
+trait MapperUserService[ModelType <: MegaProtoUser[ModelType]] extends KeyedMetaMapper[Long, ModelType]
+        with UserService[ModelType] {
+  self: ModelType =>
   def validateUser(user: ModelType) = user.validate
 
   def setUserAccountValidated(user: ModelType, validated: Boolean) = {
@@ -179,10 +187,6 @@ trait MetaMegaProtoUser[ModelType <: MegaProtoUser[ModelType]] extends KeyedMeta
   def saveUser(user: ModelType) = user.save
 
   def authenticate(user: ModelType) = user.password.match_?(S.param("password").openOr("*"))
-
-  def userService = this
-
-  def userOperations = this
 
   def createUser = create
 }

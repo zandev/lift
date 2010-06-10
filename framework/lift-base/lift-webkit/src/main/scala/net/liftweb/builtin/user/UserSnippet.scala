@@ -28,9 +28,10 @@ trait CommonUserSnippet[ModelType <: UserDetails] extends UserSnippet {
   object loginRedirect extends SessionVar[Box[String]](Empty)
 
   def login(xhtml: NodeSeq): NodeSeq = {
+    object email extends RequestVar[String]("")
     if (S.post_?) {
       S.param("username").
-      flatMap(username => userService.findByUsername(username)) match {
+      flatMap(username => {email(username); userService.findByUsername(username)}) match {
         case Full(user) if user.userValidated_? &&
           userService.authenticate(user) =>
           S.notice(S.??("logged.in"))
@@ -51,7 +52,7 @@ trait CommonUserSnippet[ModelType <: UserDetails] extends UserSnippet {
       }
     }
     bind("user", xhtml,
-      "email" -> (FocusOnLoad(<input type="text" name="username"/>)),
+      "email" -> (FocusOnLoad(<input type="text" name="username" value={email.is} />)),
       "password" -> (<input type="password" name="password"/>),
       "submit" -> (<input type="submit" value={S.??("log.in")}/>))
   }
