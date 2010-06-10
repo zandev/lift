@@ -347,6 +347,91 @@ object SampleSchemas {
     )
   )
   
+  val EmployeeSchema = XRoot(
+    List(
+      XCoproduct(
+        "Employee", "data.employee",
+        Map(),
+        List(
+          XDefinitionRef("Manager", "data.employee"),
+          XDefinitionRef("Secretary", "data.employee"),
+          XDefinitionRef("Coach", "data.employee")
+        ),
+        j(""" { "Manager": {} } """)
+      ),
+      XCoproduct(
+        "ID", "data.employee",
+        Map(),
+        List(
+          XDefinitionRef("EmployeeID", "data.employee"),
+          XDefinitionRef("NoID", "data.employee")
+        ),
+        j(""" { "NoID": {} } """)
+      ),
+      XCoproduct(
+        "EmployeeID", "data.employee",
+        Map(),
+        List(
+          XDefinitionRef("SSN", "data.employee"),
+          XDefinitionRef("Passport", "data.employee"),
+          XDefinitionRef("DL", "data.employee")
+        ),
+        j(""" { "SSN": {} } """)
+      ),
+      XProduct(
+        "NoID", "data.employee",
+        Map(),
+        List()
+      ),
+      XProduct(
+        "SSN", "data.employee",
+        Map(),
+        List(
+          XRealField("value", Map(), XString, JString(""), XOrderAscending)
+        )
+      ),
+      XProduct(
+        "Passport", "data.employee",
+        Map(),
+        List(
+          XRealField("value", Map(), XLong, JInt(-1), XOrderAscending)
+        )
+      ),
+      XProduct(
+        "DL", "data.employee",
+        Map(),
+        List(
+          XRealField("value", Map(), XString, JString(""), XOrderAscending)
+        )
+      ),
+      XProduct(
+        "Manager", "data.employee",
+        Map(),
+        List(
+          XRealField("id", Map(), XDefinitionRef("SSN", "data.employee"), j(""" { "SSN": {} } """), XOrderAscending)
+        )
+      ),
+      XProduct(
+        "Secretary", "data.employee",
+        Map(),
+        List(
+          XRealField("id", Map(), XDefinitionRef("SSN", "data.employee"), j(""" { "SSN": {} } """), XOrderAscending)
+        )
+      ),
+      XProduct(
+        "Coach", "data.employee",
+        Map(),
+        List(
+          XRealField("id", Map(), XDefinitionRef("SSN", "data.employee"), j(""" { "SSN": {} } """), XOrderAscending)
+        )
+      )
+    ),
+    Nil,
+    Map(
+      "scala.imports" -> "net.liftweb.json.xschema.{SerializationImplicits => XSerializationImplicits, DefaultExtractors => XDefaultExtractors}, java.lang.reflect._"
+    )
+  )
+  
   val XSchemaSchema = (new BootstrapXSchema).apply
 }
 }

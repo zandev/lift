@@ -21,9 +21,12 @@ trait XSchemaDatabase extends Iterable[XSchema] {
     XSchemaValidation(warnings, errors)
   }
   
-  def findProductTerms(x: XCoproduct): List[XProduct] = (resolve(x.terms).flatMap {
+  /** Finds all the terms of the specified multitype, regardless of how deep 
+   * they are in the type hierarchy.
+   */
+  def findProductTerms(x: XMultitype): List[XProduct] = (resolve(elementsOf(x)).flatMap {
     case x: XProduct   => x :: Nil
-    case x: XCoproduct => findProductTerms(x)
+    case x: XMultitype => findProductTerms(x)
     case _ => Nil
   }).removeDuplicates
   
@@ -35,6 +38,8 @@ trait XSchemaDatabase extends Iterable[XSchema] {
     case _ => None
   }
   
+  /** Finds all the definitions referenced by the specified definition.
+   */
   def definitionsReferencedBy(defn: XDefinition): List[XDefinitionRef] = walk(defn, Nil, new XSchemaWalker[List[XDefinitionRef]] {
     override def walk(data: List[XDefinitionRef], prim: XDefinitionRef): List[XDefinitionRef] = prim :: data
   }).removeDuplicates
@@ -63,6 +68,8 @@ trait XSchemaDatabase extends Iterable[XSchema] {
   
   def definitionRefsIn(namespace: String) = definitionRefs.filter(_.namespace == namespace)
   
+  def definitionByName(name: String) = definitions.filter(_.name == name).firstOption
+  
   /** Retrieves all the namespaces.
    */
   def namespaces = definitions.map(_.namespace).removeDuplicates
@@ -73,11 +80,17 @@ trait XSchemaDatabase extends Iterable[XSchema] {
    */
   def resolve(ref: XReference): XSchema = definitionFor(ref).getOrElse(ref)
   
-  def resolve(refs: Iterable[XReference]): List[XSchema] = refs.map(resolve(_)).toList
+  /** Resolves all types.
+   */
+  def resolve(refs: Iterable[XReference]): List[XSchema] = refs.map(resolve _).toList
   
+  /** If the specified schema is a container for other types, returns those
+   * types; otherwise, returns Nil.
+   */
   def elementsOf(s: XSchema): List[XReference] = s match {
     case x: XProduct    => x.terms.map(_.fieldType)
     case x: XCoproduct  => x.terms
+    case x: XUnion      => x.terms
     case x: XField      => x.fieldType :: Nil
     case x: XOptional   => x.optionalType :: Nil
     case x: XCollection => x.elementType :: Nil
@@ -99,6 +112,13 @@ trait XSchemaDatabase extends Iterable[XSchema] {
     case _ => Nil
   }
   
+  /** Returns all the multitypes that contain the specified definition.
+   */
+  def multitypeContainersOf(defn: XDefinition): List[XMultitype] = containersOf(defn).flatMap { 
+    case x: XMultitype => List[XMultitype](x)
+    case _ => Nil
+  }
+  
   /** A "singleton" coproduct term is defined to be a product that appears as
    * a term in a single coproduct, and is not referenced as a type anywhere in
    * the type hierarchy. Singleton coproduct terms have special properties that
@@ -111,13 +131,46 @@ trait XSchemaDatabase extends Iterable[XSchema] {
     case _ => false
   }
   
-  /** Determines if the specified product is a term in any coproduct.
+  /** Determines if the specified product is a term in any multitype.
    */
-  def isContainedInCoproduct(defn: XProduct) = coproductContainersOf(defn).length > 0
+  def isContainedInMultitype(defn: XProduct) = multitypeContainersOf(defn).length > 0
   
-  /** Retrieves all the namespaces of the terms of the specified coproduct.
+  /** Returns the namespace of the reference, if it has one, or None if it 
+    * does not.
+    */
+  def namespaceOf(ref: XReference) = ref match {
+    case x: XDefinitionRef => Some(x.namespace)
+    
+    case _ => None
+  }
+  
+  /** Retrieves all the namespaces of the terms of the specified multitype.
    */
-  def namespacesOf(defn: XCoproduct): List[String] = defn.terms.map(_.namespace)
+  def namespacesOf(defn: XMultitype): List[String] = elementsOf(defn).flatMap(namespaceOf(_).toList)
+  
+  /** Compares the specificity of the specified references. Will return 0 for
+   * two unrelated definitions. For related definitions, a definition X will
+   * have greater specificity than a definition Y iff X is a refinement of Y.
+   */
+  def compareSpecificity(ref1: XReference, ref2: XReference): Int = {
+    resolve(ref1) match {
+      case x: XProduct => resolve(ref2) match {
+        case y: XProduct => 0
+        case y: XMultitype => if (multitypeContainersOf(x).contains(y)) 1 else 0
+        
+        case _ => 0
+      }
+      
+      case x: XMultitype => resolve(ref2) match {
+        case y: XProduct => if (multitypeContainersOf(y).contains(x)) -1 else 0
+        case y: XMultitype => if (multitypeContainersOf(y).contains(x)) -1 else if (multitypeContainersOf(x).contains(y)) 1 else 0
+        
+        case _ => 0
+      }
+      
+      case _ => 0
+    }
+  }
   
   /** Finds all fields that are common to all elements of the specified 
    * coproduct. Fields are common when they have the same name and type,
@@ -128,7 +181,7 @@ trait XSchemaDatabase extends Iterable[XSchema] {
         resolved match {
           case p: XProduct => p.terms.flatMap { field =>
             resolve(field.fieldType) match {
-              case p: XProduct if (isContainedInCoproduct(p)) => coproductContainersOf(p).map(c => (field.name, c.referenceTo))
+              case p: XProduct if (isContainedInMultitype(p)) => (field.name, field.fieldType) :: multitypeContainersOf(p).map(c => (field.name, c.referenceTo))
 
               case _ => (field.name, field.fieldType) :: Nil
             }
@@ -140,11 +193,16 @@ trait XSchemaDatabase extends Iterable[XSchema] {
       }
     }
     
-    allFields match {
+    (allFields match {
       case Nil => Nil
       
       case head :: tail => tail.foldLeft(head) { (common, list) => common.intersect(list) }
-    }
+    }).sort { (t1, t2) =>
+      val key1 = t1._1
+      val key2 = t2._1
+      
+      if (key1 == key2) (compareSpecificity(t1._2, t2._2) > 0) else key1.compare(key2) < 0
+    }.foldLeft[List[(String, XReference)]](Nil) { (list, e) => if (list.exists(_._1 == e._1)) list else e :: list }
   }
   
   def elements = all.elements

@@ -64,13 +64,14 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         case Some(imports) => imports.split(",(?![^{]+[}])").map("import " + _.trim) foreach { x => code.addln(x) }
       }
       
-      val otherReferencedNamespaces = database.definitionsReferencedIn(namespace).map(_.namespace).filter(_ != namespace)
+      // Comparison functions use implicit orderings -- we need to import external orderings:
+      val otherReferencedNamespaces = database.definitionsReferencedIn(namespace).map(_.namespace).filter(_ != namespace).removeDuplicates
       
       if (otherReferencedNamespaces.length > 0) {      
         code.newline
         
         code.join(otherReferencedNamespaces, code.newline) { externalNamespace =>
-          code.add("import " + externalNamespace + ".Serialization._")
+          code.add("import " + externalNamespace + ".Orderings._")
         }
       }
       
@@ -78,6 +79,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       
       code.newline(2)
     
+      // Unions are mapped to Any in Scala, so we only need to build data for coproducts and products:
       code.join(database.coproductsIn(namespace) ++ database.productsIn(namespace), code.newline.newline) { definition =>
         buildDataFor(definition, code, database, includeSchemas)
       }
@@ -165,9 +167,9 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       }
     }
     
-    // For every coproduct we generate some test data constructed by 
-    // deserializing every product which is type-compatible with the coproduct:
-    code.newline.add("object ExampleCoproductData ").block {
+    // For every multitype, we generate some test data constructed by 
+    // deserializing every product which is type-compatible with the multitype:
+    code.newline.add("object ExampleMultitypeData ").block {
       code.join(database.coproductsIn(namespace), code.newline.newline) { defn =>
         code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
           code.addln("""lazy val Example${name}: ${type} = JObject(Nil).deserialize[${type}]""")
@@ -189,20 +191,20 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
           code.add("""
             "Deserialization of ${name} succeeds even when information is missing" in {
-              ExampleCoproductData.Example${name}.isInstanceOf[${type}] must be (true)
+              ExampleMultitypeData.Example${name}.isInstanceOf[${type}] must be (true)
             }            
             "Serialization of ${name} has non-zero information content" in {
-              ExampleCoproductData.Example${name}.serialize mustNot be (JObject(Nil))
+              ExampleMultitypeData.Example${name}.serialize mustNot be (JObject(Nil))
             }
           """).newline
           
           code.join(database.findProductTerms(defn), code.newline) { product =>   
             code.add("""
               "Deserialization of ${name} (from ${productName}) succeeds" in {
-                ExampleCoproductData.Example${name}From${productName}.isInstanceOf[${type}] must be (true)
+                ExampleMultitypeData.Example${name}From${productName}.isInstanceOf[${type}] must be (true)
               }            
               "Serialization of ${name} (from ${productName}) has non-zero information content" in {
-                ExampleCoproductData.Example${name}From${productName}.serialize mustNot be (JObject(Nil))
+                ExampleMultitypeData.Example${name}From${productName}.serialize mustNot be (JObject(Nil))
               }""",
               "productName" -> product.name
             )
@@ -327,7 +329,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     
     buildDocumentationFor(definition.properties, code)
     
-    val classMixins = formMixinsClauseFromProperty("scala.class.traits")
+    val definitionTraits = database.coproductContainersOf(definition).map { x => typeSignatureOf(x.referenceTo, database) } ::: formMixinsClauseFromProperty("scala.class.traits")
     
     var isSingleton = definition match {
       case x: XProduct => x.isSingleton
@@ -354,7 +356,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
             initialExtends = List("Ordered[${type}]")
           }
       
-          val withClauses = initialExtends ::: database.coproductContainersOf(x).map { x => typeSignatureOf(x.referenceTo, database) } ::: classMixins
+          val withClauses = initialExtends ::: definitionTraits
 
           if (withClauses.length > 0) {
             code.add(" extends " + withClauses.mkString(" with ") + " ")
@@ -376,7 +378,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
           }
       
         case x: XCoproduct => 
-          val withClauses = "Product" :: database.coproductContainersOf(x).map { x => typeSignatureOf(x.referenceTo, database) } ::: classMixins
+          val withClauses = "Product" :: definitionTraits
           
           code.add(coproductPrefix(x) + "trait ${name} extends " + withClauses.mkString(" with ") + " ").block {
             buildCoproductFields(x)
@@ -456,9 +458,9 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
           }
         }.add(": PartialFunction[JField, ${type}])")
         
-        val coproductTerms = database.resolve(terms).filter(_.isInstanceOf[XCoproduct]).map(_.asInstanceOf[XCoproduct])
+        val multitypeTerms = database.resolve(terms).filter(_.isInstanceOf[XCoproduct]).map(_.asInstanceOf[XCoproduct])
         
-        coproductTerms.foreach { term =>
+        multitypeTerms.foreach { term =>
           code.add(".orElse(${namespace}.Extractors.${name}ExtractorFunction)",
             "namespace" -> term.namespace,
             "name"      -> term.name

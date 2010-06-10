@@ -25,6 +25,18 @@ object XSchemaDatabaseExamples extends Specification {
     commonFields.first._1 mustEqual "text"
     commonFields.first._2 mustEqual XString
   }
+  
+  "Common coproduct fields in products of a coproduct are identified" in {
+    val db = XSchemaDatabase(EmployeeSchema)
+    
+    val employee = db.definitionByName("Employee").get.asInstanceOf[XCoproduct]
+    
+    val commonFields = db.commonFieldsOf(employee)
+    
+    commonFields.length mustEqual 1
+    commonFields.first._1 mustEqual "id"
+    commonFields.first._2 mustEqual XDefinitionRef("SSN", "data.employee")
+  }
 }
 
 } 
