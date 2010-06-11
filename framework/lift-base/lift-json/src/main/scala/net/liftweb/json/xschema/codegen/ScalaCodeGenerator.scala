@@ -103,6 +103,8 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
 
           import net.liftweb.json.JsonParser._
           import net.liftweb.json.JsonAST._
+          
+          import net.liftweb.json.xschema.DefaultSerialization._
 
           import ${namespace}.Serialization._
           import ${namespace}.Constants._
@@ -126,11 +128,11 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     // deserializing the product from nothing:
     code.newline.add("object ExampleProductData ").block {
       code.join(database.productsIn(namespace), code.newline.newline) { defn =>
-        code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
+        code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database), "extractor" -> getExtractorFor(defn.referenceTo)) {
           defn match { 
             case x: XProduct if (x.isSingleton) => 
               // Due to apparent bug in Scala compiler (implicits for singleton types), we must treat this case specially:
-              code.add("lazy val Example${name}: ${type} = Extractors.${name}Extractor.extract(JObject(Nil))")
+              code.add("lazy val Example${name}: ${type} = ${extractor}.extract(JObject(Nil))")
           
             case x: XProduct => 
               code.add("lazy val Example${name}: ${type} = JObject(Nil).deserialize[${type}]")
@@ -613,9 +615,11 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       code.join(database.constantsIn(namespace), code.newline) { constant =>
         buildDocumentationFor(constant.properties, code)
       
-        code.add("lazy val " + constant.name + " = ${json}.deserialize[${type}]",
-          "json" -> compact(renderScala(constant.default)),
-          "type" -> typeSignatureOf(constant.constantType, database)
+        code.add("lazy val ${name}: ${type} = ${extractor}.extract(${json})",
+          "name"      -> constant.name,
+          "json"      -> compact(renderScala(constant.default)),
+          "type"      -> typeSignatureOf(constant.constantType, database),
+          "extractor" -> getExtractorFor(constant.constantType)
         )
       }
     }
