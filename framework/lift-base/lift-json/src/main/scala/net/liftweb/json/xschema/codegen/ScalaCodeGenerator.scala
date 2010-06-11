@@ -306,14 +306,14 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     }
     def buildConstantFields(x: XProduct): Unit = {
       code.join(x.constantFields, code.newline) { constantField =>
-        database.resolve(constantField.fieldType) match {
-          case product: XProduct => 
-            code.using("field" -> constantField.name, "type"  -> typeSignatureOf(product.referenceTo, database)) {
-              code.add("lazy val ${field}: ${type} = " + compact(renderScala(constantField.default)) + ".deserialize[${type}]")
-            }
-            
-          case x => error("Constant type cannot be anything but product: " + x)
-        }
+        val constantType = constantField.fieldType 
+        
+        code.add("lazy val ${field}: ${type} = ${extractor}.extract(${json})",
+          "field"     -> constantField.name, 
+          "type"      -> typeSignatureOf(constantType, database),
+          "extractor" -> getExtractorFor(constantType),
+          "json"      -> compact(renderScala(constantField.default))
+        )
       }
     }
     def formMixinsClauseFromProperty(prop: String): List[String] = definition.properties.get(prop) match {
@@ -377,6 +377,10 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
           else if (includeSchemas) {
             code.block {
               buildXSchema()
+              
+              code.newline
+              
+              buildConstantFields(x)
             }
           }
       
@@ -435,20 +439,20 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     case x: XDefinitionRef => x.name
   }
   
+  private def getExtractorFor(ref: XReference): String = ref match {
+    case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor"
+
+    case x: XContainerRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor(" + (x match {
+      case x: XCollection => getExtractorFor(x.elementType)        
+      case x: XMap        => getExtractorFor(x.keyType) + ", " + getExtractorFor(x.valueType)
+      case x: XTuple      => x.types.map(getExtractorFor _ ).mkString(", ")
+      case x: XOptional   => getExtractorFor(x.optionalType)
+    }) + ")"
+
+    case x: XDefinitionRef => x.namespace + ".Extractors." + getTypeHintFor(x) + "Extractor"
+  }
+  
   private def buildExtractorsFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): CodeBuilder = {    
-    def getExtractorFor(ref: XReference): String = ref match {
-      case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor"
-
-      case x: XContainerRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor(" + (x match {
-        case x: XCollection => getExtractorFor(x.elementType)        
-        case x: XMap        => getExtractorFor(x.keyType) + ", " + getExtractorFor(x.valueType)
-        case x: XTuple      => x.types.map(getExtractorFor _ ).mkString(", ")
-        case x: XOptional   => getExtractorFor(x.optionalType)
-      }) + ")"
-
-      case x: XDefinitionRef => x.namespace + ".Extractors." + getTypeHintFor(x) + "Extractor"
-    }
-    
     def buildMultitypeExtractor(defn: XMultitype, terms: List[XReference]) = {
       code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
         code.add("private lazy val ${name}ExtractorFunction: PartialFunction[JField, ${type}] = (").block {
@@ -538,20 +542,20 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     code.newline.add("object Extractors extends Extractors")
   }
   
+  private def getDecomposerFor(ref: XReference): String = ref match {
+    case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer"
+
+    case x: XContainerRef  => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer(" + (x match {
+      case x: XCollection => getDecomposerFor(x.elementType)        
+      case x: XMap        => getDecomposerFor(x.keyType) + ", " + getDecomposerFor(x.valueType)
+      case x: XTuple      => x.types.map(getDecomposerFor _ ).mkString(", ")
+      case x: XOptional   => getDecomposerFor(x.optionalType)
+    }) + ")"
+
+    case x: XDefinitionRef => x.namespace + ".Decomposers." + getTypeHintFor(x) + "Decomposer"
+  }
+  
   private def buildDecomposersFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): Unit = {
-    def getDecomposerFor(ref: XReference): String = ref match {
-      case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer"
-
-      case x: XContainerRef  => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer(" + (x match {
-        case x: XCollection => getDecomposerFor(x.elementType)        
-        case x: XMap        => getDecomposerFor(x.keyType) + ", " + getDecomposerFor(x.valueType)
-        case x: XTuple      => x.types.map(getDecomposerFor _ ).mkString(", ")
-        case x: XOptional   => getDecomposerFor(x.optionalType)
-      }) + ")"
-
-      case x: XDefinitionRef => x.namespace + ".Decomposers." + getTypeHintFor(x) + "Decomposer"
-    }
-    
     def buildMultitypeDecomposer(defn: XMultitype, terms: List[XReference]) = {
       code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
         code.add("implicit val ${name}Decomposer: Decomposer[${type}] = new Decomposer[${type}] ").block {
