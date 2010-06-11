@@ -103,14 +103,13 @@ trait DefaultOrderings {
   
   def JFieldOrdering: Ordering[JField] = new Ordering[JField] {
     def compare(v1: JField, v2: JField): Int = {
-      if (v1 == v2) return 0
+      import Stream.{cons, empty}
       
-      var c = v1.name.compare(v2.name)
-      if (c != 0) return c
+      return if (v1 == v2) 0 else {      
+        val comparisons = cons(StringOrdering.compare(v1.name, v2.name), cons(JValueOrdering.compare(v1.value, v2.value), empty))
       
-      c = JValueOrdering.compare(v1.value, v2.value)
-      
-      return c
+        comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+      }
     }
   }
   
