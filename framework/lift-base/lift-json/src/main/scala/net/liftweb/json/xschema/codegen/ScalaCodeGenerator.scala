@@ -417,6 +417,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       case XDouble  => "Double"
       case XBoolean => "Boolean"
       case XJSON    => "JValue"
+      case XDate    => "Date"
     }
     
     case x: XContainerRef => x match {
@@ -724,6 +725,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         case XDouble  => "Double"
         case XBoolean => "Boolean"
         case XJSON    => "net.liftweb.json.JsonAST.JValue"
+        case XDate    => "java.util.Date"
       })
     }
     
@@ -738,8 +740,12 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
           }
 
         case x: XUnion => 
-          val containsVals = x.terms.filter(_.isInstanceOf[XPrimitiveRef]).filter(_ != XJSON).length > 0
-          val containsRefs = x.terms.filter(_.isInstanceOf[XPrimitiveRef]).filter(_ != XJSON).length < x.terms.length
+          val nonValuePrimitives = List(XJSON, XDate)
+          
+          val valueTypes = x.terms.filter(_.isInstanceOf[XPrimitiveRef]).filter(x => !nonValuePrimitives.contains(x))
+          
+          val containsVals = valueTypes.length > 0
+          val containsRefs = valueTypes.length < x.terms.length
           
           val allRefs = containsRefs && !containsVals
           val allVals = containsVals && !containsRefs

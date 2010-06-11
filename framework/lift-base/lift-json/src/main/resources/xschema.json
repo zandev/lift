@@ -144,6 +144,9 @@
       },{
         "name":"XJSON",
         "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XDate",
+        "namespace":"net.liftweb.json.xschema"
       }],
       "default":{
         "XString":{
@@ -263,6 +266,13 @@
   },{
     "XProduct":{
       "name":"XJSON",
+      "namespace":"net.liftweb.json.xschema",
+      "properties":[],
+      "terms":[]
+    }
+  },{
+    "XProduct":{
+      "name":"XDate",
       "namespace":"net.liftweb.json.xschema",
       "properties":[],
       "terms":[]

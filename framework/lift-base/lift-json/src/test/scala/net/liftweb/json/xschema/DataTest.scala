@@ -9,7 +9,7 @@ package net.liftweb.json.xschema {
   import net.liftweb.json.xschema.Serialization._
   import net.liftweb.json.xschema.Constants._
 
-  import net.liftweb.json.xschema.{XSchema, XReference, XPrimitiveRef, XContainerRef, XCollection, XDefinition, XMultitype, XField, XOrder, XRoot, XDefinitionRef, XBoolean, XInt, XLong, XFloat, XDouble, XString, XJSON, XList, XSet, XArray, XMap, XOptional, XTuple, XProduct, XCoproduct, XUnion, XConstant, XRealField, XViewField, XConstantField, XOrderAscending, XOrderDescending, XOrderIgnore}
+  import net.liftweb.json.xschema.{XSchema, XReference, XPrimitiveRef, XContainerRef, XCollection, XDefinition, XMultitype, XField, XOrder, XRoot, XDefinitionRef, XBoolean, XInt, XLong, XFloat, XDouble, XString, XJSON, XDate, XList, XSet, XArray, XMap, XOptional, XTuple, XProduct, XCoproduct, XUnion, XConstant, XRealField, XViewField, XConstantField, XOrderAscending, XOrderDescending, XOrderIgnore}
   
   object ExampleProductData {
     lazy val ExampleXRoot: net.liftweb.json.xschema.XRoot = JObject(Nil).deserialize[net.liftweb.json.xschema.XRoot]
@@ -29,6 +29,8 @@ package net.liftweb.json.xschema {
     lazy val ExampleXString: net.liftweb.json.xschema.XString.type = Extractors.XStringExtractor.extract(JObject(Nil))
     
     lazy val ExampleXJSON: net.liftweb.json.xschema.XJSON.type = Extractors.XJSONExtractor.extract(JObject(Nil))
+    
+    lazy val ExampleXDate: net.liftweb.json.xschema.XDate.type = Extractors.XDateExtractor.extract(JObject(Nil))
     
     lazy val ExampleXList: net.liftweb.json.xschema.XList = JObject(Nil).deserialize[net.liftweb.json.xschema.XList]
     
@@ -127,6 +129,13 @@ package net.liftweb.json.xschema {
     }
     "Serialization of XJSON has non-zero information content" in {
       Decomposers.XJSONDecomposer.decompose(ExampleProductData.ExampleXJSON) mustNot be (JObject(Nil))
+    }
+    
+    "Deserialization of XDate succeeds even when information is missing" in {
+      ExampleProductData.ExampleXDate.isInstanceOf[net.liftweb.json.xschema.XDate.type] must be (true)
+    }
+    "Serialization of XDate has non-zero information content" in {
+      Decomposers.XDateDecomposer.decompose(ExampleProductData.ExampleXDate) mustNot be (JObject(Nil))
     }
     
     "Deserialization of XList succeeds even when information is missing" in {
@@ -266,6 +275,7 @@ package net.liftweb.json.xschema {
     lazy val ExampleXSchemaFromXDouble: net.liftweb.json.xschema.XSchema = JObject(JField("XDouble", net.liftweb.json.xschema.Decomposers.XDoubleDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXDouble)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val ExampleXSchemaFromXString: net.liftweb.json.xschema.XSchema = JObject(JField("XString", net.liftweb.json.xschema.Decomposers.XStringDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXString)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val ExampleXSchemaFromXJSON: net.liftweb.json.xschema.XSchema = JObject(JField("XJSON", net.liftweb.json.xschema.Decomposers.XJSONDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXJSON)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
+    lazy val ExampleXSchemaFromXDate: net.liftweb.json.xschema.XSchema = JObject(JField("XDate", net.liftweb.json.xschema.Decomposers.XDateDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXDate)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val ExampleXSchemaFromXList: net.liftweb.json.xschema.XSchema = JObject(JField("XList", net.liftweb.json.xschema.Decomposers.XListDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXList)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val ExampleXSchemaFromXSet: net.liftweb.json.xschema.XSchema = JObject(JField("XSet", net.liftweb.json.xschema.Decomposers.XSetDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXSet)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
     lazy val ExampleXSchemaFromXArray: net.liftweb.json.xschema.XSchema = JObject(JField("XArray", net.liftweb.json.xschema.Decomposers.XArrayDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXArray)) :: Nil).deserialize[net.liftweb.json.xschema.XSchema]
@@ -286,6 +296,7 @@ package net.liftweb.json.xschema {
     lazy val ExampleXReferenceFromXDouble: net.liftweb.json.xschema.XReference = JObject(JField("XDouble", net.liftweb.json.xschema.Decomposers.XDoubleDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXDouble)) :: Nil).deserialize[net.liftweb.json.xschema.XReference]
     lazy val ExampleXReferenceFromXString: net.liftweb.json.xschema.XReference = JObject(JField("XString", net.liftweb.json.xschema.Decomposers.XStringDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXString)) :: Nil).deserialize[net.liftweb.json.xschema.XReference]
     lazy val ExampleXReferenceFromXJSON: net.liftweb.json.xschema.XReference = JObject(JField("XJSON", net.liftweb.json.xschema.Decomposers.XJSONDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXJSON)) :: Nil).deserialize[net.liftweb.json.xschema.XReference]
+    lazy val ExampleXReferenceFromXDate: net.liftweb.json.xschema.XReference = JObject(JField("XDate", net.liftweb.json.xschema.Decomposers.XDateDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXDate)) :: Nil).deserialize[net.liftweb.json.xschema.XReference]
     lazy val ExampleXReferenceFromXList: net.liftweb.json.xschema.XReference = JObject(JField("XList", net.liftweb.json.xschema.Decomposers.XListDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXList)) :: Nil).deserialize[net.liftweb.json.xschema.XReference]
     lazy val ExampleXReferenceFromXSet: net.liftweb.json.xschema.XReference = JObject(JField("XSet", net.liftweb.json.xschema.Decomposers.XSetDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXSet)) :: Nil).deserialize[net.liftweb.json.xschema.XReference]
     lazy val ExampleXReferenceFromXArray: net.liftweb.json.xschema.XReference = JObject(JField("XArray", net.liftweb.json.xschema.Decomposers.XArrayDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXArray)) :: Nil).deserialize[net.liftweb.json.xschema.XReference]
@@ -302,6 +313,7 @@ package net.liftweb.json.xschema {
     lazy val ExampleXPrimitiveRefFromXDouble: net.liftweb.json.xschema.XPrimitiveRef = JObject(JField("XDouble", net.liftweb.json.xschema.Decomposers.XDoubleDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXDouble)) :: Nil).deserialize[net.liftweb.json.xschema.XPrimitiveRef]
     lazy val ExampleXPrimitiveRefFromXString: net.liftweb.json.xschema.XPrimitiveRef = JObject(JField("XString", net.liftweb.json.xschema.Decomposers.XStringDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXString)) :: Nil).deserialize[net.liftweb.json.xschema.XPrimitiveRef]
     lazy val ExampleXPrimitiveRefFromXJSON: net.liftweb.json.xschema.XPrimitiveRef = JObject(JField("XJSON", net.liftweb.json.xschema.Decomposers.XJSONDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXJSON)) :: Nil).deserialize[net.liftweb.json.xschema.XPrimitiveRef]
+    lazy val ExampleXPrimitiveRefFromXDate: net.liftweb.json.xschema.XPrimitiveRef = JObject(JField("XDate", net.liftweb.json.xschema.Decomposers.XDateDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXDate)) :: Nil).deserialize[net.liftweb.json.xschema.XPrimitiveRef]
     
     lazy val ExampleXContainerRef: net.liftweb.json.xschema.XContainerRef = JObject(Nil).deserialize[net.liftweb.json.xschema.XContainerRef]
     lazy val ExampleXContainerRefFromXList: net.liftweb.json.xschema.XContainerRef = JObject(JField("XList", net.liftweb.json.xschema.Decomposers.XListDecomposer.decompose(net.liftweb.json.xschema.ExampleProductData.ExampleXList)) :: Nil).deserialize[net.liftweb.json.xschema.XContainerRef]
@@ -403,6 +415,12 @@ package net.liftweb.json.xschema {
     }            
     "Serialization of XSchema (from XJSON) has non-zero information content" in {
       ExampleMultitypeData.ExampleXSchemaFromXJSON.serialize mustNot be (JObject(Nil))
+    }
+    "Deserialization of XSchema (from XDate) succeeds" in {
+      ExampleMultitypeData.ExampleXSchemaFromXDate.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
+    }            
+    "Serialization of XSchema (from XDate) has non-zero information content" in {
+      ExampleMultitypeData.ExampleXSchemaFromXDate.serialize mustNot be (JObject(Nil))
     }
     "Deserialization of XSchema (from XList) succeeds" in {
       ExampleMultitypeData.ExampleXSchemaFromXList.isInstanceOf[net.liftweb.json.xschema.XSchema] must be (true)
@@ -520,6 +538,12 @@ package net.liftweb.json.xschema {
     "Serialization of XReference (from XJSON) has non-zero information content" in {
       ExampleMultitypeData.ExampleXReferenceFromXJSON.serialize mustNot be (JObject(Nil))
     }
+    "Deserialization of XReference (from XDate) succeeds" in {
+      ExampleMultitypeData.ExampleXReferenceFromXDate.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
+    }            
+    "Serialization of XReference (from XDate) has non-zero information content" in {
+      ExampleMultitypeData.ExampleXReferenceFromXDate.serialize mustNot be (JObject(Nil))
+    }
     "Deserialization of XReference (from XList) succeeds" in {
       ExampleMultitypeData.ExampleXReferenceFromXList.isInstanceOf[net.liftweb.json.xschema.XReference] must be (true)
     }            
@@ -611,6 +635,12 @@ package net.liftweb.json.xschema {
     }            
     "Serialization of XPrimitiveRef (from XJSON) has non-zero information content" in {
       ExampleMultitypeData.ExampleXPrimitiveRefFromXJSON.serialize mustNot be (JObject(Nil))
+    }
+    "Deserialization of XPrimitiveRef (from XDate) succeeds" in {
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXDate.isInstanceOf[net.liftweb.json.xschema.XPrimitiveRef] must be (true)
+    }            
+    "Serialization of XPrimitiveRef (from XDate) has non-zero information content" in {
+      ExampleMultitypeData.ExampleXPrimitiveRefFromXDate.serialize mustNot be (JObject(Nil))
     }
     
     "Deserialization of XContainerRef succeeds even when information is missing" in {

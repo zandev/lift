@@ -1,6 +1,7 @@
 package net.liftweb.json.xschema {
 
 import net.liftweb.json.JsonAST._
+import java.util.{Date => JDate}
 
 trait Extractor[T] extends Function[JValue, T] {
   /**
@@ -181,20 +182,12 @@ trait DefaultExtractors {
   implicit def MapExtractor[K, V](implicit keyExtractor: Extractor[K], valueExtractor: Extractor[V]): Extractor[Map[K, V]] = new Extractor[Map[K, V]] {
     def extract(jvalue: JValue): Map[K, V] = Map(ListExtractor(Tuple2Extractor(keyExtractor, valueExtractor)).extract(jvalue): _*)
   }
-}
-object DefaultExtractors extends DefaultExtractors
-
-/*trait ExtractorHelpers {
-  protected def extractField[T](jvalue: JValue, name: String, default: JValue)(e: Extractor[T]): T = {
-    try {
-      e.extract((jvalue \ name -->? classOf[JField]).map(_.value).getOrElse(default))
-    }
-    catch {
-      case _ => e.extract(default)
-    }
+  
+  implicit val DateExtractor: Extractor[JDate] = new Extractor[JDate] {
+    def extract(jvalue: JValue): JDate = new JDate(LongExtractor.extract(jvalue))
   }
 }
-object ExtractorHelpers extends ExtractorHelpers*/
+object DefaultExtractors extends DefaultExtractors
 
 /**
  * Decomposers for all basic types.
@@ -266,6 +259,10 @@ trait DefaultDecomposers {
   implicit def MapDecomposer[K, V](implicit keyDecomposer: Decomposer[K], valueDecomposer: Decomposer[V]): Decomposer[Map[K, V]] = new Decomposer[Map[K, V]] {
     def decompose(tvalue: Map[K, V]): JValue = ListDecomposer(Tuple2Decomposer(keyDecomposer, valueDecomposer)).decompose(tvalue.toList)
   }
+  
+  implicit val DateDecomposer: Decomposer[JDate] = new Decomposer[JDate] {
+    def decompose(date: JDate): JValue = JInt(date.getTime)
+  }
 }
 object DefaultDecomposers extends DefaultDecomposers
 
@@ -276,6 +273,7 @@ trait DefaultOrderings {
   implicit def SetToOrderedSet[T <% Ordered[T]](c: Set[T]): OrderedSet[T] = OrderedSet[T](c)
   implicit def JValueToOrderedJValue(jvalue: JValue): OrderedJValue = OrderedJValue(jvalue)
   implicit def JFieldToOrderedJField(jfield: JField): OrderedJField = OrderedJField(jfield)
+  implicit def DateToOrderedDate(date: JDate): OrderedDate = OrderedDate(date)
   
   case class OrderedOption[T <% Ordered[T]](opt: Option[T]) extends Ordered[Option[T]] {
     def compare(that: Option[T]): Int = {
@@ -371,6 +369,10 @@ trait DefaultOrderings {
         case _ => -1
       }
     }
+  }
+  
+  case class OrderedDate(date: JDate) extends Ordered[JDate] {
+    def compare(that: JDate) = if (date.getTime < that.getTime) -1 else if (date.getTime > that.getTime) 1 else 0
   }
 }
 object DefaultOrderings extends DefaultOrderings

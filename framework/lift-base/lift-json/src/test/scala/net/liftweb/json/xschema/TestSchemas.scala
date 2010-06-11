@@ -46,7 +46,8 @@ class BootstrapXSchema {
           XDefinitionRef("XFloat",   "net.liftweb.json.xschema"),
           XDefinitionRef("XDouble",  "net.liftweb.json.xschema"),
           XDefinitionRef("XString",  "net.liftweb.json.xschema"),
-          XDefinitionRef("XJSON",    "net.liftweb.json.xschema")
+          XDefinitionRef("XJSON",    "net.liftweb.json.xschema"),
+          XDefinitionRef("XDate",    "net.liftweb.json.xschema")
         ),
         j("""{ "XString": {} } """)
       ),
@@ -76,6 +77,7 @@ class BootstrapXSchema {
       XProduct("XDouble",  "net.liftweb.json.xschema", Map(), List()),
       XProduct("XString",  "net.liftweb.json.xschema", Map(), List()),
       XProduct("XJSON",    "net.liftweb.json.xschema", Map(), List()),
+      XProduct("XDate",    "net.liftweb.json.xschema", Map(), List()),
       XCoproduct(
         "XCollection", "net.liftweb.json.xschema",
         Map(),
