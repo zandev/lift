@@ -30,6 +30,14 @@ trait XSchemaDatabase extends Iterable[XSchema] {
     case _ => Nil
   }).removeDuplicates
   
+  /** Finds all leaf terms of the specified multitype, regardless of how deep 
+   * they are in the type hierarchy.
+   */
+  def findLeafTerms(x: XMultitype): List[XSchema] = (resolve(elementsOf(x)).flatMap {
+    case x: XMultitype => findProductTerms(x)
+    case x => x :: Nil
+  }).removeDuplicates
+  
   /** Attempts to find the definition for the specified reference.
    */
   def definitionFor(ref: XReference): Option[XDefinition] = ref match {
@@ -46,27 +54,27 @@ trait XSchemaDatabase extends Iterable[XSchema] {
   
   def definitionsReferencedIn(namespace: String): List[XDefinitionRef] = definitionsIn(namespace).flatMap(definitionsReferencedBy(_))
   
-  lazy val products = definitionsOfType(classOf[XProduct])
+  lazy val products       = definitionsOfType(classOf[XProduct])  
+  lazy val coproducts     = definitionsOfType(classOf[XCoproduct])  
+  lazy val multitypes     = definitionsOfType(classOf[XMultitype])  
+  lazy val unions         = definitionsOfType(classOf[XUnion])  
+  lazy val references     = all.filter(referencesP).map(_.asInstanceOf[XReference])  
+  lazy val definitionRefs = referencesOfType(classOf[XDefinitionRef])  
+  lazy val primitiveRefs  = referencesOfType(classOf[XPrimitiveRef])
   
-  lazy val coproducts = definitionsOfType(classOf[XCoproduct])
+  def definitionsIn(namespace: String) = definitions.filter(_.namespace == namespace)  
   
-  //lazy val unions = definitionsOfType(classOf[XUnion])
+  def constantsIn(namespace: String) = constants.filter(_.namespace == namespace)  
   
-  lazy val references = all.filter(referencesP).map(_.asInstanceOf[XReference])
+  def productsIn(namespace: String) = products.filter(_.namespace == namespace)  
   
-  lazy val definitionRefs = referencesOfType(classOf[XDefinitionRef])
+  def unionsIn(namespace: String) = unions.filter(_.namespace == namespace)
   
-  lazy val primitiveRefs = referencesOfType(classOf[XPrimitiveRef])
+  def multitypesIn(namespace: String) = multitypes.filter(_.namespace == namespace)
   
-  def definitionsIn(namespace: String): List[XDefinition] = definitions.filter(_.namespace == namespace)
+  def coproductsIn(namespace: String) = coproducts.filter(_.namespace == namespace)  
   
-  def constantsIn(namespace: String) = constants.filter(_.namespace == namespace)
-  
-  def productsIn(namespace: String) = products.filter(_.namespace == namespace)
-  
-  def coproductsIn(namespace: String) = coproducts.filter(_.namespace == namespace)
-  
-  def definitionRefsIn(namespace: String) = definitionRefs.filter(_.namespace == namespace)
+  def definitionRefsIn(namespace: String) = definitionRefs.filter(_.namespace == namespace)  
   
   def definitionByName(name: String) = definitions.filter(_.name == name).firstOption
   
@@ -83,6 +91,14 @@ trait XSchemaDatabase extends Iterable[XSchema] {
   /** Resolves all types.
    */
   def resolve(refs: Iterable[XReference]): List[XSchema] = refs.map(resolve _).toList
+  
+  def referenceOf(x: XSchema): Option[XReference] = x match {
+    case x: XDefinition => Some(x.referenceTo)
+    case x: XReference  => Some(x)
+    case _ => None
+  }
+  
+  def referencesOf(xs: Iterable[XSchema]): List[XReference] = xs.toList.flatMap(referenceOf(_).toList)
   
   /** If the specified schema is a container for other types, returns those
    * types; otherwise, returns Nil.

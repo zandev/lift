@@ -9,15 +9,11 @@
           "name":"definitions",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XCollection":{
-                "XList":{
-                  "elementType":{
-                    "XDefinitionRef":{
-                      "name":"XDefinition",
-                      "namespace":"net.liftweb.json.xschema"
-                    }
-                  }
+            "XList":{
+              "elementType":{
+                "XDefinitionRef":{
+                  "name":"XDefinition",
+                  "namespace":"net.liftweb.json.xschema"
                 }
               }
             }
@@ -34,15 +30,11 @@
           "name":"constants",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XCollection":{
-                "XList":{
-                  "elementType":{
-                    "XDefinitionRef":{
-                      "name":"XConstant",
-                      "namespace":"net.liftweb.json.xschema"
-                    }
-                  }
+            "XList":{
+              "elementType":{
+                "XDefinitionRef":{
+                  "name":"XConstant",
+                  "namespace":"net.liftweb.json.xschema"
                 }
               }
             }
@@ -59,21 +51,15 @@
           "name":"properties",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XMap":{
-                "keyType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
-                },
-                "valueType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
+            "XMap":{
+              "keyType":{
+                "XString":{
+                  
+                }
+              },
+              "valueType":{
+                "XString":{
+                  
                 }
               }
             }
@@ -88,114 +74,106 @@
       }]
     }
   },{
-    "XMultitype":{
-      "XCoproduct":{
-        "name":"XSchema",
-        "namespace":"net.liftweb.json.xschema",
-        "properties":[],
-        "terms":[{
-          "name":"XDefinition",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XReference",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XField",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XConstant",
-          "namespace":"net.liftweb.json.xschema"
-        }],
-        "default":{
-          "XString":{
-            
-          }
-        }
-      }
-    }
-  },{
-    "XMultitype":{
-      "XCoproduct":{
+    "XCoproduct":{
+      "name":"XSchema",
+      "namespace":"net.liftweb.json.xschema",
+      "properties":[],
+      "terms":[{
+        "name":"XDefinition",
+        "namespace":"net.liftweb.json.xschema"
+      },{
         "name":"XReference",
-        "namespace":"net.liftweb.json.xschema",
-        "properties":[],
-        "terms":[{
-          "name":"XPrimitiveRef",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XContainerRef",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XDefinitionRef",
-          "namespace":"net.liftweb.json.xschema"
-        }],
-        "default":{
-          "XString":{
-            
-          }
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XField",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XConstant",
+        "namespace":"net.liftweb.json.xschema"
+      }],
+      "default":{
+        "XString":{
+          
         }
       }
     }
   },{
-    "XMultitype":{
-      "XCoproduct":{
+    "XCoproduct":{
+      "name":"XReference",
+      "namespace":"net.liftweb.json.xschema",
+      "properties":[],
+      "terms":[{
         "name":"XPrimitiveRef",
-        "namespace":"net.liftweb.json.xschema",
-        "properties":[],
-        "terms":[{
-          "name":"XBoolean",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XInt",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XLong",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XFloat",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XDouble",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XString",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XJSON",
-          "namespace":"net.liftweb.json.xschema"
-        }],
-        "default":{
-          "XString":{
-            
-          }
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XContainerRef",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XDefinitionRef",
+        "namespace":"net.liftweb.json.xschema"
+      }],
+      "default":{
+        "XString":{
+          
         }
       }
     }
   },{
-    "XMultitype":{
-      "XCoproduct":{
-        "name":"XContainerRef",
-        "namespace":"net.liftweb.json.xschema",
-        "properties":[],
-        "terms":[{
-          "name":"XCollection",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XMap",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XOptional",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XTuple",
-          "namespace":"net.liftweb.json.xschema"
-        }],
-        "default":{
-          "XList":{
-            "elementType":{
-              "XString":{
-                
-              }
+    "XCoproduct":{
+      "name":"XPrimitiveRef",
+      "namespace":"net.liftweb.json.xschema",
+      "properties":[],
+      "terms":[{
+        "name":"XBoolean",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XInt",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XLong",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XFloat",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XDouble",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XString",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XJSON",
+        "namespace":"net.liftweb.json.xschema"
+      }],
+      "default":{
+        "XString":{
+          
+        }
+      }
+    }
+  },{
+    "XCoproduct":{
+      "name":"XContainerRef",
+      "namespace":"net.liftweb.json.xschema",
+      "properties":[],
+      "terms":[{
+        "name":"XCollection",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XMap",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XOptional",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XTuple",
+        "namespace":"net.liftweb.json.xschema"
+      }],
+      "default":{
+        "XList":{
+          "elementType":{
+            "XString":{
+              
             }
           }
         }
@@ -211,10 +189,8 @@
           "name":"name",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XString":{
-                
-              }
+            "XString":{
+              
             }
           },
           "default":"",
@@ -229,10 +205,8 @@
           "name":"namespace",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XString":{
-                
-              }
+            "XString":{
+              
             }
           },
           "default":"",
@@ -294,27 +268,25 @@
       "terms":[]
     }
   },{
-    "XMultitype":{
-      "XCoproduct":{
-        "name":"XCollection",
-        "namespace":"net.liftweb.json.xschema",
-        "properties":[],
-        "terms":[{
-          "name":"XList",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XSet",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XArray",
-          "namespace":"net.liftweb.json.xschema"
-        }],
-        "default":{
-          "XList":{
-            "elementType":{
-              "XString":{
-                
-              }
+    "XCoproduct":{
+      "name":"XCollection",
+      "namespace":"net.liftweb.json.xschema",
+      "properties":[],
+      "terms":[{
+        "name":"XList",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XSet",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XArray",
+        "namespace":"net.liftweb.json.xschema"
+      }],
+      "default":{
+        "XList":{
+          "elementType":{
+            "XString":{
+              
             }
           }
         }
@@ -497,15 +469,11 @@
           "name":"types",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XCollection":{
-                "XList":{
-                  "elementType":{
-                    "XDefinitionRef":{
-                      "name":"XReference",
-                      "namespace":"net.liftweb.json.xschema"
-                    }
-                  }
+            "XList":{
+              "elementType":{
+                "XDefinitionRef":{
+                  "name":"XReference",
+                  "namespace":"net.liftweb.json.xschema"
                 }
               }
             }
@@ -520,65 +488,59 @@
       }]
     }
   },{
-    "XMultitype":{
-      "XCoproduct":{
-        "name":"XDefinition",
-        "namespace":"net.liftweb.json.xschema",
-        "properties":[],
-        "terms":[{
-          "name":"XProduct",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XMultitype",
-          "namespace":"net.liftweb.json.xschema"
-        }],
-        "default":{
-          "XProduct":{
-            
-          }
-        }
-      }
-    }
-  },{
-    "XMultitype":{
-      "XCoproduct":{
+    "XCoproduct":{
+      "name":"XDefinition",
+      "namespace":"net.liftweb.json.xschema",
+      "properties":[],
+      "terms":[{
+        "name":"XProduct",
+        "namespace":"net.liftweb.json.xschema"
+      },{
         "name":"XMultitype",
-        "namespace":"net.liftweb.json.xschema",
-        "properties":[],
-        "terms":[{
-          "name":"XCoproduct",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XUnion",
-          "namespace":"net.liftweb.json.xschema"
-        }],
-        "default":{
-          "XCoproduct":{
-            
-          }
+        "namespace":"net.liftweb.json.xschema"
+      }],
+      "default":{
+        "XProduct":{
+          
         }
       }
     }
   },{
-    "XMultitype":{
-      "XCoproduct":{
-        "name":"XField",
-        "namespace":"net.liftweb.json.xschema",
-        "properties":[],
-        "terms":[{
-          "name":"XRealField",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XViewField",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XConstantField",
-          "namespace":"net.liftweb.json.xschema"
-        }],
-        "default":{
-          "XRealField":{
-            
-          }
+    "XCoproduct":{
+      "name":"XMultitype",
+      "namespace":"net.liftweb.json.xschema",
+      "properties":[],
+      "terms":[{
+        "name":"XCoproduct",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XUnion",
+        "namespace":"net.liftweb.json.xschema"
+      }],
+      "default":{
+        "XCoproduct":{
+          
+        }
+      }
+    }
+  },{
+    "XCoproduct":{
+      "name":"XField",
+      "namespace":"net.liftweb.json.xschema",
+      "properties":[],
+      "terms":[{
+        "name":"XRealField",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XViewField",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XConstantField",
+        "namespace":"net.liftweb.json.xschema"
+      }],
+      "default":{
+        "XRealField":{
+          
         }
       }
     }
@@ -592,10 +554,8 @@
           "name":"name",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XString":{
-                
-              }
+            "XString":{
+              
             }
           },
           "default":"",
@@ -610,10 +570,8 @@
           "name":"namespace",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XString":{
-                
-              }
+            "XString":{
+              
             }
           },
           "default":"",
@@ -628,21 +586,15 @@
           "name":"properties",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XMap":{
-                "keyType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
-                },
-                "valueType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
+            "XMap":{
+              "keyType":{
+                "XString":{
+                  
+                }
+              },
+              "valueType":{
+                "XString":{
+                  
                 }
               }
             }
@@ -659,15 +611,11 @@
           "name":"terms",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XCollection":{
-                "XList":{
-                  "elementType":{
-                    "XDefinitionRef":{
-                      "name":"XField",
-                      "namespace":"net.liftweb.json.xschema"
-                    }
-                  }
+            "XList":{
+              "elementType":{
+                "XDefinitionRef":{
+                  "name":"XField",
+                  "namespace":"net.liftweb.json.xschema"
                 }
               }
             }
@@ -702,10 +650,8 @@
           "name":"name",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XString":{
-                
-              }
+            "XString":{
+              
             }
           },
           "default":"",
@@ -720,10 +666,8 @@
           "name":"namespace",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XString":{
-                
-              }
+            "XString":{
+              
             }
           },
           "default":"",
@@ -738,21 +682,15 @@
           "name":"properties",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XMap":{
-                "keyType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
-                },
-                "valueType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
+            "XMap":{
+              "keyType":{
+                "XString":{
+                  
+                }
+              },
+              "valueType":{
+                "XString":{
+                  
                 }
               }
             }
@@ -769,15 +707,11 @@
           "name":"terms",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XCollection":{
-                "XList":{
-                  "elementType":{
-                    "XDefinitionRef":{
-                      "name":"XDefinitionRef",
-                      "namespace":"net.liftweb.json.xschema"
-                    }
-                  }
+            "XList":{
+              "elementType":{
+                "XDefinitionRef":{
+                  "name":"XDefinitionRef",
+                  "namespace":"net.liftweb.json.xschema"
                 }
               }
             }
@@ -794,10 +728,8 @@
           "name":"default",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XJSON":{
-                
-              }
+            "XJSON":{
+              
             }
           },
           "order":{
@@ -829,10 +761,8 @@
           "name":"name",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XString":{
-                
-              }
+            "XString":{
+              
             }
           },
           "default":"",
@@ -847,10 +777,8 @@
           "name":"namespace",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XString":{
-                
-              }
+            "XString":{
+              
             }
           },
           "default":"",
@@ -865,21 +793,15 @@
           "name":"properties",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XMap":{
-                "keyType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
-                },
-                "valueType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
+            "XMap":{
+              "keyType":{
+                "XString":{
+                  
+                }
+              },
+              "valueType":{
+                "XString":{
+                  
                 }
               }
             }
@@ -896,15 +818,11 @@
           "name":"terms",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XCollection":{
-                "XList":{
-                  "elementType":{
-                    "XDefinitionRef":{
-                      "name":"XReference",
-                      "namespace":"net.liftweb.json.xschema"
-                    }
-                  }
+            "XList":{
+              "elementType":{
+                "XDefinitionRef":{
+                  "name":"XReference",
+                  "namespace":"net.liftweb.json.xschema"
                 }
               }
             }
@@ -921,10 +839,8 @@
           "name":"default",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XJSON":{
-                
-              }
+            "XJSON":{
+              
             }
           },
           "order":{
@@ -956,10 +872,8 @@
           "name":"name",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XString":{
-                
-              }
+            "XString":{
+              
             }
           },
           "default":"",
@@ -974,10 +888,8 @@
           "name":"namespace",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XString":{
-                
-              }
+            "XString":{
+              
             }
           },
           "default":"",
@@ -992,21 +904,15 @@
           "name":"properties",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XMap":{
-                "keyType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
-                },
-                "valueType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
+            "XMap":{
+              "keyType":{
+                "XString":{
+                  
+                }
+              },
+              "valueType":{
+                "XString":{
+                  
                 }
               }
             }
@@ -1044,10 +950,8 @@
           "name":"default",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XJSON":{
-                
-              }
+            "XJSON":{
+              
             }
           },
           "default":"",
@@ -1080,10 +984,8 @@
           "name":"name",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XString":{
-                
-              }
+            "XString":{
+              
             }
           },
           "default":"",
@@ -1098,21 +1000,15 @@
           "name":"properties",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XMap":{
-                "keyType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
-                },
-                "valueType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
+            "XMap":{
+              "keyType":{
+                "XString":{
+                  
+                }
+              },
+              "valueType":{
+                "XString":{
+                  
                 }
               }
             }
@@ -1150,10 +1046,8 @@
           "name":"default",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XJSON":{
-                
-              }
+            "XJSON":{
+              
             }
           },
           "default":"",
@@ -1196,10 +1090,8 @@
           "name":"name",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XString":{
-                
-              }
+            "XString":{
+              
             }
           },
           "default":"",
@@ -1214,21 +1106,15 @@
           "name":"properties",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XMap":{
-                "keyType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
-                },
-                "valueType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
+            "XMap":{
+              "keyType":{
+                "XString":{
+                  
+                }
+              },
+              "valueType":{
+                "XString":{
+                  
                 }
               }
             }
@@ -1274,10 +1160,8 @@
           "name":"name",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XString":{
-                
-              }
+            "XString":{
+              
             }
           },
           "default":"",
@@ -1292,21 +1176,15 @@
           "name":"properties",
           "properties":[],
           "fieldType":{
-            "XContainerRef":{
-              "XMap":{
-                "keyType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
-                },
-                "valueType":{
-                  "XPrimitiveRef":{
-                    "XString":{
-                      
-                    }
-                  }
+            "XMap":{
+              "keyType":{
+                "XString":{
+                  
+                }
+              },
+              "valueType":{
+                "XString":{
+                  
                 }
               }
             }
@@ -1344,10 +1222,8 @@
           "name":"default",
           "properties":[],
           "fieldType":{
-            "XPrimitiveRef":{
-              "XJSON":{
-                
-              }
+            "XJSON":{
+              
             }
           },
           "default":"",
@@ -1360,25 +1236,23 @@
       }]
     }
   },{
-    "XMultitype":{
-      "XCoproduct":{
-        "name":"XOrder",
-        "namespace":"net.liftweb.json.xschema",
-        "properties":[],
-        "terms":[{
-          "name":"XOrderAscending",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XOrderDescending",
-          "namespace":"net.liftweb.json.xschema"
-        },{
-          "name":"XOrderIgnore",
-          "namespace":"net.liftweb.json.xschema"
-        }],
-        "default":{
-          "XOrderAscending":{
-            
-          }
+    "XCoproduct":{
+      "name":"XOrder",
+      "namespace":"net.liftweb.json.xschema",
+      "properties":[],
+      "terms":[{
+        "name":"XOrderAscending",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XOrderDescending",
+        "namespace":"net.liftweb.json.xschema"
+      },{
+        "name":"XOrderIgnore",
+        "namespace":"net.liftweb.json.xschema"
+      }],
+      "default":{
+        "XOrderAscending":{
+          
         }
       }
     }

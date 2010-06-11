@@ -556,7 +556,9 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         code.add("implicit val ${name}Decomposer: Decomposer[${type}] = new Decomposer[${type}] ").block {
           code.add("def decompose(tvalue: ${type}): JValue = ").block {
             code.add("tvalue match ").block {
-              code.join(terms, code.newline) { term =>
+              val expandedTerms = database.referencesOf(database.findLeafTerms(defn)).removeDuplicates
+              
+              code.join(expandedTerms, code.newline) { term =>
                 code.add("case x: ${termType} => JObject(JField(\"${typeHint}\", ${decomposer}.decompose(x)) :: Nil)",
                   "termType"   -> typeSignatureOf(term, database),
                   "typeHint"   -> getTypeHintFor(term),
