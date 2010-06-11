@@ -625,6 +625,19 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     }
   }
   
+  private def getOrderingFor(ref: XReference): String = ref match {
+    case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultOrderings." + getTypeHintFor(ref) + "Ordering"
+
+    case x: XContainerRef  => "net.liftweb.json.xschema.DefaultOrderings." + getTypeHintFor(ref) + "Ordering(" + (x match {
+      case x: XCollection => getDecomposerFor(x.elementType)        
+      case x: XMap        => getDecomposerFor(x.keyType) + ", " + getDecomposerFor(x.valueType)
+      case x: XTuple      => x.types.map(getDecomposerFor _ ).mkString(", ")
+      case x: XOptional   => getDecomposerFor(x.optionalType)
+    }) + ")"
+
+    case x: XDefinitionRef => x.namespace + ".Orderings." + getTypeHintFor(x) + "Decomposer"
+  }
+  
   private def buildOrderingsFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): Unit = {
     /*def getComparisonInvocation(term1: XReference, var1: String, var2: String) = {
       term1 match {
