@@ -620,8 +620,8 @@ package net.liftweb.json.xschema {
       c = this.terms.compare(that.terms)
       if (c != 0) return c * 1
       
-      c = this.default.compare(that.default)
-      if (c != 0) return c * 1
+      //c = this.default.compare(that.default)
+      //if (c != 0) return c * 1
       
       return this.hashCode - that.hashCode
     }
@@ -660,8 +660,8 @@ package net.liftweb.json.xschema {
       c = this.terms.compare(that.terms)
       if (c != 0) return c * 1
       
-      c = this.default.compare(that.default)
-      if (c != 0) return c * 1
+      //c = this.default.compare(that.default)
+      //if (c != 0) return c * 1
       
       return this.hashCode - that.hashCode
     }
@@ -691,8 +691,8 @@ package net.liftweb.json.xschema {
       c = this.constantType.compare(that.constantType)
       if (c != 0) return c * 1
       
-      c = this.default.compare(that.default)
-      if (c != 0) return c * 1
+      //c = this.default.compare(that.default)
+      //if (c != 0) return c * 1
       
       return this.hashCode - that.hashCode
     }
@@ -719,8 +719,8 @@ package net.liftweb.json.xschema {
       c = this.fieldType.compare(that.fieldType)
       if (c != 0) return c * 1
       
-      c = this.default.compare(that.default)
-      if (c != 0) return c * 1
+      //c = this.default.compare(that.default)
+      //if (c != 0) return c * 1
       
       c = this.order.compare(that.order)
       if (c != 0) return c * 1
@@ -775,8 +775,8 @@ package net.liftweb.json.xschema {
       c = this.fieldType.compare(that.fieldType)
       if (c != 0) return c * 1
       
-      c = this.default.compare(that.default)
-      if (c != 0) return c * 1
+      //c = this.default.compare(that.default)
+      //if (c != 0) return c * 1
       
       return this.hashCode - that.hashCode
     }

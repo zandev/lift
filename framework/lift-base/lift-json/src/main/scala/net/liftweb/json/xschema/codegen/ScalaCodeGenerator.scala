@@ -267,7 +267,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         database.resolve(reference) match {
           case x: XProduct =>
             if (x.isSingleton) { // TODO: Should not solve this here, should solve it in "Orderings"
-              code.addln("if (this.${field} == that.${field}) return 0")
+              code.addln("if (this.${field} != that.${field}) return -1")
             }
             else buildStandardComparison()
             
@@ -358,7 +358,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
           else {
             code.add("case class ${name}(")
             buildProductFields(x)
-            code.add(")")
+            code.add(") ")
             
             initialExtends = List("Ordered[${type}]")
           }
@@ -690,7 +690,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   private def buildPackageObjectFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase, properties: Map[String, String], includeSchemas: Boolean): Unit = {
     val subroot = XRoot(database.definitionsIn(namespace), database.constantsIn(namespace), properties)
     
-    code.newline(2).add("object Serialization extends Decomposers with Extractors with Orderings with SerializationImplicits ").block {
+    code.newline(2).add("object Serialization extends Decomposers with Extractors with SerializationImplicits ").block {
       // Storing the root as text is not efficient but ensures we do not run 
       // into method size limitations of the JVM (root can be quite large):
       if (includeSchemas) {
