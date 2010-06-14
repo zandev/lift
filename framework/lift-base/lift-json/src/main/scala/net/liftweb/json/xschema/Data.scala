@@ -6,77 +6,87 @@ package net.liftweb.json.xschema {
   
   
   trait Orderings {
-    implicit def XSchemaToOrderedXSchema(inner: XSchema) = OrderedXSchema(inner)
-    implicit def XReferenceToOrderedXReference(inner: XReference) = OrderedXReference(inner)
-    implicit def XPrimitiveRefToOrderedXPrimitiveRef(inner: XPrimitiveRef) = OrderedXPrimitiveRef(inner)
-    implicit def XContainerRefToOrderedXContainerRef(inner: XContainerRef) = OrderedXContainerRef(inner)
-    implicit def XCollectionToOrderedXCollection(inner: XCollection) = OrderedXCollection(inner)
-    implicit def XDefinitionToOrderedXDefinition(inner: XDefinition) = OrderedXDefinition(inner)
-    implicit def XMultitypeToOrderedXMultitype(inner: XMultitype) = OrderedXMultitype(inner)
-    implicit def XFieldToOrderedXField(inner: XField) = OrderedXField(inner)
-    implicit def XOrderToOrderedXOrder(inner: XOrder) = OrderedXOrder(inner)
+    implicit val XRootOrdering: Ordering[net.liftweb.json.xschema.XRoot] = new Ordering[net.liftweb.json.xschema.XRoot] {
+      def compare(v1: net.liftweb.json.xschema.XRoot, v2: net.liftweb.json.xschema.XRoot): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.DefaultOrderings.ListOrdering(net.liftweb.json.xschema.Orderings.XDefinitionOrdering).compare(v1.definitions, v2.definitions) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.ListOrdering(net.liftweb.json.xschema.Orderings.XConstantOrdering).compare(v1.constants, v2.constants) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.MapOrdering(net.liftweb.json.xschema.DefaultOrderings.StringOrdering, net.liftweb.json.xschema.DefaultOrderings.StringOrdering).compare(v1.properties, v2.properties) * 1, empty)))
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
     
-    case class OrderedXSchema(inner: net.liftweb.json.xschema.XSchema) extends Ordered[net.liftweb.json.xschema.XSchema] {
-      def compare(that: net.liftweb.json.xschema.XSchema): Int = {
-        if (inner == that) 0
-        else inner match {
-          case x: net.liftweb.json.xschema.XDefinition => that match {
-            case y: net.liftweb.json.xschema.XDefinition => x.compare(y)
+    implicit val XSchemaOrdering: Ordering[net.liftweb.json.xschema.XSchema] = new Ordering[net.liftweb.json.xschema.XSchema] {
+      def compare(v1: net.liftweb.json.xschema.XSchema, v2: net.liftweb.json.xschema.XSchema): Int = {
+        if (v1 == v2) 0
+        else v1 match {
+          case x: net.liftweb.json.xschema.XDefinition => v2 match {
+            case y: net.liftweb.json.xschema.XDefinition => net.liftweb.json.xschema.Orderings.XDefinitionOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XReference => -1
             case y: net.liftweb.json.xschema.XField => -1
             case y: net.liftweb.json.xschema.XConstant => -1
           }
-          case x: net.liftweb.json.xschema.XReference => that match {
+          case x: net.liftweb.json.xschema.XReference => v2 match {
             case y: net.liftweb.json.xschema.XDefinition => 1
-            case y: net.liftweb.json.xschema.XReference => x.compare(y)
+            case y: net.liftweb.json.xschema.XReference => net.liftweb.json.xschema.Orderings.XReferenceOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XField => -1
             case y: net.liftweb.json.xschema.XConstant => -1
           }
-          case x: net.liftweb.json.xschema.XField => that match {
+          case x: net.liftweb.json.xschema.XField => v2 match {
             case y: net.liftweb.json.xschema.XDefinition => 1
             case y: net.liftweb.json.xschema.XReference => 1
-            case y: net.liftweb.json.xschema.XField => x.compare(y)
+            case y: net.liftweb.json.xschema.XField => net.liftweb.json.xschema.Orderings.XFieldOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XConstant => -1
           }
-          case x: net.liftweb.json.xschema.XConstant => that match {
+          case x: net.liftweb.json.xschema.XConstant => v2 match {
             case y: net.liftweb.json.xschema.XDefinition => 1
             case y: net.liftweb.json.xschema.XReference => 1
             case y: net.liftweb.json.xschema.XField => 1
-            case y: net.liftweb.json.xschema.XConstant => x.compare(y)
+            case y: net.liftweb.json.xschema.XConstant => net.liftweb.json.xschema.Orderings.XConstantOrdering.compare(x, y)
           }
         }
       }
     }
+    case class OrderedXSchema(v1: net.liftweb.json.xschema.XSchema) extends Ordered[net.liftweb.json.xschema.XSchema] {
+      def compare(v2: net.liftweb.json.xschema.XSchema): Int = XSchemaOrdering.compare(v1, v2)
+    }
+    implicit def XSchemaToOrderedXSchema(v: net.liftweb.json.xschema.XSchema) = OrderedXSchema(v)
     
-    case class OrderedXReference(inner: net.liftweb.json.xschema.XReference) extends Ordered[net.liftweb.json.xschema.XReference] {
-      def compare(that: net.liftweb.json.xschema.XReference): Int = {
-        if (inner == that) 0
-        else inner match {
-          case x: net.liftweb.json.xschema.XPrimitiveRef => that match {
-            case y: net.liftweb.json.xschema.XPrimitiveRef => x.compare(y)
+    implicit val XReferenceOrdering: Ordering[net.liftweb.json.xschema.XReference] = new Ordering[net.liftweb.json.xschema.XReference] {
+      def compare(v1: net.liftweb.json.xschema.XReference, v2: net.liftweb.json.xschema.XReference): Int = {
+        if (v1 == v2) 0
+        else v1 match {
+          case x: net.liftweb.json.xschema.XPrimitiveRef => v2 match {
+            case y: net.liftweb.json.xschema.XPrimitiveRef => net.liftweb.json.xschema.Orderings.XPrimitiveRefOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XContainerRef => -1
             case y: net.liftweb.json.xschema.XDefinitionRef => -1
           }
-          case x: net.liftweb.json.xschema.XContainerRef => that match {
+          case x: net.liftweb.json.xschema.XContainerRef => v2 match {
             case y: net.liftweb.json.xschema.XPrimitiveRef => 1
-            case y: net.liftweb.json.xschema.XContainerRef => x.compare(y)
+            case y: net.liftweb.json.xschema.XContainerRef => net.liftweb.json.xschema.Orderings.XContainerRefOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XDefinitionRef => -1
           }
-          case x: net.liftweb.json.xschema.XDefinitionRef => that match {
+          case x: net.liftweb.json.xschema.XDefinitionRef => v2 match {
             case y: net.liftweb.json.xschema.XPrimitiveRef => 1
             case y: net.liftweb.json.xschema.XContainerRef => 1
-            case y: net.liftweb.json.xschema.XDefinitionRef => x.compare(y)
+            case y: net.liftweb.json.xschema.XDefinitionRef => net.liftweb.json.xschema.Orderings.XDefinitionRefOrdering.compare(x, y)
           }
         }
       }
     }
+    case class OrderedXReference(v1: net.liftweb.json.xschema.XReference) extends Ordered[net.liftweb.json.xschema.XReference] {
+      def compare(v2: net.liftweb.json.xschema.XReference): Int = XReferenceOrdering.compare(v1, v2)
+    }
+    implicit def XReferenceToOrderedXReference(v: net.liftweb.json.xschema.XReference) = OrderedXReference(v)
     
-    case class OrderedXPrimitiveRef(inner: net.liftweb.json.xschema.XPrimitiveRef) extends Ordered[net.liftweb.json.xschema.XPrimitiveRef] {
-      def compare(that: net.liftweb.json.xschema.XPrimitiveRef): Int = {
-        if (inner == that) 0
-        else inner match {
-          case x: net.liftweb.json.xschema.XBoolean.type => that match {
-            case y: net.liftweb.json.xschema.XBoolean.type => x.compare(y)
+    implicit val XPrimitiveRefOrdering: Ordering[net.liftweb.json.xschema.XPrimitiveRef] = new Ordering[net.liftweb.json.xschema.XPrimitiveRef] {
+      def compare(v1: net.liftweb.json.xschema.XPrimitiveRef, v2: net.liftweb.json.xschema.XPrimitiveRef): Int = {
+        if (v1 == v2) 0
+        else v1 match {
+          case x: net.liftweb.json.xschema.XBoolean.type => v2 match {
+            case y: net.liftweb.json.xschema.XBoolean.type => net.liftweb.json.xschema.Orderings.XBooleanOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XInt.type => -1
             case y: net.liftweb.json.xschema.XLong.type => -1
             case y: net.liftweb.json.xschema.XFloat.type => -1
@@ -85,9 +95,9 @@ package net.liftweb.json.xschema {
             case y: net.liftweb.json.xschema.XJSON.type => -1
             case y: net.liftweb.json.xschema.XDate.type => -1
           }
-          case x: net.liftweb.json.xschema.XInt.type => that match {
+          case x: net.liftweb.json.xschema.XInt.type => v2 match {
             case y: net.liftweb.json.xschema.XBoolean.type => 1
-            case y: net.liftweb.json.xschema.XInt.type => x.compare(y)
+            case y: net.liftweb.json.xschema.XInt.type => net.liftweb.json.xschema.Orderings.XIntOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XLong.type => -1
             case y: net.liftweb.json.xschema.XFloat.type => -1
             case y: net.liftweb.json.xschema.XDouble.type => -1
@@ -95,57 +105,57 @@ package net.liftweb.json.xschema {
             case y: net.liftweb.json.xschema.XJSON.type => -1
             case y: net.liftweb.json.xschema.XDate.type => -1
           }
-          case x: net.liftweb.json.xschema.XLong.type => that match {
+          case x: net.liftweb.json.xschema.XLong.type => v2 match {
             case y: net.liftweb.json.xschema.XBoolean.type => 1
             case y: net.liftweb.json.xschema.XInt.type => 1
-            case y: net.liftweb.json.xschema.XLong.type => x.compare(y)
+            case y: net.liftweb.json.xschema.XLong.type => net.liftweb.json.xschema.Orderings.XLongOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XFloat.type => -1
             case y: net.liftweb.json.xschema.XDouble.type => -1
             case y: net.liftweb.json.xschema.XString.type => -1
             case y: net.liftweb.json.xschema.XJSON.type => -1
             case y: net.liftweb.json.xschema.XDate.type => -1
           }
-          case x: net.liftweb.json.xschema.XFloat.type => that match {
+          case x: net.liftweb.json.xschema.XFloat.type => v2 match {
             case y: net.liftweb.json.xschema.XBoolean.type => 1
             case y: net.liftweb.json.xschema.XInt.type => 1
             case y: net.liftweb.json.xschema.XLong.type => 1
-            case y: net.liftweb.json.xschema.XFloat.type => x.compare(y)
+            case y: net.liftweb.json.xschema.XFloat.type => net.liftweb.json.xschema.Orderings.XFloatOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XDouble.type => -1
             case y: net.liftweb.json.xschema.XString.type => -1
             case y: net.liftweb.json.xschema.XJSON.type => -1
             case y: net.liftweb.json.xschema.XDate.type => -1
           }
-          case x: net.liftweb.json.xschema.XDouble.type => that match {
+          case x: net.liftweb.json.xschema.XDouble.type => v2 match {
             case y: net.liftweb.json.xschema.XBoolean.type => 1
             case y: net.liftweb.json.xschema.XInt.type => 1
             case y: net.liftweb.json.xschema.XLong.type => 1
             case y: net.liftweb.json.xschema.XFloat.type => 1
-            case y: net.liftweb.json.xschema.XDouble.type => x.compare(y)
+            case y: net.liftweb.json.xschema.XDouble.type => net.liftweb.json.xschema.Orderings.XDoubleOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XString.type => -1
             case y: net.liftweb.json.xschema.XJSON.type => -1
             case y: net.liftweb.json.xschema.XDate.type => -1
           }
-          case x: net.liftweb.json.xschema.XString.type => that match {
+          case x: net.liftweb.json.xschema.XString.type => v2 match {
             case y: net.liftweb.json.xschema.XBoolean.type => 1
             case y: net.liftweb.json.xschema.XInt.type => 1
             case y: net.liftweb.json.xschema.XLong.type => 1
             case y: net.liftweb.json.xschema.XFloat.type => 1
             case y: net.liftweb.json.xschema.XDouble.type => 1
-            case y: net.liftweb.json.xschema.XString.type => x.compare(y)
+            case y: net.liftweb.json.xschema.XString.type => net.liftweb.json.xschema.Orderings.XStringOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XJSON.type => -1
             case y: net.liftweb.json.xschema.XDate.type => -1
           }
-          case x: net.liftweb.json.xschema.XJSON.type => that match {
+          case x: net.liftweb.json.xschema.XJSON.type => v2 match {
             case y: net.liftweb.json.xschema.XBoolean.type => 1
             case y: net.liftweb.json.xschema.XInt.type => 1
             case y: net.liftweb.json.xschema.XLong.type => 1
             case y: net.liftweb.json.xschema.XFloat.type => 1
             case y: net.liftweb.json.xschema.XDouble.type => 1
             case y: net.liftweb.json.xschema.XString.type => 1
-            case y: net.liftweb.json.xschema.XJSON.type => x.compare(y)
+            case y: net.liftweb.json.xschema.XJSON.type => net.liftweb.json.xschema.Orderings.XJSONOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XDate.type => -1
           }
-          case x: net.liftweb.json.xschema.XDate.type => that match {
+          case x: net.liftweb.json.xschema.XDate.type => v2 match {
             case y: net.liftweb.json.xschema.XBoolean.type => 1
             case y: net.liftweb.json.xschema.XInt.type => 1
             case y: net.liftweb.json.xschema.XLong.type => 1
@@ -153,141 +163,469 @@ package net.liftweb.json.xschema {
             case y: net.liftweb.json.xschema.XDouble.type => 1
             case y: net.liftweb.json.xschema.XString.type => 1
             case y: net.liftweb.json.xschema.XJSON.type => 1
-            case y: net.liftweb.json.xschema.XDate.type => x.compare(y)
+            case y: net.liftweb.json.xschema.XDate.type => net.liftweb.json.xschema.Orderings.XDateOrdering.compare(x, y)
           }
         }
       }
     }
+    case class OrderedXPrimitiveRef(v1: net.liftweb.json.xschema.XPrimitiveRef) extends Ordered[net.liftweb.json.xschema.XPrimitiveRef] {
+      def compare(v2: net.liftweb.json.xschema.XPrimitiveRef): Int = XPrimitiveRefOrdering.compare(v1, v2)
+    }
+    implicit def XPrimitiveRefToOrderedXPrimitiveRef(v: net.liftweb.json.xschema.XPrimitiveRef) = OrderedXPrimitiveRef(v)
     
-    case class OrderedXContainerRef(inner: net.liftweb.json.xschema.XContainerRef) extends Ordered[net.liftweb.json.xschema.XContainerRef] {
-      def compare(that: net.liftweb.json.xschema.XContainerRef): Int = {
-        if (inner == that) 0
-        else inner match {
-          case x: net.liftweb.json.xschema.XCollection => that match {
-            case y: net.liftweb.json.xschema.XCollection => x.compare(y)
+    implicit val XContainerRefOrdering: Ordering[net.liftweb.json.xschema.XContainerRef] = new Ordering[net.liftweb.json.xschema.XContainerRef] {
+      def compare(v1: net.liftweb.json.xschema.XContainerRef, v2: net.liftweb.json.xschema.XContainerRef): Int = {
+        if (v1 == v2) 0
+        else v1 match {
+          case x: net.liftweb.json.xschema.XCollection => v2 match {
+            case y: net.liftweb.json.xschema.XCollection => net.liftweb.json.xschema.Orderings.XCollectionOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XMap => -1
             case y: net.liftweb.json.xschema.XOptional => -1
             case y: net.liftweb.json.xschema.XTuple => -1
           }
-          case x: net.liftweb.json.xschema.XMap => that match {
+          case x: net.liftweb.json.xschema.XMap => v2 match {
             case y: net.liftweb.json.xschema.XCollection => 1
-            case y: net.liftweb.json.xschema.XMap => x.compare(y)
+            case y: net.liftweb.json.xschema.XMap => net.liftweb.json.xschema.Orderings.XMapOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XOptional => -1
             case y: net.liftweb.json.xschema.XTuple => -1
           }
-          case x: net.liftweb.json.xschema.XOptional => that match {
+          case x: net.liftweb.json.xschema.XOptional => v2 match {
             case y: net.liftweb.json.xschema.XCollection => 1
             case y: net.liftweb.json.xschema.XMap => 1
-            case y: net.liftweb.json.xschema.XOptional => x.compare(y)
+            case y: net.liftweb.json.xschema.XOptional => net.liftweb.json.xschema.Orderings.XOptionalOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XTuple => -1
           }
-          case x: net.liftweb.json.xschema.XTuple => that match {
+          case x: net.liftweb.json.xschema.XTuple => v2 match {
             case y: net.liftweb.json.xschema.XCollection => 1
             case y: net.liftweb.json.xschema.XMap => 1
             case y: net.liftweb.json.xschema.XOptional => 1
-            case y: net.liftweb.json.xschema.XTuple => x.compare(y)
+            case y: net.liftweb.json.xschema.XTuple => net.liftweb.json.xschema.Orderings.XTupleOrdering.compare(x, y)
           }
         }
       }
     }
+    case class OrderedXContainerRef(v1: net.liftweb.json.xschema.XContainerRef) extends Ordered[net.liftweb.json.xschema.XContainerRef] {
+      def compare(v2: net.liftweb.json.xschema.XContainerRef): Int = XContainerRefOrdering.compare(v1, v2)
+    }
+    implicit def XContainerRefToOrderedXContainerRef(v: net.liftweb.json.xschema.XContainerRef) = OrderedXContainerRef(v)
     
-    case class OrderedXCollection(inner: net.liftweb.json.xschema.XCollection) extends Ordered[net.liftweb.json.xschema.XCollection] {
-      def compare(that: net.liftweb.json.xschema.XCollection): Int = {
-        if (inner == that) 0
-        else inner match {
-          case x: net.liftweb.json.xschema.XList => that match {
-            case y: net.liftweb.json.xschema.XList => x.compare(y)
+    implicit val XDefinitionRefOrdering: Ordering[net.liftweb.json.xschema.XDefinitionRef] = new Ordering[net.liftweb.json.xschema.XDefinitionRef] {
+      def compare(v1: net.liftweb.json.xschema.XDefinitionRef, v2: net.liftweb.json.xschema.XDefinitionRef): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.DefaultOrderings.StringOrdering.compare(v1.name, v2.name) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.StringOrdering.compare(v1.namespace, v2.namespace) * 1, empty))
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XBooleanOrdering: Ordering[net.liftweb.json.xschema.XBoolean.type] = new Ordering[net.liftweb.json.xschema.XBoolean.type] {
+      def compare(v1: net.liftweb.json.xschema.XBoolean.type, v2: net.liftweb.json.xschema.XBoolean.type): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = empty
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XIntOrdering: Ordering[net.liftweb.json.xschema.XInt.type] = new Ordering[net.liftweb.json.xschema.XInt.type] {
+      def compare(v1: net.liftweb.json.xschema.XInt.type, v2: net.liftweb.json.xschema.XInt.type): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = empty
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XLongOrdering: Ordering[net.liftweb.json.xschema.XLong.type] = new Ordering[net.liftweb.json.xschema.XLong.type] {
+      def compare(v1: net.liftweb.json.xschema.XLong.type, v2: net.liftweb.json.xschema.XLong.type): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = empty
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XFloatOrdering: Ordering[net.liftweb.json.xschema.XFloat.type] = new Ordering[net.liftweb.json.xschema.XFloat.type] {
+      def compare(v1: net.liftweb.json.xschema.XFloat.type, v2: net.liftweb.json.xschema.XFloat.type): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = empty
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XDoubleOrdering: Ordering[net.liftweb.json.xschema.XDouble.type] = new Ordering[net.liftweb.json.xschema.XDouble.type] {
+      def compare(v1: net.liftweb.json.xschema.XDouble.type, v2: net.liftweb.json.xschema.XDouble.type): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = empty
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XStringOrdering: Ordering[net.liftweb.json.xschema.XString.type] = new Ordering[net.liftweb.json.xschema.XString.type] {
+      def compare(v1: net.liftweb.json.xschema.XString.type, v2: net.liftweb.json.xschema.XString.type): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = empty
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XJSONOrdering: Ordering[net.liftweb.json.xschema.XJSON.type] = new Ordering[net.liftweb.json.xschema.XJSON.type] {
+      def compare(v1: net.liftweb.json.xschema.XJSON.type, v2: net.liftweb.json.xschema.XJSON.type): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = empty
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XDateOrdering: Ordering[net.liftweb.json.xschema.XDate.type] = new Ordering[net.liftweb.json.xschema.XDate.type] {
+      def compare(v1: net.liftweb.json.xschema.XDate.type, v2: net.liftweb.json.xschema.XDate.type): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = empty
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XCollectionOrdering: Ordering[net.liftweb.json.xschema.XCollection] = new Ordering[net.liftweb.json.xschema.XCollection] {
+      def compare(v1: net.liftweb.json.xschema.XCollection, v2: net.liftweb.json.xschema.XCollection): Int = {
+        if (v1 == v2) 0
+        else v1 match {
+          case x: net.liftweb.json.xschema.XList => v2 match {
+            case y: net.liftweb.json.xschema.XList => net.liftweb.json.xschema.Orderings.XListOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XSet => -1
             case y: net.liftweb.json.xschema.XArray => -1
           }
-          case x: net.liftweb.json.xschema.XSet => that match {
+          case x: net.liftweb.json.xschema.XSet => v2 match {
             case y: net.liftweb.json.xschema.XList => 1
-            case y: net.liftweb.json.xschema.XSet => x.compare(y)
+            case y: net.liftweb.json.xschema.XSet => net.liftweb.json.xschema.Orderings.XSetOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XArray => -1
           }
-          case x: net.liftweb.json.xschema.XArray => that match {
+          case x: net.liftweb.json.xschema.XArray => v2 match {
             case y: net.liftweb.json.xschema.XList => 1
             case y: net.liftweb.json.xschema.XSet => 1
-            case y: net.liftweb.json.xschema.XArray => x.compare(y)
+            case y: net.liftweb.json.xschema.XArray => net.liftweb.json.xschema.Orderings.XArrayOrdering.compare(x, y)
           }
         }
       }
     }
+    case class OrderedXCollection(v1: net.liftweb.json.xschema.XCollection) extends Ordered[net.liftweb.json.xschema.XCollection] {
+      def compare(v2: net.liftweb.json.xschema.XCollection): Int = XCollectionOrdering.compare(v1, v2)
+    }
+    implicit def XCollectionToOrderedXCollection(v: net.liftweb.json.xschema.XCollection) = OrderedXCollection(v)
     
-    case class OrderedXDefinition(inner: net.liftweb.json.xschema.XDefinition) extends Ordered[net.liftweb.json.xschema.XDefinition] {
-      def compare(that: net.liftweb.json.xschema.XDefinition): Int = {
-        if (inner == that) 0
-        else inner match {
-          case x: net.liftweb.json.xschema.XProduct => that match {
-            case y: net.liftweb.json.xschema.XProduct => x.compare(y)
+    implicit val XListOrdering: Ordering[net.liftweb.json.xschema.XList] = new Ordering[net.liftweb.json.xschema.XList] {
+      def compare(v1: net.liftweb.json.xschema.XList, v2: net.liftweb.json.xschema.XList): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.Orderings.XReferenceOrdering.compare(v1.elementType, v2.elementType) * 1, empty)
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XSetOrdering: Ordering[net.liftweb.json.xschema.XSet] = new Ordering[net.liftweb.json.xschema.XSet] {
+      def compare(v1: net.liftweb.json.xschema.XSet, v2: net.liftweb.json.xschema.XSet): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.Orderings.XReferenceOrdering.compare(v1.elementType, v2.elementType) * 1, empty)
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XArrayOrdering: Ordering[net.liftweb.json.xschema.XArray] = new Ordering[net.liftweb.json.xschema.XArray] {
+      def compare(v1: net.liftweb.json.xschema.XArray, v2: net.liftweb.json.xschema.XArray): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.Orderings.XReferenceOrdering.compare(v1.elementType, v2.elementType) * 1, empty)
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XMapOrdering: Ordering[net.liftweb.json.xschema.XMap] = new Ordering[net.liftweb.json.xschema.XMap] {
+      def compare(v1: net.liftweb.json.xschema.XMap, v2: net.liftweb.json.xschema.XMap): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.Orderings.XReferenceOrdering.compare(v1.keyType, v2.keyType) * 1, cons(net.liftweb.json.xschema.Orderings.XReferenceOrdering.compare(v1.valueType, v2.valueType) * 1, empty))
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XOptionalOrdering: Ordering[net.liftweb.json.xschema.XOptional] = new Ordering[net.liftweb.json.xschema.XOptional] {
+      def compare(v1: net.liftweb.json.xschema.XOptional, v2: net.liftweb.json.xschema.XOptional): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.Orderings.XReferenceOrdering.compare(v1.optionalType, v2.optionalType) * 1, empty)
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XTupleOrdering: Ordering[net.liftweb.json.xschema.XTuple] = new Ordering[net.liftweb.json.xschema.XTuple] {
+      def compare(v1: net.liftweb.json.xschema.XTuple, v2: net.liftweb.json.xschema.XTuple): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.DefaultOrderings.ListOrdering(net.liftweb.json.xschema.Orderings.XReferenceOrdering).compare(v1.types, v2.types) * 1, empty)
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XDefinitionOrdering: Ordering[net.liftweb.json.xschema.XDefinition] = new Ordering[net.liftweb.json.xschema.XDefinition] {
+      def compare(v1: net.liftweb.json.xschema.XDefinition, v2: net.liftweb.json.xschema.XDefinition): Int = {
+        if (v1 == v2) 0
+        else v1 match {
+          case x: net.liftweb.json.xschema.XProduct => v2 match {
+            case y: net.liftweb.json.xschema.XProduct => net.liftweb.json.xschema.Orderings.XProductOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XMultitype => -1
           }
-          case x: net.liftweb.json.xschema.XMultitype => that match {
+          case x: net.liftweb.json.xschema.XMultitype => v2 match {
             case y: net.liftweb.json.xschema.XProduct => 1
-            case y: net.liftweb.json.xschema.XMultitype => x.compare(y)
+            case y: net.liftweb.json.xschema.XMultitype => net.liftweb.json.xschema.Orderings.XMultitypeOrdering.compare(x, y)
           }
         }
       }
     }
+    case class OrderedXDefinition(v1: net.liftweb.json.xschema.XDefinition) extends Ordered[net.liftweb.json.xschema.XDefinition] {
+      def compare(v2: net.liftweb.json.xschema.XDefinition): Int = XDefinitionOrdering.compare(v1, v2)
+    }
+    implicit def XDefinitionToOrderedXDefinition(v: net.liftweb.json.xschema.XDefinition) = OrderedXDefinition(v)
     
-    case class OrderedXMultitype(inner: net.liftweb.json.xschema.XMultitype) extends Ordered[net.liftweb.json.xschema.XMultitype] {
-      def compare(that: net.liftweb.json.xschema.XMultitype): Int = {
-        if (inner == that) 0
-        else inner match {
-          case x: net.liftweb.json.xschema.XCoproduct => that match {
-            case y: net.liftweb.json.xschema.XCoproduct => x.compare(y)
+    implicit val XMultitypeOrdering: Ordering[net.liftweb.json.xschema.XMultitype] = new Ordering[net.liftweb.json.xschema.XMultitype] {
+      def compare(v1: net.liftweb.json.xschema.XMultitype, v2: net.liftweb.json.xschema.XMultitype): Int = {
+        if (v1 == v2) 0
+        else v1 match {
+          case x: net.liftweb.json.xschema.XCoproduct => v2 match {
+            case y: net.liftweb.json.xschema.XCoproduct => net.liftweb.json.xschema.Orderings.XCoproductOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XUnion => -1
           }
-          case x: net.liftweb.json.xschema.XUnion => that match {
+          case x: net.liftweb.json.xschema.XUnion => v2 match {
             case y: net.liftweb.json.xschema.XCoproduct => 1
-            case y: net.liftweb.json.xschema.XUnion => x.compare(y)
+            case y: net.liftweb.json.xschema.XUnion => net.liftweb.json.xschema.Orderings.XUnionOrdering.compare(x, y)
           }
         }
       }
     }
+    case class OrderedXMultitype(v1: net.liftweb.json.xschema.XMultitype) extends Ordered[net.liftweb.json.xschema.XMultitype] {
+      def compare(v2: net.liftweb.json.xschema.XMultitype): Int = XMultitypeOrdering.compare(v1, v2)
+    }
+    implicit def XMultitypeToOrderedXMultitype(v: net.liftweb.json.xschema.XMultitype) = OrderedXMultitype(v)
     
-    case class OrderedXField(inner: net.liftweb.json.xschema.XField) extends Ordered[net.liftweb.json.xschema.XField] {
-      def compare(that: net.liftweb.json.xschema.XField): Int = {
-        if (inner == that) 0
-        else inner match {
-          case x: net.liftweb.json.xschema.XRealField => that match {
-            case y: net.liftweb.json.xschema.XRealField => x.compare(y)
+    implicit val XFieldOrdering: Ordering[net.liftweb.json.xschema.XField] = new Ordering[net.liftweb.json.xschema.XField] {
+      def compare(v1: net.liftweb.json.xschema.XField, v2: net.liftweb.json.xschema.XField): Int = {
+        if (v1 == v2) 0
+        else v1 match {
+          case x: net.liftweb.json.xschema.XRealField => v2 match {
+            case y: net.liftweb.json.xschema.XRealField => net.liftweb.json.xschema.Orderings.XRealFieldOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XViewField => -1
             case y: net.liftweb.json.xschema.XConstantField => -1
           }
-          case x: net.liftweb.json.xschema.XViewField => that match {
+          case x: net.liftweb.json.xschema.XViewField => v2 match {
             case y: net.liftweb.json.xschema.XRealField => 1
-            case y: net.liftweb.json.xschema.XViewField => x.compare(y)
+            case y: net.liftweb.json.xschema.XViewField => net.liftweb.json.xschema.Orderings.XViewFieldOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XConstantField => -1
           }
-          case x: net.liftweb.json.xschema.XConstantField => that match {
+          case x: net.liftweb.json.xschema.XConstantField => v2 match {
             case y: net.liftweb.json.xschema.XRealField => 1
             case y: net.liftweb.json.xschema.XViewField => 1
-            case y: net.liftweb.json.xschema.XConstantField => x.compare(y)
+            case y: net.liftweb.json.xschema.XConstantField => net.liftweb.json.xschema.Orderings.XConstantFieldOrdering.compare(x, y)
           }
         }
       }
     }
+    case class OrderedXField(v1: net.liftweb.json.xschema.XField) extends Ordered[net.liftweb.json.xschema.XField] {
+      def compare(v2: net.liftweb.json.xschema.XField): Int = XFieldOrdering.compare(v1, v2)
+    }
+    implicit def XFieldToOrderedXField(v: net.liftweb.json.xschema.XField) = OrderedXField(v)
     
-    case class OrderedXOrder(inner: net.liftweb.json.xschema.XOrder) extends Ordered[net.liftweb.json.xschema.XOrder] {
-      def compare(that: net.liftweb.json.xschema.XOrder): Int = {
-        if (inner == that) 0
-        else inner match {
-          case x: net.liftweb.json.xschema.XOrderAscending.type => that match {
-            case y: net.liftweb.json.xschema.XOrderAscending.type => x.compare(y)
+    implicit val XProductOrdering: Ordering[net.liftweb.json.xschema.XProduct] = new Ordering[net.liftweb.json.xschema.XProduct] {
+      def compare(v1: net.liftweb.json.xschema.XProduct, v2: net.liftweb.json.xschema.XProduct): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.DefaultOrderings.StringOrdering.compare(v1.name, v2.name) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.StringOrdering.compare(v1.namespace, v2.namespace) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.MapOrdering(net.liftweb.json.xschema.DefaultOrderings.StringOrdering, net.liftweb.json.xschema.DefaultOrderings.StringOrdering).compare(v1.properties, v2.properties) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.ListOrdering(net.liftweb.json.xschema.Orderings.XFieldOrdering).compare(v1.terms, v2.terms) * 1, empty))))
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XCoproductOrdering: Ordering[net.liftweb.json.xschema.XCoproduct] = new Ordering[net.liftweb.json.xschema.XCoproduct] {
+      def compare(v1: net.liftweb.json.xschema.XCoproduct, v2: net.liftweb.json.xschema.XCoproduct): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.DefaultOrderings.StringOrdering.compare(v1.name, v2.name) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.StringOrdering.compare(v1.namespace, v2.namespace) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.MapOrdering(net.liftweb.json.xschema.DefaultOrderings.StringOrdering, net.liftweb.json.xschema.DefaultOrderings.StringOrdering).compare(v1.properties, v2.properties) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.ListOrdering(net.liftweb.json.xschema.Orderings.XDefinitionRefOrdering).compare(v1.terms, v2.terms) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.JValueOrdering.compare(v1.default, v2.default) * 1, empty)))))
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XUnionOrdering: Ordering[net.liftweb.json.xschema.XUnion] = new Ordering[net.liftweb.json.xschema.XUnion] {
+      def compare(v1: net.liftweb.json.xschema.XUnion, v2: net.liftweb.json.xschema.XUnion): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.DefaultOrderings.StringOrdering.compare(v1.name, v2.name) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.StringOrdering.compare(v1.namespace, v2.namespace) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.MapOrdering(net.liftweb.json.xschema.DefaultOrderings.StringOrdering, net.liftweb.json.xschema.DefaultOrderings.StringOrdering).compare(v1.properties, v2.properties) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.ListOrdering(net.liftweb.json.xschema.Orderings.XReferenceOrdering).compare(v1.terms, v2.terms) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.JValueOrdering.compare(v1.default, v2.default) * 1, empty)))))
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XConstantOrdering: Ordering[net.liftweb.json.xschema.XConstant] = new Ordering[net.liftweb.json.xschema.XConstant] {
+      def compare(v1: net.liftweb.json.xschema.XConstant, v2: net.liftweb.json.xschema.XConstant): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.DefaultOrderings.StringOrdering.compare(v1.name, v2.name) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.StringOrdering.compare(v1.namespace, v2.namespace) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.MapOrdering(net.liftweb.json.xschema.DefaultOrderings.StringOrdering, net.liftweb.json.xschema.DefaultOrderings.StringOrdering).compare(v1.properties, v2.properties) * 1, cons(net.liftweb.json.xschema.Orderings.XReferenceOrdering.compare(v1.constantType, v2.constantType) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.JValueOrdering.compare(v1.default, v2.default) * 1, empty)))))
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XRealFieldOrdering: Ordering[net.liftweb.json.xschema.XRealField] = new Ordering[net.liftweb.json.xschema.XRealField] {
+      def compare(v1: net.liftweb.json.xschema.XRealField, v2: net.liftweb.json.xschema.XRealField): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.DefaultOrderings.StringOrdering.compare(v1.name, v2.name) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.MapOrdering(net.liftweb.json.xschema.DefaultOrderings.StringOrdering, net.liftweb.json.xschema.DefaultOrderings.StringOrdering).compare(v1.properties, v2.properties) * 1, cons(net.liftweb.json.xschema.Orderings.XReferenceOrdering.compare(v1.fieldType, v2.fieldType) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.JValueOrdering.compare(v1.default, v2.default) * 1, cons(net.liftweb.json.xschema.Orderings.XOrderOrdering.compare(v1.order, v2.order) * 1, empty)))))
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XViewFieldOrdering: Ordering[net.liftweb.json.xschema.XViewField] = new Ordering[net.liftweb.json.xschema.XViewField] {
+      def compare(v1: net.liftweb.json.xschema.XViewField, v2: net.liftweb.json.xschema.XViewField): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.DefaultOrderings.StringOrdering.compare(v1.name, v2.name) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.MapOrdering(net.liftweb.json.xschema.DefaultOrderings.StringOrdering, net.liftweb.json.xschema.DefaultOrderings.StringOrdering).compare(v1.properties, v2.properties) * 1, cons(net.liftweb.json.xschema.Orderings.XReferenceOrdering.compare(v1.fieldType, v2.fieldType) * 1, empty)))
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XConstantFieldOrdering: Ordering[net.liftweb.json.xschema.XConstantField] = new Ordering[net.liftweb.json.xschema.XConstantField] {
+      def compare(v1: net.liftweb.json.xschema.XConstantField, v2: net.liftweb.json.xschema.XConstantField): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = cons(net.liftweb.json.xschema.DefaultOrderings.StringOrdering.compare(v1.name, v2.name) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.MapOrdering(net.liftweb.json.xschema.DefaultOrderings.StringOrdering, net.liftweb.json.xschema.DefaultOrderings.StringOrdering).compare(v1.properties, v2.properties) * 1, cons(net.liftweb.json.xschema.Orderings.XReferenceOrdering.compare(v1.fieldType, v2.fieldType) * 1, cons(net.liftweb.json.xschema.DefaultOrderings.JValueOrdering.compare(v1.default, v2.default) * 1, empty))))
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XOrderOrdering: Ordering[net.liftweb.json.xschema.XOrder] = new Ordering[net.liftweb.json.xschema.XOrder] {
+      def compare(v1: net.liftweb.json.xschema.XOrder, v2: net.liftweb.json.xschema.XOrder): Int = {
+        if (v1 == v2) 0
+        else v1 match {
+          case x: net.liftweb.json.xschema.XOrderAscending.type => v2 match {
+            case y: net.liftweb.json.xschema.XOrderAscending.type => net.liftweb.json.xschema.Orderings.XOrderAscendingOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XOrderDescending.type => -1
             case y: net.liftweb.json.xschema.XOrderIgnore.type => -1
           }
-          case x: net.liftweb.json.xschema.XOrderDescending.type => that match {
+          case x: net.liftweb.json.xschema.XOrderDescending.type => v2 match {
             case y: net.liftweb.json.xschema.XOrderAscending.type => 1
-            case y: net.liftweb.json.xschema.XOrderDescending.type => x.compare(y)
+            case y: net.liftweb.json.xschema.XOrderDescending.type => net.liftweb.json.xschema.Orderings.XOrderDescendingOrdering.compare(x, y)
             case y: net.liftweb.json.xschema.XOrderIgnore.type => -1
           }
-          case x: net.liftweb.json.xschema.XOrderIgnore.type => that match {
+          case x: net.liftweb.json.xschema.XOrderIgnore.type => v2 match {
             case y: net.liftweb.json.xschema.XOrderAscending.type => 1
             case y: net.liftweb.json.xschema.XOrderDescending.type => 1
-            case y: net.liftweb.json.xschema.XOrderIgnore.type => x.compare(y)
+            case y: net.liftweb.json.xschema.XOrderIgnore.type => net.liftweb.json.xschema.Orderings.XOrderIgnoreOrdering.compare(x, y)
           }
+        }
+      }
+    }
+    case class OrderedXOrder(v1: net.liftweb.json.xschema.XOrder) extends Ordered[net.liftweb.json.xschema.XOrder] {
+      def compare(v2: net.liftweb.json.xschema.XOrder): Int = XOrderOrdering.compare(v1, v2)
+    }
+    implicit def XOrderToOrderedXOrder(v: net.liftweb.json.xschema.XOrder) = OrderedXOrder(v)
+    
+    implicit val XOrderAscendingOrdering: Ordering[net.liftweb.json.xschema.XOrderAscending.type] = new Ordering[net.liftweb.json.xschema.XOrderAscending.type] {
+      def compare(v1: net.liftweb.json.xschema.XOrderAscending.type, v2: net.liftweb.json.xschema.XOrderAscending.type): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = empty
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XOrderDescendingOrdering: Ordering[net.liftweb.json.xschema.XOrderDescending.type] = new Ordering[net.liftweb.json.xschema.XOrderDescending.type] {
+      def compare(v1: net.liftweb.json.xschema.XOrderDescending.type, v2: net.liftweb.json.xschema.XOrderDescending.type): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = empty
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+        }
+      }
+    }
+    
+    implicit val XOrderIgnoreOrdering: Ordering[net.liftweb.json.xschema.XOrderIgnore.type] = new Ordering[net.liftweb.json.xschema.XOrderIgnore.type] {
+      def compare(v1: net.liftweb.json.xschema.XOrderIgnore.type, v2: net.liftweb.json.xschema.XOrderIgnore.type): Int = {
+        import Stream.{cons, empty}
+        
+        return if (v1 == v2) 0 else {      
+          val comparisons = empty
+          
+          comparisons.dropWhile(_ == 0).append(0 :: Nil).first
         }
       }
     }
@@ -367,24 +705,7 @@ package net.liftweb.json.xschema {
   }
   
   case class XRoot(definitions: List[net.liftweb.json.xschema.XDefinition], constants: List[net.liftweb.json.xschema.XConstant], properties: Map[String, String]) extends Ordered[net.liftweb.json.xschema.XRoot] {
-    def compare(that: net.liftweb.json.xschema.XRoot): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.definitions.compare(that.definitions)
-      if (c != 0) return c * 1
-      
-      c = this.constants.compare(that.constants)
-      if (c != 0) return c * 1
-      
-      c = this.properties.compare(that.properties)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XRoot): Int = net.liftweb.json.xschema.Orderings.XRootOrdering.compare(this, that)
     
   }
   object XRoot {
@@ -392,21 +713,7 @@ package net.liftweb.json.xschema {
   }
   
   case class XDefinitionRef(name: String, namespace: String) extends Ordered[net.liftweb.json.xschema.XDefinitionRef] with net.liftweb.json.xschema.XReference {
-    def compare(that: net.liftweb.json.xschema.XDefinitionRef): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.name.compare(that.name)
-      if (c != 0) return c * 1
-      
-      c = this.namespace.compare(that.namespace)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XDefinitionRef): Int = net.liftweb.json.xschema.Orderings.XDefinitionRefOrdering.compare(this, that)
     
   }
   object XDefinitionRef {
@@ -454,18 +761,7 @@ package net.liftweb.json.xschema {
   }
   
   case class XList(elementType: net.liftweb.json.xschema.XReference) extends Ordered[net.liftweb.json.xschema.XList] with net.liftweb.json.xschema.XCollection {
-    def compare(that: net.liftweb.json.xschema.XList): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.elementType.compare(that.elementType)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XList): Int = net.liftweb.json.xschema.Orderings.XListOrdering.compare(this, that)
     
   }
   object XList {
@@ -473,18 +769,7 @@ package net.liftweb.json.xschema {
   }
   
   case class XSet(elementType: net.liftweb.json.xschema.XReference) extends Ordered[net.liftweb.json.xschema.XSet] with net.liftweb.json.xschema.XCollection {
-    def compare(that: net.liftweb.json.xschema.XSet): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.elementType.compare(that.elementType)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XSet): Int = net.liftweb.json.xschema.Orderings.XSetOrdering.compare(this, that)
     
   }
   object XSet {
@@ -492,18 +777,7 @@ package net.liftweb.json.xschema {
   }
   
   case class XArray(elementType: net.liftweb.json.xschema.XReference) extends Ordered[net.liftweb.json.xschema.XArray] with net.liftweb.json.xschema.XCollection {
-    def compare(that: net.liftweb.json.xschema.XArray): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.elementType.compare(that.elementType)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XArray): Int = net.liftweb.json.xschema.Orderings.XArrayOrdering.compare(this, that)
     
   }
   object XArray {
@@ -511,21 +785,7 @@ package net.liftweb.json.xschema {
   }
   
   case class XMap(keyType: net.liftweb.json.xschema.XReference, valueType: net.liftweb.json.xschema.XReference) extends Ordered[net.liftweb.json.xschema.XMap] with net.liftweb.json.xschema.XContainerRef {
-    def compare(that: net.liftweb.json.xschema.XMap): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.keyType.compare(that.keyType)
-      if (c != 0) return c * 1
-      
-      c = this.valueType.compare(that.valueType)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XMap): Int = net.liftweb.json.xschema.Orderings.XMapOrdering.compare(this, that)
     
   }
   object XMap {
@@ -533,18 +793,7 @@ package net.liftweb.json.xschema {
   }
   
   case class XOptional(optionalType: net.liftweb.json.xschema.XReference) extends Ordered[net.liftweb.json.xschema.XOptional] with net.liftweb.json.xschema.XContainerRef {
-    def compare(that: net.liftweb.json.xschema.XOptional): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.optionalType.compare(that.optionalType)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XOptional): Int = net.liftweb.json.xschema.Orderings.XOptionalOrdering.compare(this, that)
     
   }
   object XOptional {
@@ -552,18 +801,7 @@ package net.liftweb.json.xschema {
   }
   
   case class XTuple(types: List[net.liftweb.json.xschema.XReference]) extends Ordered[net.liftweb.json.xschema.XTuple] with net.liftweb.json.xschema.XContainerRef {
-    def compare(that: net.liftweb.json.xschema.XTuple): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.types.compare(that.types)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XTuple): Int = net.liftweb.json.xschema.Orderings.XTupleOrdering.compare(this, that)
     
   }
   object XTuple {
@@ -575,27 +813,7 @@ package net.liftweb.json.xschema {
    * the fundamental building blocks used to construct most data structures.
    */
   case class XProduct(name: String, namespace: String, properties: Map[String, String], terms: List[net.liftweb.json.xschema.XField]) extends Ordered[net.liftweb.json.xschema.XProduct] with net.liftweb.json.xschema.XDefinition with net.liftweb.json.xschema.XProductBehavior {
-    def compare(that: net.liftweb.json.xschema.XProduct): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.name.compare(that.name)
-      if (c != 0) return c * 1
-      
-      c = this.namespace.compare(that.namespace)
-      if (c != 0) return c * 1
-      
-      c = this.properties.compare(that.properties)
-      if (c != 0) return c * 1
-      
-      c = this.terms.compare(that.terms)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XProduct): Int = net.liftweb.json.xschema.Orderings.XProductOrdering.compare(this, that)
     def referenceTo: net.liftweb.json.xschema.XDefinitionRef = net.liftweb.json.xschema.XDefinitionRef(name, namespace)
   }
   object XProduct {
@@ -609,30 +827,7 @@ package net.liftweb.json.xschema {
    * languages cannot handle coproducts of unions.
    */
   case class XCoproduct(name: String, namespace: String, properties: Map[String, String], terms: List[net.liftweb.json.xschema.XDefinitionRef], default: net.liftweb.json.JsonAST.JValue) extends Ordered[net.liftweb.json.xschema.XCoproduct] with net.liftweb.json.xschema.XMultitype {
-    def compare(that: net.liftweb.json.xschema.XCoproduct): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.name.compare(that.name)
-      if (c != 0) return c * 1
-      
-      c = this.namespace.compare(that.namespace)
-      if (c != 0) return c * 1
-      
-      c = this.properties.compare(that.properties)
-      if (c != 0) return c * 1
-      
-      c = this.terms.compare(that.terms)
-      if (c != 0) return c * 1
-      
-      //c = this.default.compare(that.default)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XCoproduct): Int = net.liftweb.json.xschema.Orderings.XCoproductOrdering.compare(this, that)
     def referenceTo: net.liftweb.json.xschema.XDefinitionRef = net.liftweb.json.xschema.XDefinitionRef(name, namespace)
   }
   object XCoproduct {
@@ -649,30 +844,7 @@ package net.liftweb.json.xschema {
    * not be able to handle unions or coproducts that contain unions.
    */
   case class XUnion(name: String, namespace: String, properties: Map[String, String], terms: List[net.liftweb.json.xschema.XReference], default: net.liftweb.json.JsonAST.JValue) extends Ordered[net.liftweb.json.xschema.XUnion] with net.liftweb.json.xschema.XMultitype {
-    def compare(that: net.liftweb.json.xschema.XUnion): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.name.compare(that.name)
-      if (c != 0) return c * 1
-      
-      c = this.namespace.compare(that.namespace)
-      if (c != 0) return c * 1
-      
-      c = this.properties.compare(that.properties)
-      if (c != 0) return c * 1
-      
-      c = this.terms.compare(that.terms)
-      if (c != 0) return c * 1
-      
-      //c = this.default.compare(that.default)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XUnion): Int = net.liftweb.json.xschema.Orderings.XUnionOrdering.compare(this, that)
     def referenceTo: net.liftweb.json.xschema.XDefinitionRef = net.liftweb.json.xschema.XDefinitionRef(name, namespace)
   }
   object XUnion {
@@ -680,30 +852,7 @@ package net.liftweb.json.xschema {
   }
   
   case class XConstant(name: String, namespace: String, properties: Map[String, String], constantType: net.liftweb.json.xschema.XReference, default: net.liftweb.json.JsonAST.JValue) extends Ordered[net.liftweb.json.xschema.XConstant] with net.liftweb.json.xschema.XSchema {
-    def compare(that: net.liftweb.json.xschema.XConstant): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.name.compare(that.name)
-      if (c != 0) return c * 1
-      
-      c = this.namespace.compare(that.namespace)
-      if (c != 0) return c * 1
-      
-      c = this.properties.compare(that.properties)
-      if (c != 0) return c * 1
-      
-      c = this.constantType.compare(that.constantType)
-      if (c != 0) return c * 1
-      
-      //c = this.default.compare(that.default)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XConstant): Int = net.liftweb.json.xschema.Orderings.XConstantOrdering.compare(this, that)
     def referenceTo: net.liftweb.json.xschema.XDefinitionRef = net.liftweb.json.xschema.XDefinitionRef(name, namespace)
   }
   object XConstant {
@@ -711,30 +860,7 @@ package net.liftweb.json.xschema {
   }
   
   case class XRealField(name: String, properties: Map[String, String], fieldType: net.liftweb.json.xschema.XReference, default: net.liftweb.json.JsonAST.JValue, order: net.liftweb.json.xschema.XOrder) extends Ordered[net.liftweb.json.xschema.XRealField] with net.liftweb.json.xschema.XField {
-    def compare(that: net.liftweb.json.xschema.XRealField): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.name.compare(that.name)
-      if (c != 0) return c * 1
-      
-      c = this.properties.compare(that.properties)
-      if (c != 0) return c * 1
-      
-      c = this.fieldType.compare(that.fieldType)
-      if (c != 0) return c * 1
-      
-      //c = this.default.compare(that.default)
-      if (c != 0) return c * 1
-      
-      c = this.order.compare(that.order)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XRealField): Int = net.liftweb.json.xschema.Orderings.XRealFieldOrdering.compare(this, that)
     
   }
   object XRealField {
@@ -742,24 +868,7 @@ package net.liftweb.json.xschema {
   }
   
   case class XViewField(name: String, properties: Map[String, String], fieldType: net.liftweb.json.xschema.XReference) extends Ordered[net.liftweb.json.xschema.XViewField] with net.liftweb.json.xschema.XField {
-    def compare(that: net.liftweb.json.xschema.XViewField): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.name.compare(that.name)
-      if (c != 0) return c * 1
-      
-      c = this.properties.compare(that.properties)
-      if (c != 0) return c * 1
-      
-      c = this.fieldType.compare(that.fieldType)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XViewField): Int = net.liftweb.json.xschema.Orderings.XViewFieldOrdering.compare(this, that)
     
   }
   object XViewField {
@@ -767,27 +876,7 @@ package net.liftweb.json.xschema {
   }
   
   case class XConstantField(name: String, properties: Map[String, String], fieldType: net.liftweb.json.xschema.XReference, default: net.liftweb.json.JsonAST.JValue) extends Ordered[net.liftweb.json.xschema.XConstantField] with net.liftweb.json.xschema.XField {
-    def compare(that: net.liftweb.json.xschema.XConstantField): Int = {
-      import Orderings._
-      
-      if (this == that) return 0
-      
-      var c: Int = 0
-      
-      c = this.name.compare(that.name)
-      if (c != 0) return c * 1
-      
-      c = this.properties.compare(that.properties)
-      if (c != 0) return c * 1
-      
-      c = this.fieldType.compare(that.fieldType)
-      if (c != 0) return c * 1
-      
-      //c = this.default.compare(that.default)
-      if (c != 0) return c * 1
-      
-      return this.hashCode - that.hashCode
-    }
+    def compare(that: net.liftweb.json.xschema.XConstantField): Int = net.liftweb.json.xschema.Orderings.XConstantFieldOrdering.compare(this, that)
     
   }
   object XConstantField {
@@ -829,7 +918,7 @@ package net.liftweb.json.xschema {
       }
     }
     
-    private lazy val XSchemaExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XSchema] = ({
+    lazy val XSchemaExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XSchema] = ({
       case JField("XDefinition", value) => net.liftweb.json.xschema.Extractors.XDefinitionExtractor.extract(value)
       case JField("XReference", value) => net.liftweb.json.xschema.Extractors.XReferenceExtractor.extract(value)
       case JField("XField", value) => net.liftweb.json.xschema.Extractors.XFieldExtractor.extract(value)
@@ -854,7 +943,7 @@ package net.liftweb.json.xschema {
       }
     }
     
-    private lazy val XReferenceExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XReference] = ({
+    lazy val XReferenceExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XReference] = ({
       case JField("XPrimitiveRef", value) => net.liftweb.json.xschema.Extractors.XPrimitiveRefExtractor.extract(value)
       case JField("XContainerRef", value) => net.liftweb.json.xschema.Extractors.XContainerRefExtractor.extract(value)
       case JField("XDefinitionRef", value) => net.liftweb.json.xschema.Extractors.XDefinitionRefExtractor.extract(value)
@@ -878,7 +967,7 @@ package net.liftweb.json.xschema {
       }
     }
     
-    private lazy val XPrimitiveRefExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XPrimitiveRef] = ({
+    lazy val XPrimitiveRefExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XPrimitiveRef] = ({
       case JField("XBoolean", value) => net.liftweb.json.xschema.Extractors.XBooleanExtractor.extract(value)
       case JField("XInt", value) => net.liftweb.json.xschema.Extractors.XIntExtractor.extract(value)
       case JField("XLong", value) => net.liftweb.json.xschema.Extractors.XLongExtractor.extract(value)
@@ -907,7 +996,7 @@ package net.liftweb.json.xschema {
       }
     }
     
-    private lazy val XContainerRefExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XContainerRef] = ({
+    lazy val XContainerRefExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XContainerRef] = ({
       case JField("XCollection", value) => net.liftweb.json.xschema.Extractors.XCollectionExtractor.extract(value)
       case JField("XMap", value) => net.liftweb.json.xschema.Extractors.XMapExtractor.extract(value)
       case JField("XOptional", value) => net.liftweb.json.xschema.Extractors.XOptionalExtractor.extract(value)
@@ -989,7 +1078,7 @@ package net.liftweb.json.xschema {
       }
     }
     
-    private lazy val XCollectionExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XCollection] = ({
+    lazy val XCollectionExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XCollection] = ({
       case JField("XList", value) => net.liftweb.json.xschema.Extractors.XListExtractor.extract(value)
       case JField("XSet", value) => net.liftweb.json.xschema.Extractors.XSetExtractor.extract(value)
       case JField("XArray", value) => net.liftweb.json.xschema.Extractors.XArrayExtractor.extract(value)
@@ -1062,7 +1151,7 @@ package net.liftweb.json.xschema {
       }
     }
     
-    private lazy val XDefinitionExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XDefinition] = ({
+    lazy val XDefinitionExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XDefinition] = ({
       case JField("XProduct", value) => net.liftweb.json.xschema.Extractors.XProductExtractor.extract(value)
       case JField("XMultitype", value) => net.liftweb.json.xschema.Extractors.XMultitypeExtractor.extract(value)
     }: PartialFunction[JField, net.liftweb.json.xschema.XDefinition]).orElse(net.liftweb.json.xschema.Extractors.XMultitypeExtractorFunction)
@@ -1085,7 +1174,7 @@ package net.liftweb.json.xschema {
       }
     }
     
-    private lazy val XMultitypeExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XMultitype] = ({
+    lazy val XMultitypeExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XMultitype] = ({
       case JField("XCoproduct", value) => net.liftweb.json.xschema.Extractors.XCoproductExtractor.extract(value)
       case JField("XUnion", value) => net.liftweb.json.xschema.Extractors.XUnionExtractor.extract(value)
     }: PartialFunction[JField, net.liftweb.json.xschema.XMultitype])
@@ -1108,7 +1197,7 @@ package net.liftweb.json.xschema {
       }
     }
     
-    private lazy val XFieldExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XField] = ({
+    lazy val XFieldExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XField] = ({
       case JField("XRealField", value) => net.liftweb.json.xschema.Extractors.XRealFieldExtractor.extract(value)
       case JField("XViewField", value) => net.liftweb.json.xschema.Extractors.XViewFieldExtractor.extract(value)
       case JField("XConstantField", value) => net.liftweb.json.xschema.Extractors.XConstantFieldExtractor.extract(value)
@@ -1212,7 +1301,7 @@ package net.liftweb.json.xschema {
       }
     }
     
-    private lazy val XOrderExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XOrder] = ({
+    lazy val XOrderExtractorFunction: PartialFunction[JField, net.liftweb.json.xschema.XOrder] = ({
       case JField("XOrderAscending", value) => net.liftweb.json.xschema.Extractors.XOrderAscendingExtractor.extract(value)
       case JField("XOrderDescending", value) => net.liftweb.json.xschema.Extractors.XOrderDescendingExtractor.extract(value)
       case JField("XOrderIgnore", value) => net.liftweb.json.xschema.Extractors.XOrderIgnoreExtractor.extract(value)

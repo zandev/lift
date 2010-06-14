@@ -609,10 +609,10 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultOrderings." + getTypeHintFor(ref) + "Ordering"
 
     case x: XContainerRef  => "net.liftweb.json.xschema.DefaultOrderings." + getTypeHintFor(ref) + "Ordering(" + (x match {
-      case x: XCollection => getDecomposerFor(x.elementType)        
-      case x: XMap        => getDecomposerFor(x.keyType) + ", " + getDecomposerFor(x.valueType)
-      case x: XTuple      => x.types.map(getDecomposerFor _ ).mkString(", ")
-      case x: XOptional   => getDecomposerFor(x.optionalType)
+      case x: XCollection => getOrderingFor(x.elementType)        
+      case x: XMap        => getOrderingFor(x.keyType) + ", " + getOrderingFor(x.valueType)
+      case x: XTuple      => x.types.map(getOrderingFor _ ).mkString(", ")
+      case x: XOptional   => getOrderingFor(x.optionalType)
     }) + ")"
 
     case x: XDefinitionRef => x.namespace + ".Orderings." + getTypeHintFor(x) + "Ordering"
