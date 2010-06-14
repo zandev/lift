@@ -329,7 +329,8 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         }
     }
     def buildXSchema() = {
-      code.add("lazy val xschema: ${definitionType} = net.liftweb.json.xschema.Extractors.${definitionType}Extractor.extract(" + compact(renderScala(definition.serialize)) + ")",
+      code.add("lazy val xschema: ${definitionType} = net.liftweb.json.xschema.Extractors.XDefinitionExtractor.extract(${json}).asInstanceOf[${definitionType}]",
+        "json"           -> compact(renderScala(definition.serialize)),
         "definitionType" -> definition.productPrefix
       )
     }
@@ -389,7 +390,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         case x: XCoproduct => 
           val withClauses = "Product" :: definitionTraits
           
-          code.add(coproductPrefix(x) + "trait ${name} " + formCompleteExtensionClause(withClauses)).block {
+          code.add(coproductPrefix(x) + "trait ${name} ${extendsClause}", "extendsClause" -> formCompleteExtensionClause(withClauses)).block {
             buildCoproductFields(x)
           }
           
@@ -402,7 +403,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       val objectMixins = formMixinsClauseFromProperty("scala.object.traits")
       
       if (!isSingleton && (includeSchemas || objectMixins.length > 0)) {
-        code.newline.add("object ${name} " + formCompleteExtensionClause(objectMixins)).block {
+        code.newline.add("object ${name} ${extendsClause}", "extendsClause" -> formCompleteExtensionClause(objectMixins)).block {
           buildXSchema()
         }
       }

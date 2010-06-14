@@ -34,6 +34,10 @@ trait DefaultDecomposers {
     def decompose(tvalue: Double): JValue = JDouble(tvalue)
   }
   
+  implicit val DateDecomposer: Decomposer[JDate] = new Decomposer[JDate] {
+    def decompose(date: JDate): JValue = JInt(date.getTime)
+  }
+  
   implicit def OptionDecomposer[T](implicit decomposer: Decomposer[T]): Decomposer[Option[T]] = new Decomposer[Option[T]] {
     def decompose(tvalue: Option[T]): JValue = tvalue match {
       case None    => JNull
@@ -71,10 +75,6 @@ trait DefaultDecomposers {
   
   implicit def MapDecomposer[K, V](implicit keyDecomposer: Decomposer[K], valueDecomposer: Decomposer[V]): Decomposer[Map[K, V]] = new Decomposer[Map[K, V]] {
     def decompose(tvalue: Map[K, V]): JValue = ListDecomposer(Tuple2Decomposer(keyDecomposer, valueDecomposer)).decompose(tvalue.toList)
-  }
-  
-  implicit val DateDecomposer: Decomposer[JDate] = new Decomposer[JDate] {
-    def decompose(date: JDate): JValue = JInt(date.getTime)
   }
 }
 object DefaultDecomposers extends DefaultDecomposers

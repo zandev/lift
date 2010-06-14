@@ -18,7 +18,7 @@ trait DefaultExtractors {
       case JDouble(d) => d.toString
       case JBool(b) => b.toString
       
-      case _ => error("Expected string but found: " + jvalue)
+      case _ => error("Expected String but found: " + jvalue)
     }
   }
   
@@ -35,7 +35,7 @@ trait DefaultExtractors {
       case JInt(i) if (i.intValue == 1) => true
       case JInt(i) if (i.intValue == 0) => false
       
-      case _ => error("Expected boolean but found: " + jvalue)
+      case _ => error("Expected Boolean but found: " + jvalue)
     }
   }
   
@@ -46,7 +46,7 @@ trait DefaultExtractors {
       
       case JString(s) => s.toInt
       
-      case _ => error("Expected integer but found: " + jvalue)
+      case _ => error("Expected Integer but found: " + jvalue)
     }
   }
   
@@ -57,7 +57,7 @@ trait DefaultExtractors {
       
       case JString(s) => s.toLong
       
-      case _ => error("Expected long but found: " + jvalue)
+      case _ => error("Expected Long but found: " + jvalue)
     }
   }
   
@@ -68,7 +68,7 @@ trait DefaultExtractors {
       
       case JString(s) => s.toFloat
       
-      case _ => error("Expected float but found: " + jvalue)
+      case _ => error("Expected Float but found: " + jvalue)
     }
   }
 
@@ -79,8 +79,12 @@ trait DefaultExtractors {
       
       case JString(s) => s.toDouble
 
-      case _ => error("Expected double but found: " + jvalue)
+      case _ => error("Expected Double but found: " + jvalue)
     }
+  }
+  
+  implicit val DateExtractor: Extractor[JDate] = new Extractor[JDate] {
+    def extract(jvalue: JValue): JDate = new JDate(LongExtractor.extract(jvalue))
   }
   
   implicit def OptionExtractor[T](implicit extractor: Extractor[T]): Extractor[Option[T]] = new Extractor[Option[T]] {
@@ -94,7 +98,7 @@ trait DefaultExtractors {
     def extract(jvalue: JValue): (T1, T2) = jvalue match {
       case JArray(values) if (values.length == 2) => (extractor1(values(0)), extractor2(values(1)))
 
-      case _ => error("Expected array of length 2 but found: " + jvalue)
+      case _ => error("Expected Array of length 2 but found: " + jvalue)
     }
   }
   
@@ -102,7 +106,7 @@ trait DefaultExtractors {
     def extract(jvalue: JValue): (T1, T2, T3) = jvalue match {
       case JArray(values) if (values.length == 3) => (extractor1(values(0)), extractor2(values(1)), extractor3(values(2)))
 
-      case _ => error("Expected array of length 3 but found: " + jvalue)
+      case _ => error("Expected Array of length 3 but found: " + jvalue)
     }
   }
   
@@ -110,7 +114,7 @@ trait DefaultExtractors {
     def extract(jvalue: JValue): (T1, T2, T3, T4) = jvalue match {
       case JArray(values) if (values.length == 4) => (extractor1(values(0)), extractor2(values(1)), extractor3(values(2)), extractor4(values(3)))
 
-      case _ => error("Expected array of length 4 but found: " + jvalue)
+      case _ => error("Expected Array of length 4 but found: " + jvalue)
     }
   }
   
@@ -118,7 +122,7 @@ trait DefaultExtractors {
     def extract(jvalue: JValue): (T1, T2, T3, T4, T5) = jvalue match {
       case JArray(values) if (values.length == 5) => (extractor1(values(0)), extractor2(values(1)), extractor3(values(2)), extractor4(values(3)), extractor5(values(4)))
 
-      case _ => error("Expected array of length 5 but found: " + jvalue)
+      case _ => error("Expected Array of length 5 but found: " + jvalue)
     }
   }
   
@@ -126,7 +130,7 @@ trait DefaultExtractors {
     def extract(jvalue: JValue): Array[T] = jvalue match {
       case JArray(values) => values.map(elementExtractor.extract _).toArray
 
-      case _ => error("Expected array but found: " + jvalue)
+      case _ => error("Expected Array but found: " + jvalue)
     }
   }
   
@@ -134,7 +138,7 @@ trait DefaultExtractors {
     def extract(jvalue: JValue): Set[T] = jvalue match {
       case JArray(values) => Set(values.map(elementExtractor.extract _): _*)
 
-      case _ => error("Expected set but found: " + jvalue)
+      case _ => error("Expected Set but found: " + jvalue)
     }
   }
   
@@ -142,16 +146,12 @@ trait DefaultExtractors {
     def extract(jvalue: JValue): List[T] = jvalue match {
       case JArray(values) => values.map(elementExtractor.extract _)
 
-      case _ => error("Expected list but found: " + jvalue)
+      case _ => error("Expected List but found: " + jvalue)
     }
   }
   
   implicit def MapExtractor[K, V](implicit keyExtractor: Extractor[K], valueExtractor: Extractor[V]): Extractor[Map[K, V]] = new Extractor[Map[K, V]] {
     def extract(jvalue: JValue): Map[K, V] = Map(ListExtractor(Tuple2Extractor(keyExtractor, valueExtractor)).extract(jvalue): _*)
-  }
-  
-  implicit val DateExtractor: Extractor[JDate] = new Extractor[JDate] {
-    def extract(jvalue: JValue): JDate = new JDate(LongExtractor.extract(jvalue))
   }
 }
 object DefaultExtractors extends DefaultExtractors
