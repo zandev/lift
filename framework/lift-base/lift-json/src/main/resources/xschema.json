@@ -58,7 +58,7 @@
                 }
               },
               "valueType":{
-                "XString":{
+                "XJSON":{
                   
                 }
               }
@@ -603,7 +603,7 @@
                 }
               },
               "valueType":{
-                "XString":{
+                "XJSON":{
                   
                 }
               }
@@ -699,7 +699,7 @@
                 }
               },
               "valueType":{
-                "XString":{
+                "XJSON":{
                   
                 }
               }
@@ -810,7 +810,7 @@
                 }
               },
               "valueType":{
-                "XString":{
+                "XJSON":{
                   
                 }
               }
@@ -921,7 +921,7 @@
                 }
               },
               "valueType":{
-                "XString":{
+                "XJSON":{
                   
                 }
               }
@@ -1017,7 +1017,7 @@
                 }
               },
               "valueType":{
-                "XString":{
+                "XJSON":{
                   
                 }
               }
@@ -1123,7 +1123,7 @@
                 }
               },
               "valueType":{
-                "XString":{
+                "XJSON":{
                   
                 }
               }
@@ -1193,7 +1193,7 @@
                 }
               },
               "valueType":{
-                "XString":{
+                "XJSON":{
                   
                 }
               }
