@@ -153,6 +153,14 @@ trait DefaultExtractors {
   implicit def MapExtractor[K, V](implicit keyExtractor: Extractor[K], valueExtractor: Extractor[V]): Extractor[Map[K, V]] = new Extractor[Map[K, V]] {
     def extract(jvalue: JValue): Map[K, V] = Map(ListExtractor(Tuple2Extractor(keyExtractor, valueExtractor)).extract(jvalue): _*)
   }
+  
+  implicit def StringMapExtractor[V](implicit valueExtractor: Extractor[V]): Extractor[Map[String, V]] = new Extractor[Map[String, V]] {
+    def extract(jvalue: JValue): Map[String, V] = jvalue match {
+      case JObject(fields) => Map((fields.map { field => (field.name, valueExtractor.extract(field.value)) }): _*)
+      
+      case _ => Map(ListExtractor(Tuple2Extractor(StringExtractor, valueExtractor)).extract(jvalue): _*)
+    }
+  }
 }
 object DefaultExtractors extends DefaultExtractors
 

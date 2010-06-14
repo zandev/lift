@@ -423,17 +423,21 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     case x: XDefinitionRef => x.name
   }
   
-  private def getExtractorFor(ref: XReference): String = ref match {
-    case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor"
+  private def getExtractorFor(ref: XReference): String = {
+    ref match {
+      case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor"
+      
+      case x: XMap if (x.keyType == XString) => "net.liftweb.json.xschema.DefaultExtractors.StringMapExtractor(" + getExtractorFor(x.valueType) + ")"
 
-    case x: XContainerRef  => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor(" + (x match {
-      case x: XCollection => getExtractorFor(x.elementType)        
-      case x: XMap        => getExtractorFor(x.keyType) + ", " + getExtractorFor(x.valueType)
-      case x: XTuple      => x.types.map(getExtractorFor _ ).mkString(", ")
-      case x: XOptional   => getExtractorFor(x.optionalType)
-    }) + ")"
+      case x: XContainerRef => "net.liftweb.json.xschema.DefaultExtractors." + getTypeHintFor(ref) + "Extractor(" + (x match {
+        case x: XCollection => getExtractorFor(x.elementType)      
+        case x: XMap        => getExtractorFor(x.keyType) + ", " + getExtractorFor(x.valueType)
+        case x: XTuple      => x.types.map(getExtractorFor _ ).mkString(", ")
+        case x: XOptional   => getExtractorFor(x.optionalType)
+      }) + ")"
 
-    case x: XDefinitionRef => x.namespace + ".Extractors." + getTypeHintFor(x) + "Extractor"
+      case x: XDefinitionRef => x.namespace + ".Extractors." + getTypeHintFor(x) + "Extractor"
+    }
   }
   
   private def buildExtractorsFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): CodeBuilder = {    
@@ -529,11 +533,13 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   }
   
   private def getDecomposerFor(ref: XReference): String = ref match {
-    case x: XPrimitiveRef  => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer"
+    case x: XPrimitiveRef => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer"
+    
+    case x: XMap if (x.keyType == XString) => "net.liftweb.json.xschema.DefaultDecomposers.StringMapDecomposer(" + getDecomposerFor(x.valueType) + ")"
 
-    case x: XContainerRef  => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer(" + (x match {
-      case x: XCollection => getDecomposerFor(x.elementType)        
-      case x: XMap        => getDecomposerFor(x.keyType) + ", " + getDecomposerFor(x.valueType)
+    case x: XContainerRef => "net.liftweb.json.xschema.DefaultDecomposers." + getTypeHintFor(ref) + "Decomposer(" + (x match {
+      case x: XCollection => getDecomposerFor(x.elementType)              
+      case x: XMap        => getDecomposerFor(x.keyType) + ", " + getDecomposerFor(x.valueType)      
       case x: XTuple      => x.types.map(getDecomposerFor _ ).mkString(", ")
       case x: XOptional   => getDecomposerFor(x.optionalType)
     }) + ")"

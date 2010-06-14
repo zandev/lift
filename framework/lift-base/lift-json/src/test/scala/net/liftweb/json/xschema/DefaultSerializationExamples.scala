@@ -49,6 +49,16 @@ object DefaultSerializationExamples extends Specification {
     IntExtractor(JDouble(12.0)) mustEqual 12
     LongExtractor(JDouble(12.0)) mustEqual 12L
   }
+  
+  "Map of String to something is decomposed to object" in {
+    val map = Map("foo" -> "bar")
+    
+    StringMapDecomposer(StringDecomposer).decompose(map) mustEqual JObject(JField("foo", JString("bar")) :: Nil)
+  }
+  
+  "Map of String to something can be extracted from object" in {
+    StringMapExtractor(StringExtractor).extract(JObject(JField("foo", JString("bar")) :: Nil)) mustEqual Map("foo" -> "bar")
+  }
 }
 
 
