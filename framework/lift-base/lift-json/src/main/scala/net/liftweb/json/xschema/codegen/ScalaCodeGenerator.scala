@@ -252,21 +252,21 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       }
     }    
     def buildOrderedDefinition(x: XProduct): Unit = {
-      code.add("def compare(that: ${type}): Int = ${ordering}.compare(this, that)", 
+      code.add("def compare(that: ${typeSig}): Int = ${ordering}.compare(this, that)", 
         "ordering" -> getOrderingFor(x.referenceTo),
-        "type"     -> typeSignatureOf(x.referenceTo, database)
+        "typeSig"  -> typeSignatureOf(x.referenceTo, database)
       )
     }
     def buildViewFields(x: XProduct): Unit = {
       code.join(x.viewFields, code.newline) { viewField =>
         database.resolve(viewField.fieldType) match {
           case product: XProduct => 
-            code.using("field" -> viewField.name, "type" -> typeSignatureOf(viewField.fieldType, database)) {
+            code.using("fieldName" -> viewField.name, "typeSig" -> typeSignatureOf(viewField.fieldType, database)) {
               if (product.isSingleton) {
                 error("View fields cannot be used for objects, constant fields should be used instead")
               }
               else {
-                code.add("def ${field}: ${type} = ${type}(${constructorArgs})",
+                code.add("def ${fieldName}: ${typeSig} = ${typeSig}(${constructorArgs})",
                   "constructorArgs" -> product.realFields.map(_.name).mkString(", ")
                 )
               }
@@ -280,9 +280,9 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       code.join(x.constantFields, code.newline) { constantField =>
         val constantType = constantField.fieldType 
         
-        code.add("lazy val ${field}: ${type} = ${extractor}.extract(${json})",
-          "field"     -> constantField.name, 
-          "type"      -> typeSignatureOf(constantType, database),
+        code.add("lazy val ${fieldName}: ${typeSig} = ${extractor}.extract(${json})",
+          "fieldName" -> constantField.name, 
+          "typeSig"   -> typeSignatureOf(constantType, database),
           "extractor" -> getExtractorFor(constantType),
           "json"      -> compact(renderScala(constantField.default))
         )
@@ -427,31 +427,28 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   
   private def buildExtractorsFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): CodeBuilder = {    
     def buildMultitypeExtractor(multitype: XMultitype, terms: List[XReference]) = {
-      code.using("name" -> multitype.name, "type" -> typeSignatureOf(multitype.referenceTo, database)) {
-        code.add("lazy val ${name}ExtractorFunction: PartialFunction[JField, ${type}] = (").block {
+      code.using("typeHint" -> getTypeHintFor(multitype.referenceTo), "typeSig" -> typeSignatureOf(multitype.referenceTo, database)) {
+        code.add("lazy val ${typeHint}ExtractorFunction: PartialFunction[JField, ${typeSig}] = (").block {
           code.join(terms, code.newline) { term =>
             code.add("""case JField("${typeHint}", value) => ${extractor}.extract(value)""",
               "extractor" -> getExtractorFor(term),
               "typeHint"  -> getTypeHintFor(term)
             )
           }
-        }.add(": PartialFunction[JField, ${type}])")
+        }.add(": PartialFunction[JField, ${typeSig}])")
         
-        val multitypeTerms = database.resolve(terms).filter(_.isInstanceOf[XCoproduct]).map(_.asInstanceOf[XCoproduct])
+        val multitypeTerms = database.resolve(terms).filter(_.isInstanceOf[XCoproduct]).map(_.asInstanceOf[XCoproduct]).map(_.referenceTo)
         
         multitypeTerms.foreach { term =>
-          code.add(".orElse(${namespace}.Extractors.${name}ExtractorFunction)",
-            "namespace" -> term.namespace,
-            "name"      -> term.name
-          )
+          code.add(".orElse(${extractorFunction})", "extractorFunction" -> (getExtractorFor(term) + "Function"))
         }
       
         code.newline.add("""
-          ${implicitPrefix}val ${name}Extractor: Extractor[${type}] = new Extractor[${type}] {
-            def extract(jvalue: JValue): ${type} = {
-              def extract0(jvalue: JValue): Option[${type}] = {
-                (jvalue --> classOf[JObject]).obj.filter(${name}ExtractorFunction.isDefinedAt _) match {
-                  case field :: fields => Some(${name}ExtractorFunction(field))
+          ${implicitPrefix}val ${typeHint}Extractor: Extractor[${typeSig}] = new Extractor[${typeSig}] {
+            def extract(jvalue: JValue): ${typeSig} = {
+              def extract0(jvalue: JValue): Option[${typeSig}] = {
+                (jvalue --> classOf[JObject]).obj.filter(${typeHint}ExtractorFunction.isDefinedAt _) match {
+                  case field :: fields => Some(${typeHint}ExtractorFunction(field))
                   case Nil => None
                 }
               }
@@ -460,7 +457,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
                 case Some(v) => v
                 case None => extract0(${defaultJValue}) match {
                   case Some(v) => v
-                  case None => error("Expected to find ${type}, but found " + jvalue + ", and default value was invalid")
+                  case None => error("Expected to find ${typeSig}, but found " + jvalue + ", and default value was invalid")
                 }
               }
             }
@@ -485,20 +482,22 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       code.join(database.definitionsIn(namespace), code.newline.newline) { definition =>
         definition match {
           case x: XProduct => 
-            code.using("name" -> x.name, "type" -> typeSignatureOf(x.referenceTo, database)) {
-              code.add("implicit val ${name}Extractor: Extractor[${type}] = new Extractor[${type}] ").block {
-                code.add("def extract(jvalue: JValue): ${type} = ").block {
+            code.using("constructor" -> x.name, "typeHint" -> getTypeHintFor(x.referenceTo), "typeSig" -> typeSignatureOf(x.referenceTo, database)) {
+              code.add("implicit val ${typeHint}Extractor: Extractor[${typeSig}] = new Extractor[${typeSig}] ").block {
+                code.add("def extract(jvalue: JValue): ${typeSig} = ").block {
                   if (x.realFields.length == 0) {
-                    code.add("${name}")
+                    code.add("${constructor}")
                   }
                   else {
-                    code.add("${name}").paren {          
+                    code.add("${constructor}").paren {          
                       var isFirst = true
 
                       code.join(x.realFields, code.add(",").newline) { field =>
-                        code.add("extractField[${fieldType}](jvalue, \"${fieldName}\", " + compact(renderScala(field.default)) + ", " + getExtractorFor(field.fieldType) + ")", 
-                          "fieldType" -> typeSignatureOf(field.fieldType, database),
-                          "fieldName" -> field.name
+                        code.add("extractField[${fieldType}](jvalue, \"${fieldName}\", ${json}, ${fieldExtractor})",
+                          "fieldType"      -> typeSignatureOf(field.fieldType, database),
+                          "fieldName"      -> field.name,
+                          "json"           -> compact(renderScala(field.default)),
+                          "fieldExtractor" -> getExtractorFor(field.fieldType)
                         )
                       }
                     }
@@ -540,9 +539,9 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   
   private def buildDecomposersFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): Unit = {
     def buildMultitypeDecomposer(multitype: XMultitype, terms: List[XReference]) = {
-      code.using("name" -> multitype.name, "type" -> typeSignatureOf(multitype.referenceTo, database)) {
-        code.add("${implicitPrefix}val ${name}Decomposer: Decomposer[${type}] = new Decomposer[${type}] ", "implicitPrefix" -> getImplicitPrefix(multitype)).block {
-          code.add("def decompose(tvalue: ${type}): JValue = ").block {
+      code.using("typeHint" -> multitype.name, "typeSig" -> typeSignatureOf(multitype.referenceTo, database)) {
+        code.add("${implicitPrefix}val ${typeHint}Decomposer: Decomposer[${typeSig}] = new Decomposer[${typeSig}] ", "implicitPrefix" -> getImplicitPrefix(multitype)).block {
+          code.add("def decompose(tvalue: ${typeSig}): JValue = ").block {
             code.add("tvalue match ").block {
               val expandedTerms = database.referencesOf(database.findLeafTerms(multitype)).removeDuplicates
               
@@ -690,7 +689,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
               }
               
               if (!isUnion) {
-                code.newline.add("case class Ordered${typeHint}(v1: ${typeSig}) extends Ordered[${type}] ").block {
+                code.newline.add("case class Ordered${typeHint}(v1: ${typeSig}) extends Ordered[${typeSig}] ").block {
                   code.add("def compare(v2: ${typeSig}): Int = ${typeHint}Ordering.compare(v1, v2)")
                 }
                 code.newline.add("implicit def ${typeHint}ToOrdered${typeHint}(v: ${typeSig}) = Ordered${typeHint}(v)")
