@@ -74,7 +74,11 @@ trait DefaultDecomposers {
   }
   
   implicit def MapDecomposer[K, V](implicit keyDecomposer: Decomposer[K], valueDecomposer: Decomposer[V]): Decomposer[Map[K, V]] = new Decomposer[Map[K, V]] {
-    def decompose(tvalue: Map[K, V]): JValue = ListDecomposer(Tuple2Decomposer(keyDecomposer, valueDecomposer)).decompose(tvalue.toList)
+    def decompose(tvalue: Map[K, V]): JValue = {
+      //val keysAreStrings = tvalue.keys.filter(_.isInstanceOf[String]).length == tvalue.keys.length
+      
+      ListDecomposer(Tuple2Decomposer(keyDecomposer, valueDecomposer)).decompose(tvalue.toList)
+    }
   }
 }
 object DefaultDecomposers extends DefaultDecomposers
