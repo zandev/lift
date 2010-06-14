@@ -252,40 +252,10 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       }
     }    
     def buildOrderedDefinition(x: XProduct): Unit = {
-      def buildComparisonFor(field: XRealField, reference: XReference): Unit = {
-        def comparisonSign = field.order match {
-          case XOrderAscending  => 1
-          case XOrderDescending => -1
-          case XOrderIgnore     => 0
-        }
-        
-        def buildStandardComparison(): Unit = {
-          code.addln("c = this.${field}.compare(that.${field})", "field" -> field.name)
-          code.addln("if (c != 0) return c * " + comparisonSign.toString)
-        }
-                                 
-        database.resolve(reference) match {
-          case x: XProduct =>
-            if (x.isSingleton) { // TODO: Should not solve this here, should solve it in "Orderings"
-              code.addln("if (this.${field} != that.${field}) return -1")
-            }
-            else buildStandardComparison()
-            
-          case _ => buildStandardComparison()
-        }
-      }
-      
-      code.add("def compare(that: " + typeSignatureOf(x.referenceTo, database) + "): Int = ").block {    
-        code.add("import Orderings._").newline(2)
-        
-        code.addln("if (this == that) return 0").newline.addln("var c: Int = 0").newline
-      
-        code.join(x.realFields, code.newline) { field =>
-          buildComparisonFor(field, field.fieldType)
-        }
-      
-        code.newline.add("return this.hashCode - that.hashCode") // TODO: Not good practice, but do we have a choice???
-      }
+      code.add("def compare(that: ${type}): Int = ${ordering}.compare(this, that)", 
+        "ordering" -> getOrderingFor(x.referenceTo),
+        "type"     -> typeSignatureOf(x.referenceTo, database)
+      )
     }
     def buildViewFields(x: XProduct): Unit = {
       code.join(x.viewFields, code.newline) { viewField =>
@@ -296,9 +266,9 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
                 error("View fields cannot be used for objects, constant fields should be used instead")
               }
               else {
-                code.add("def ${field}: ${type} = ${type}(")
-                code.add(product.realFields.map(_.name).mkString(", "))
-                code.add(")")
+                code.add("def ${field}: ${type} = ${type}(${constructorArgs})",
+                  "constructorArgs" -> product.realFields.map(_.name).mkString(", ")
+                )
               }
             }
             
@@ -456,9 +426,9 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   }
   
   private def buildExtractorsFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): CodeBuilder = {    
-    def buildMultitypeExtractor(defn: XMultitype, terms: List[XReference]) = {
-      code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
-        code.add("private lazy val ${name}ExtractorFunction: PartialFunction[JField, ${type}] = (").block {
+    def buildMultitypeExtractor(multitype: XMultitype, terms: List[XReference]) = {
+      code.using("name" -> multitype.name, "type" -> typeSignatureOf(multitype.referenceTo, database)) {
+        code.add("lazy val ${name}ExtractorFunction: PartialFunction[JField, ${type}] = (").block {
           code.join(terms, code.newline) { term =>
             code.add("""case JField("${typeHint}", value) => ${extractor}.extract(value)""",
               "extractor" -> getExtractorFor(term),
@@ -477,7 +447,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         }
       
         code.newline.add("""
-          implicit val ${name}Extractor: Extractor[${type}] = new Extractor[${type}] {
+          ${implicitPrefix}val ${name}Extractor: Extractor[${type}] = new Extractor[${type}] {
             def extract(jvalue: JValue): ${type} = {
               def extract0(jvalue: JValue): Option[${type}] = {
                 (jvalue --> classOf[JObject]).obj.filter(${name}ExtractorFunction.isDefinedAt _) match {
@@ -494,7 +464,10 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
                 }
               }
             }
-          }""", "defaultJValue" -> compact(renderScala(defn.default)))
+          }""", 
+          "defaultJValue"  -> compact(renderScala(multitype.default)),
+          "implicitPrefix" -> getImplicitPrefix(multitype)
+        )
       }
     }
     
@@ -558,13 +531,20 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     case x: XDefinitionRef => x.namespace + ".Decomposers." + getTypeHintFor(x) + "Decomposer"
   }
   
+  private def getImplicitPrefix(multitype: XMultitype): String = {
+    multitype match {
+      case _ : XCoproduct => "implicit "
+      case _ : XUnion => ""
+    }
+  }
+  
   private def buildDecomposersFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): Unit = {
-    def buildMultitypeDecomposer(defn: XMultitype, terms: List[XReference]) = {
-      code.using("name" -> defn.name, "type" -> typeSignatureOf(defn.referenceTo, database)) {
-        code.add("implicit val ${name}Decomposer: Decomposer[${type}] = new Decomposer[${type}] ").block {
+    def buildMultitypeDecomposer(multitype: XMultitype, terms: List[XReference]) = {
+      code.using("name" -> multitype.name, "type" -> typeSignatureOf(multitype.referenceTo, database)) {
+        code.add("${implicitPrefix}val ${name}Decomposer: Decomposer[${type}] = new Decomposer[${type}] ", "implicitPrefix" -> getImplicitPrefix(multitype)).block {
           code.add("def decompose(tvalue: ${type}): JValue = ").block {
             code.add("tvalue match ").block {
-              val expandedTerms = database.referencesOf(database.findLeafTerms(defn)).removeDuplicates
+              val expandedTerms = database.referencesOf(database.findLeafTerms(multitype)).removeDuplicates
               
               code.join(expandedTerms, code.newline) { term =>
                 code.add("case x: ${termType} => JObject(JField(\"${typeHint}\", ${decomposer}.decompose(x)) :: Nil)",
@@ -583,9 +563,9 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       code.join(database.definitionsIn(namespace), code.newline.newline) { definition =>
         definition match {
           case x: XProduct => 
-            code.using("name" -> x.name, "type" -> typeSignatureOf(x.referenceTo, database)) {
-              code.add("implicit val ${name}Decomposer: Decomposer[${type}] = new Decomposer[${type}] ").block {
-                code.add("def decompose(tvalue: ${type}): JValue = ").block {
+            code.using("typeHint" -> getTypeHintFor(x.referenceTo), "typeSig" -> typeSignatureOf(x.referenceTo, database)) {
+              code.add("implicit val ${typeHint}Decomposer: Decomposer[${typeSig}] = new Decomposer[${typeSig}] ").block {
+                code.add("def decompose(tvalue: ${typeSig}): JValue = ").block {
                   code.add("JObject").paren {  
                     code.join(x.realFields, code.newline) { field =>
                       code.add("JField(\"${fieldName}\", ${decomposer}.decompose(tvalue.${fieldName})) ::", 
@@ -636,64 +616,85 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       case x: XOptional   => getDecomposerFor(x.optionalType)
     }) + ")"
 
-    case x: XDefinitionRef => x.namespace + ".Orderings." + getTypeHintFor(x) + "Decomposer"
+    case x: XDefinitionRef => x.namespace + ".Orderings." + getTypeHintFor(x) + "Ordering"
   }
   
-  private def buildOrderingsFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): Unit = {
-    /*def getComparisonInvocation(term1: XReference, var1: String, var2: String) = {
-      term1 match {
-        case x: XPrimitiveRef  => x match {
-          case x: XJSON => "net.liftweb.json.xschema.JValueToOrderedJValue(" + var1 + ").compare(" + var2 + ")"
-          
-          case _ => var1 + ".compare(" + var2 + ")"
-        }
-
-        case x: XContainerRef  => "net.liftweb.json.xschema.DefaultOrderings." + (x match {
-          case x: XCollection => 
-          }
-          
-          case x: XMap        => getComparisonInvocation(x.keyType) + ", " + getComparisonInvocation(x.valueType)
-          case x: XTuple      => x.types.map(getComparisonInvocation _ ).mkString(", ")
-          case x: XOptional   => getComparisonInvocation(x.optionalType)
-        }) + ")"
-
-        case x: XDefinitionRef => x.namespace + ".Decomposers." + getTypeHintFor(x) + "Decomposer"
-      }
-    }*/
-    
+  private def buildOrderingsFor(namespace: String, code: CodeBuilder, database: XSchemaDatabase): Unit = {    
     code.newline(2).add("trait Orderings ").block {
-      code.join(database.coproductsIn(namespace), code.newline) { coproduct => 
-        code.using("type" -> coproduct.name) {
-          code.add("implicit def ${type}ToOrdered${type}(inner: ${type}) = Ordered${type}(inner)")
-        }
-      }
-      
-      code.newline(2)
-      
-      code.join(database.coproductsIn(namespace), code.newline(2)) { coproduct => 
-        code.using("type" -> typeSignatureOf(coproduct.referenceTo, database), "name" -> coproduct.name) {
-          code.add("case class Ordered${name}(inner: ${type}) extends Ordered[${type}] ").block {
-            code.add("def compare(that: ${type}): Int = ").block {
-              code.addln("if (inner == that) 0")
-              code.add("else inner match ").block {
-                code.join(coproduct.terms, code.newline) { subtype1 => 
-                  code.add("case x: ${subtype1} => that match ", "subtype1" -> typeSignatureOf(subtype1, database)).block {
-                    code.join(coproduct.terms, code.newline) { subtype2 => 
-                      val index1 = coproduct.terms.indexOf(subtype1)
-                      val index2 = coproduct.terms.indexOf(subtype2)
-                      
-                      val cmp = if (index1 < index2) "-1"
-                                else if (index2 < index1) "1"
-                                else "x.compare(y)"
-                      
-                      code.add("case y: ${subtype2} => " + cmp,
-                        "subtype2" -> typeSignatureOf(subtype2, database)
-                      )
+      code.join(database.definitionsIn(namespace), code.newline(2)) { defn => 
+        code.using("typeHint" -> getTypeHintFor(defn.referenceTo), "typeSig" -> typeSignatureOf(defn.referenceTo, database)) {
+          defn match {
+            case product: XProduct =>
+              code.add("""
+                implicit val ${typeHint}Ordering: Ordering[${typeSig}] = new Ordering[${typeSig}] {
+                  def compare(v1: ${typeSig}, v2: ${typeSig}): Int = {
+                    import Stream.{cons, empty}
+
+                    return if (v1 == v2) 0 else {      
+                      val comparisons = ${comparisons}
+
+                      comparisons.dropWhile(_ == 0).append(0 :: Nil).first
+                    }
+                  }
+                }""",
+                "comparisons" -> (product.realFields.reverse.filter(_.order != XOrderIgnore) match {
+                  case Nil => "empty"
+
+                  case head :: tail => 
+                    def cmp(field: XRealField) = {
+                      val name = field.name
+                      val sign = field.order match {
+                        case XOrderAscending  => "1"
+                        case XOrderDescending => "-1"
+                        case XOrderIgnore     => "0"
+                      }
+
+                      getOrderingFor(field.fieldType) + ".compare(v1." + name + ", v2." + name + ") * " + sign
+                    }
+                    def cons(head: String, tail: String) = "cons(" + head + ", " + tail + ")"
+
+                    tail.foldLeft(cons(cmp(head), "empty")) { (comparisons, field) =>
+                      cons(cmp(field), comparisons)
+                    }
+                })
+              )
+          
+            case multitype: XMultitype =>
+              val isUnion = multitype.isInstanceOf[XUnion]
+              
+              code.add("${implicitPrefix}val ${typeHint}Ordering: Ordering[${typeSig}] = new Ordering[${typeSig}] ", "implicitPrefix" -> getImplicitPrefix(multitype)).block {
+                code.add("def compare(v1: ${typeSig}, v2: ${typeSig}): Int = ").block {
+                  code.addln("if (v1 == v2) 0")
+                  code.add("else v1 match ").block {
+                    val multitypeTerms: List[XReference] = multitype match {
+                      case x: XUnion     => x.terms
+                      case x: XCoproduct => x.terms
+                    }
+                    
+                    code.join(multitypeTerms, code.newline) { subtype1 => 
+                      code.add("case x: ${subtype1} => v2 match ", "subtype1" -> typeSignatureOf(subtype1, database)).block {
+                        code.join(multitypeTerms, code.newline) { subtype2 => 
+                          val index1 = multitypeTerms.indexOf(subtype1)
+                          val index2 = multitypeTerms.indexOf(subtype2)
+
+                          val cmp = if (index1 < index2) "-1"
+                                    else if (index2 < index1) "1"
+                                    else getOrderingFor(subtype1) + ".compare(x, y)"
+
+                          code.add("case y: ${subtype2} => " + cmp, "subtype2" -> typeSignatureOf(subtype2, database))
+                        }
+                      }
                     }
                   }
                 }
               }
-            }
+              
+              if (!isUnion) {
+                code.newline.add("case class Ordered${typeHint}(v1: ${typeSig}) extends Ordered[${type}] ").block {
+                  code.add("def compare(v2: ${typeSig}): Int = ${typeHint}Ordering.compare(v1, v2)")
+                }
+                code.newline.add("implicit def ${typeHint}ToOrdered${typeHint}(v: ${typeSig}) = Ordered${typeHint}(v)")
+              }
           }
         }
       }
