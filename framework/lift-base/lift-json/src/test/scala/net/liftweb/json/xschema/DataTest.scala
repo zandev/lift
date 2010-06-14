@@ -6,6 +6,8 @@ package net.liftweb.json.xschema {
   import net.liftweb.json.JsonParser._
   import net.liftweb.json.JsonAST._
   
+  import net.liftweb.json.xschema.DefaultSerialization._
+  
   import net.liftweb.json.xschema.Serialization._
   import net.liftweb.json.xschema.Constants._
 
@@ -16,21 +18,21 @@ package net.liftweb.json.xschema {
     
     lazy val ExampleXDefinitionRef: net.liftweb.json.xschema.XDefinitionRef = JObject(Nil).deserialize[net.liftweb.json.xschema.XDefinitionRef]
     
-    lazy val ExampleXBoolean: net.liftweb.json.xschema.XBoolean.type = Extractors.XBooleanExtractor.extract(JObject(Nil))
+    lazy val ExampleXBoolean: net.liftweb.json.xschema.XBoolean.type = net.liftweb.json.xschema.Extractors.XBooleanExtractor.extract(JObject(Nil))
     
-    lazy val ExampleXInt: net.liftweb.json.xschema.XInt.type = Extractors.XIntExtractor.extract(JObject(Nil))
+    lazy val ExampleXInt: net.liftweb.json.xschema.XInt.type = net.liftweb.json.xschema.Extractors.XIntExtractor.extract(JObject(Nil))
     
-    lazy val ExampleXLong: net.liftweb.json.xschema.XLong.type = Extractors.XLongExtractor.extract(JObject(Nil))
+    lazy val ExampleXLong: net.liftweb.json.xschema.XLong.type = net.liftweb.json.xschema.Extractors.XLongExtractor.extract(JObject(Nil))
     
-    lazy val ExampleXFloat: net.liftweb.json.xschema.XFloat.type = Extractors.XFloatExtractor.extract(JObject(Nil))
+    lazy val ExampleXFloat: net.liftweb.json.xschema.XFloat.type = net.liftweb.json.xschema.Extractors.XFloatExtractor.extract(JObject(Nil))
     
-    lazy val ExampleXDouble: net.liftweb.json.xschema.XDouble.type = Extractors.XDoubleExtractor.extract(JObject(Nil))
+    lazy val ExampleXDouble: net.liftweb.json.xschema.XDouble.type = net.liftweb.json.xschema.Extractors.XDoubleExtractor.extract(JObject(Nil))
     
-    lazy val ExampleXString: net.liftweb.json.xschema.XString.type = Extractors.XStringExtractor.extract(JObject(Nil))
+    lazy val ExampleXString: net.liftweb.json.xschema.XString.type = net.liftweb.json.xschema.Extractors.XStringExtractor.extract(JObject(Nil))
     
-    lazy val ExampleXJSON: net.liftweb.json.xschema.XJSON.type = Extractors.XJSONExtractor.extract(JObject(Nil))
+    lazy val ExampleXJSON: net.liftweb.json.xschema.XJSON.type = net.liftweb.json.xschema.Extractors.XJSONExtractor.extract(JObject(Nil))
     
-    lazy val ExampleXDate: net.liftweb.json.xschema.XDate.type = Extractors.XDateExtractor.extract(JObject(Nil))
+    lazy val ExampleXDate: net.liftweb.json.xschema.XDate.type = net.liftweb.json.xschema.Extractors.XDateExtractor.extract(JObject(Nil))
     
     lazy val ExampleXList: net.liftweb.json.xschema.XList = JObject(Nil).deserialize[net.liftweb.json.xschema.XList]
     
@@ -58,11 +60,11 @@ package net.liftweb.json.xschema {
     
     lazy val ExampleXConstantField: net.liftweb.json.xschema.XConstantField = JObject(Nil).deserialize[net.liftweb.json.xschema.XConstantField]
     
-    lazy val ExampleXOrderAscending: net.liftweb.json.xschema.XOrderAscending.type = Extractors.XOrderAscendingExtractor.extract(JObject(Nil))
+    lazy val ExampleXOrderAscending: net.liftweb.json.xschema.XOrderAscending.type = net.liftweb.json.xschema.Extractors.XOrderAscendingExtractor.extract(JObject(Nil))
     
-    lazy val ExampleXOrderDescending: net.liftweb.json.xschema.XOrderDescending.type = Extractors.XOrderDescendingExtractor.extract(JObject(Nil))
+    lazy val ExampleXOrderDescending: net.liftweb.json.xschema.XOrderDescending.type = net.liftweb.json.xschema.Extractors.XOrderDescendingExtractor.extract(JObject(Nil))
     
-    lazy val ExampleXOrderIgnore: net.liftweb.json.xschema.XOrderIgnore.type = Extractors.XOrderIgnoreExtractor.extract(JObject(Nil))
+    lazy val ExampleXOrderIgnore: net.liftweb.json.xschema.XOrderIgnore.type = net.liftweb.json.xschema.Extractors.XOrderIgnoreExtractor.extract(JObject(Nil))
   }
   class DataProductSerializationTest extends Runner(DataProductSerializationExamples) with JUnit
   object DataProductSerializationExamples extends Specification {
