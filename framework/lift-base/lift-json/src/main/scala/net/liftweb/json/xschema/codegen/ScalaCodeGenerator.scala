@@ -77,20 +77,8 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         }
       }
            
-      code.addln("import net.liftweb.json.xschema.DefaultOrderings._")
-           
+      // Do user-specified imports:
       extractListProperty(root.properties, "scala.imports").map("import " + _.trim) foreach { x => code.addln(x) }
-      
-      // Comparison functions use implicit orderings -- we need to import external orderings:
-      val otherReferencedNamespaces = database.definitionsReferencedIn(namespace).map(_.namespace).filter(_ != namespace).removeDuplicates
-      
-      if (otherReferencedNamespaces.length > 0) {      
-        code.newline
-        
-        code.join(otherReferencedNamespaces, code.newline) { externalNamespace =>
-          code.add("import " + externalNamespace + ".Orderings._")
-        }
-      }
       
       buildOrderingsFor(namespace, code, database)
       
@@ -779,7 +767,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
           }
 
         case x: XUnion => 
-          val nonValuePrimitives = List(XJSON, XDate)
+          val nonValuePrimitives = List(XJSON, XDate, XString)
           
           val valueTypes = x.terms.filter(_.isInstanceOf[XPrimitiveRef]).filter(x => !nonValuePrimitives.contains(x))
           

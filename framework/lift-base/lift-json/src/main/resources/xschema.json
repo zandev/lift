@@ -3,11 +3,15 @@
     "XProduct":{
       "name":"XRoot",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "XRealField":{
           "name":"definitions",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XList":{
               "elementType":{
@@ -28,7 +32,9 @@
       },{
         "XRealField":{
           "name":"constants",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XList":{
               "elementType":{
@@ -49,7 +55,9 @@
       },{
         "XRealField":{
           "name":"properties",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XMap":{
               "keyType":{
@@ -77,7 +85,9 @@
     "XCoproduct":{
       "name":"XSchema",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "name":"XDefinition",
         "namespace":"net.liftweb.json.xschema"
@@ -101,7 +111,9 @@
     "XCoproduct":{
       "name":"XReference",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "name":"XPrimitiveRef",
         "namespace":"net.liftweb.json.xschema"
@@ -122,7 +134,9 @@
     "XCoproduct":{
       "name":"XPrimitiveRef",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "name":"XBoolean",
         "namespace":"net.liftweb.json.xschema"
@@ -158,7 +172,9 @@
     "XCoproduct":{
       "name":"XContainerRef",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "name":"XCollection",
         "namespace":"net.liftweb.json.xschema"
@@ -186,11 +202,15 @@
     "XProduct":{
       "name":"XDefinitionRef",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "XRealField":{
           "name":"name",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XString":{
               
@@ -206,7 +226,9 @@
       },{
         "XRealField":{
           "name":"namespace",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XString":{
               
@@ -225,63 +247,81 @@
     "XProduct":{
       "name":"XBoolean",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[]
     }
   },{
     "XProduct":{
       "name":"XInt",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[]
     }
   },{
     "XProduct":{
       "name":"XLong",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[]
     }
   },{
     "XProduct":{
       "name":"XFloat",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[]
     }
   },{
     "XProduct":{
       "name":"XDouble",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[]
     }
   },{
     "XProduct":{
       "name":"XString",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[]
     }
   },{
     "XProduct":{
       "name":"XJSON",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[]
     }
   },{
     "XProduct":{
       "name":"XDate",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[]
     }
   },{
     "XCoproduct":{
       "name":"XCollection",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "name":"XList",
         "namespace":"net.liftweb.json.xschema"
@@ -306,11 +346,15 @@
     "XProduct":{
       "name":"XList",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "XRealField":{
           "name":"elementType",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XReference",
@@ -335,11 +379,15 @@
     "XProduct":{
       "name":"XSet",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "XRealField":{
           "name":"elementType",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XReference",
@@ -364,11 +412,15 @@
     "XProduct":{
       "name":"XArray",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "XRealField":{
           "name":"elementType",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XReference",
@@ -393,11 +445,15 @@
     "XProduct":{
       "name":"XMap",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "XRealField":{
           "name":"keyType",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XReference",
@@ -419,7 +475,9 @@
       },{
         "XRealField":{
           "name":"valueType",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XReference",
@@ -444,11 +502,15 @@
     "XProduct":{
       "name":"XOptional",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "XRealField":{
           "name":"optionalType",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XReference",
@@ -473,11 +535,15 @@
     "XProduct":{
       "name":"XTuple",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "XRealField":{
           "name":"types",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XList":{
               "elementType":{
@@ -501,7 +567,9 @@
     "XCoproduct":{
       "name":"XDefinition",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "name":"XProduct",
         "namespace":"net.liftweb.json.xschema"
@@ -519,7 +587,9 @@
     "XCoproduct":{
       "name":"XMultitype",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "name":"XCoproduct",
         "namespace":"net.liftweb.json.xschema"
@@ -537,7 +607,9 @@
     "XCoproduct":{
       "name":"XField",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "name":"XRealField",
         "namespace":"net.liftweb.json.xschema"
@@ -558,11 +630,16 @@
     "XProduct":{
       "name":"XProduct",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[["scala.class.traits","net.liftweb.json.xschema.XProductBehavior"],["xschema.doc","A product is analogous to a record: it contains fields, which may be\n                              any type, have default values, and have a user-defined ordering.\n                              Products are the fundamental building blocks used to construct most \n                              data structures."]],
+      "properties":{
+        "scala.class.traits":"net.liftweb.json.xschema.XProductBehavior",
+        "xschema.doc":"A product is analogous to a record: it contains fields, which may be\n                              any type, have default values, and have a user-defined ordering.\n                              Products are the fundamental building blocks used to construct most \n                              data structures."
+      },
       "terms":[{
         "XRealField":{
           "name":"name",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XString":{
               
@@ -578,7 +655,9 @@
       },{
         "XRealField":{
           "name":"namespace",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XString":{
               
@@ -594,7 +673,9 @@
       },{
         "XRealField":{
           "name":"properties",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XMap":{
               "keyType":{
@@ -619,7 +700,9 @@
       },{
         "XRealField":{
           "name":"terms",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XList":{
               "elementType":{
@@ -640,7 +723,9 @@
       },{
         "XViewField":{
           "name":"referenceTo",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XDefinitionRef",
@@ -654,11 +739,15 @@
     "XProduct":{
       "name":"XCoproduct",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[["xschema.doc","A coproduct is a data structure that can assume one of N other types. \n                              These types must be either products, or other coproducts -- primitives\n                              are not allowed because they cannot be mapped cleanly to most languages\n                              (see unions for a disjoint structure that allows primitives). <p>\n                              Note that most languages cannot handle coproducts of unions.\n                              "]],
+      "properties":{
+        "xschema.doc":"A coproduct is a data structure that can assume one of N other types. \n                              These types must be either products, or other coproducts -- primitives\n                              are not allowed because they cannot be mapped cleanly to most languages\n                              (see unions for a disjoint structure that allows primitives). <p>\n                              Note that most languages cannot handle coproducts of unions.\n                              "
+      },
       "terms":[{
         "XRealField":{
           "name":"name",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XString":{
               
@@ -674,7 +763,9 @@
       },{
         "XRealField":{
           "name":"namespace",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XString":{
               
@@ -690,7 +781,9 @@
       },{
         "XRealField":{
           "name":"properties",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XMap":{
               "keyType":{
@@ -715,7 +808,9 @@
       },{
         "XRealField":{
           "name":"terms",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XList":{
               "elementType":{
@@ -736,7 +831,9 @@
       },{
         "XRealField":{
           "name":"default",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XJSON":{
               
@@ -751,7 +848,9 @@
       },{
         "XViewField":{
           "name":"referenceTo",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XDefinitionRef",
@@ -765,11 +864,15 @@
     "XProduct":{
       "name":"XUnion",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[["xschema.doc","A union is a C-style union of N types -- referred to as terms. Unlike \n                              coproducts, unions have no effect on the type hierarchy of the specified \n                              terms, and the terms may include primitive types, in addition to references\n                              to products, coproducts, and other unions. Although unions have names and \n                              namespaces, most languages do not have explicit support for union types, \n                              and in such cases, no entity will be generated for them; they will be \n                              translated into the supertype of all the terms. <p>Some code generators \n                              may not be able to handle unions or coproducts that contain unions."]],
+      "properties":{
+        "xschema.doc":"A union is a C-style union of N types -- referred to as terms. Unlike \n                              coproducts, unions have no effect on the type hierarchy of the specified \n                              terms, and the terms may include primitive types, in addition to references\n                              to products, coproducts, and other unions. Although unions have names and \n                              namespaces, most languages do not have explicit support for union types, \n                              and in such cases, no entity will be generated for them; they will be \n                              translated into the supertype of all the terms. <p>Some code generators \n                              may not be able to handle unions or coproducts that contain unions."
+      },
       "terms":[{
         "XRealField":{
           "name":"name",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XString":{
               
@@ -785,7 +888,9 @@
       },{
         "XRealField":{
           "name":"namespace",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XString":{
               
@@ -801,7 +906,9 @@
       },{
         "XRealField":{
           "name":"properties",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XMap":{
               "keyType":{
@@ -826,7 +933,9 @@
       },{
         "XRealField":{
           "name":"terms",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XList":{
               "elementType":{
@@ -847,7 +956,9 @@
       },{
         "XRealField":{
           "name":"default",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XJSON":{
               
@@ -862,7 +973,9 @@
       },{
         "XViewField":{
           "name":"referenceTo",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XDefinitionRef",
@@ -876,11 +989,15 @@
     "XProduct":{
       "name":"XConstant",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "XRealField":{
           "name":"name",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XString":{
               
@@ -896,7 +1013,9 @@
       },{
         "XRealField":{
           "name":"namespace",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XString":{
               
@@ -912,7 +1031,9 @@
       },{
         "XRealField":{
           "name":"properties",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XMap":{
               "keyType":{
@@ -937,7 +1058,9 @@
       },{
         "XRealField":{
           "name":"constantType",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XReference",
@@ -958,7 +1081,9 @@
       },{
         "XRealField":{
           "name":"default",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XJSON":{
               
@@ -974,7 +1099,9 @@
       },{
         "XViewField":{
           "name":"referenceTo",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XDefinitionRef",
@@ -988,11 +1115,15 @@
     "XProduct":{
       "name":"XRealField",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "XRealField":{
           "name":"name",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XString":{
               
@@ -1008,7 +1139,9 @@
       },{
         "XRealField":{
           "name":"properties",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XMap":{
               "keyType":{
@@ -1033,7 +1166,9 @@
       },{
         "XRealField":{
           "name":"fieldType",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XReference",
@@ -1054,7 +1189,9 @@
       },{
         "XRealField":{
           "name":"default",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XJSON":{
               
@@ -1070,7 +1207,9 @@
       },{
         "XRealField":{
           "name":"order",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XOrder",
@@ -1094,11 +1233,15 @@
     "XProduct":{
       "name":"XViewField",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "XRealField":{
           "name":"name",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XString":{
               
@@ -1114,7 +1257,9 @@
       },{
         "XRealField":{
           "name":"properties",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XMap":{
               "keyType":{
@@ -1139,7 +1284,9 @@
       },{
         "XRealField":{
           "name":"fieldType",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XReference",
@@ -1164,11 +1311,15 @@
     "XProduct":{
       "name":"XConstantField",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "XRealField":{
           "name":"name",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XString":{
               
@@ -1184,7 +1335,9 @@
       },{
         "XRealField":{
           "name":"properties",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XMap":{
               "keyType":{
@@ -1209,7 +1362,9 @@
       },{
         "XRealField":{
           "name":"fieldType",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XDefinitionRef":{
               "name":"XReference",
@@ -1230,7 +1385,9 @@
       },{
         "XRealField":{
           "name":"default",
-          "properties":[],
+          "properties":{
+            
+          },
           "fieldType":{
             "XJSON":{
               
@@ -1249,7 +1406,9 @@
     "XCoproduct":{
       "name":"XOrder",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[{
         "name":"XOrderAscending",
         "namespace":"net.liftweb.json.xschema"
@@ -1270,24 +1429,32 @@
     "XProduct":{
       "name":"XOrderAscending",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[]
     }
   },{
     "XProduct":{
       "name":"XOrderDescending",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[]
     }
   },{
     "XProduct":{
       "name":"XOrderIgnore",
       "namespace":"net.liftweb.json.xschema",
-      "properties":[],
+      "properties":{
+        
+      },
       "terms":[]
     }
   }],
   "constants":[],
-  "properties":[]
+  "properties":{
+    
+  }
 }
