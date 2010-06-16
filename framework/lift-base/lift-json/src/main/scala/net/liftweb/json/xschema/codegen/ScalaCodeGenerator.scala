@@ -73,7 +73,7 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         code.addln("import net.liftweb.json.xschema.{SerializationImplicits, Extractor, Decomposer}")
         
         if (includeSchemas) {
-          code.addln("import net.liftweb.json.xschema.{XRoot, XProduct, XCoproduct}")
+          code.addln("import net.liftweb.json.xschema.{XRoot, XProduct, XCoproduct, XUnion}")
         }
       }
            
@@ -370,7 +370,9 @@ class BaseScalaCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       
       if (!isSingleton && (includeSchemas || objectMixins.length > 0)) {
         code.newline.add("object ${name} ${extendsClause}", "extendsClause" -> formCompleteExtensionClause(objectMixins)).block {
-          buildXSchema()
+          if (includeSchemas) {
+            buildXSchema()
+          }
         }
       }
     }
