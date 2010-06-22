@@ -26,10 +26,10 @@ import _root_.net.liftweb.util.Helpers._
 import _root_.net.liftweb.common.{Box, Empty, Full, Failure, Logger}
 import _root_.net.liftweb.json._
 import _root_.net.liftweb.util.{NamedPF, FieldError, Helpers}
-import _root_.net.liftweb.http.{LiftRules, S, SHtml, RequestMemoize,
-			      Factory}
+import _root_.net.liftweb.http.{LiftRules, S, SHtml, RequestMemoize, Factory}
 import _root_.java.util.{Date, Locale}
 import _root_.net.liftweb.http.js._
+import _root_.net.liftweb.jdbc.common.{ConnectionIdentifier,DefaultConnectionIdentifier,SuperConnection}
 
 trait BaseMetaMapper {
   type RealType <: Mapper[RealType]
@@ -197,10 +197,10 @@ trait MetaMapper[A<:Mapper[A]] extends BaseMetaMapper with Mapper[A] {
    * where the user will do the work of creating the PreparedStatement and
    * preparing it for execution.
    *
-   * @param f A function that takes a SuperConnection and returns a PreparedStatement.
+   * @param f A function that takes a MapperSuperConnection and returns a PreparedStatement.
    * @return A List of Mapper instances.
    */
-  def findAllByPreparedStatement(f: SuperConnection => PreparedStatement): List[A] = {
+  def findAllByPreparedStatement(f: MapperConnection => PreparedStatement): List[A] = {
     DB.use(dbDefaultConnectionIdentifier) {
       conn =>
       findAllByPreparedStatement(dbDefaultConnectionIdentifier, f(conn))
@@ -377,13 +377,13 @@ trait MetaMapper[A<:Mapper[A]] extends BaseMetaMapper with Mapper[A] {
    * query creation.
    *
    * @param fields -- a Seq of the fields to be selected
-   * @param conn -- the SuperConnection to be used for calculating the query
+   * @param conn -- the MapperSuperConnection to be used for calculating the query
    * @param by -- the varg of QueryParams
    *
    * @returns a Tuple of the Query String, Start (offset), MaxRows (limit), and the list of all query parameters
    * including and synthetic query parameters
    */
-  def buildSelectString(fields: Seq[SelectableField], conn: SuperConnection, by: QueryParam[A]*): 
+  def buildSelectString(fields: Seq[SelectableField], conn: MapperConnection, by: QueryParam[A]*): 
   (String, Box[Long], Box[Long], List[QueryParam[A]]) = {
     val bl = by.toList ::: addlQueryParams.is
     val selectStatement = "SELECT "+
@@ -417,7 +417,7 @@ trait MetaMapper[A<:Mapper[A]] extends BaseMetaMapper with Mapper[A] {
   }
 
   private[mapper] def addFields(what: String, whereAdded: Boolean,
-                                by: List[QueryParam[A]], conn: SuperConnection): String = {
+                                by: List[QueryParam[A]], conn: MapperConnection): String = {
 
     var wav = whereAdded
 
@@ -489,7 +489,7 @@ trait MetaMapper[A<:Mapper[A]] extends BaseMetaMapper with Mapper[A] {
   }
 
 
-  private[mapper] def setStatementFields(st: PreparedStatement, by: List[QueryParam[A]], curPos: Int, conn: SuperConnection): Int = {
+  private[mapper] def setStatementFields(st: PreparedStatement, by: List[QueryParam[A]], curPos: Int, conn: MapperConnection): Int = {
     by match {
       case Nil => curPos
       case Cmp(field, _, Full(value), _, _) :: xs =>
@@ -580,7 +580,7 @@ trait MetaMapper[A<:Mapper[A]] extends BaseMetaMapper with Mapper[A] {
     }
   }
 
-  protected def addEndStuffs(in: String, params: List[QueryParam[A]], conn: SuperConnection): (String, Box[Long], Box[Long]) = {
+  protected def addEndStuffs(in: String, params: List[QueryParam[A]], conn: MapperConnection): (String, Box[Long], Box[Long]) = {
     val tmp = _addOrdering(in, params)
     val max = params.foldRight(Empty.asInstanceOf[Box[Long]]){(a,b) => a match {case MaxRows(n) => Full(n); case _ => b}}
     val start = params.foldRight(Empty.asInstanceOf[Box[Long]]){(a,b) => a match {case StartAt(n) => Full(n); case _ => b}}

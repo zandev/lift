@@ -17,166 +17,55 @@
 package net.liftweb {
 package mapper {
 
+import _root_.scala.collection.mutable._
+import _root_.java.sql.ResultSetMetaData
+import _root_.java.sql.{Statement, ResultSet, Types, PreparedStatement, Connection, DriverManager}
 import _root_.javax.sql.{DataSource}
 import _root_.javax.naming.{Context, InitialContext}
-import _root_.scala.collection.mutable._
-import _root_.net.liftweb.util._
 import _root_.net.liftweb.common._
+import _root_.net.liftweb.util._
+import _root_.net.liftweb.util.Helpers._
 import _root_.net.liftweb.http._
-import Helpers._
-import java.sql.ResultSetMetaData
-import java.sql.{Statement, ResultSet, Types, PreparedStatement, Connection, DriverManager}
+import _root_.net.liftweb.jdbc.common.{ConnectionAccessor,ConnectionIdentifier,SuperConnection,DefaultConnectionIdentifier}
 
-object DB extends Loggable {
-  private val threadStore = new ThreadLocal[HashMap[ConnectionIdentifier, ConnectionHolder]]
-  private val _postCommitFuncs = new ThreadLocal[List[() => Unit]]
 
+object DB extends ConnectionAccessor with Loggable {
+  
   var globalDefaultSchemaName: Box[String] = Empty
-
+  
   var queryTimeout: Box[Int] = Empty
-
+  
   type LogFunc = (DBLog, Long) => Any
   private var logFuncs: List[LogFunc] = Nil
-
+  
   def addLogFunc(f: LogFunc): List[LogFunc] = {
     logFuncs = logFuncs ::: List(f)
     logFuncs
   }
-
+  
   def loggingEnabled_? = !logFuncs.isEmpty
-
-  /**
-   * queryCollector can be used to collect all statements executed in a single request when passed to addLogFunc
-   * 
-   * Use S.queryLog to get the list of (statement, duration) entries or set an analyzer function using
-   * S.addAnalyzer
-   */
-  val queryCollector: LogFunc = {case (query:DBLog, time) => 
-    query.statementEntries.foreach({case DBLogEntry(stmt, duration) => S.logQuery(stmt, duration)}
-  )}
- 
-  /**
-   * can we get a JDBC connection from JNDI?
-   */
-  def jndiJdbcConnAvailable_? : Boolean = {
-    try {
-      ((new InitialContext).lookup("java:/comp/env").asInstanceOf[Context].lookup(DefaultConnectionIdentifier.jndiName).asInstanceOf[DataSource].getConnection) != null
-    } catch {
-      case e => false
-    }
-  }
-
-  // var connectionManager: Box[ConnectionManager] = Empty
-  private val connectionManagers = new HashMap[ConnectionIdentifier, ConnectionManager]
-
-  private val threadLocalConnectionManagers = new ThreadGlobal[Map[ConnectionIdentifier, ConnectionManager]]
-
-  def defineConnectionManager(name: ConnectionIdentifier, mgr: ConnectionManager) {
-    connectionManagers(name) = mgr
-  }
-
-  /**
-  * Allows you to override the connection manager associated with particular connection identifiers for the duration
-  * of the call.
-  */
-  def doWithConnectionManagers[T](mgrs: (ConnectionIdentifier, ConnectionManager)*)(f: => T): T = {
-    val newMap = mgrs.foldLeft(threadLocalConnectionManagers.box openOr Map())(_ + _)
-    threadLocalConnectionManagers.doWith(newMap)(f)
-  }
-
-  case class ConnectionHolder(conn: SuperConnection, cnt: Int, postCommit: List[() => Unit])
-
-  private def info: HashMap[ConnectionIdentifier, ConnectionHolder] = {
-    threadStore.get match {
-      case null =>
-        val tinfo = new HashMap[ConnectionIdentifier, ConnectionHolder]
-        threadStore.set(tinfo)
-        tinfo
-
-      case v => v
-    }
-  }
-
-  private def postCommit: List[() => Unit] =
-    _postCommitFuncs.get match {
-      case null =>
-        _postCommitFuncs.set(Nil)
-        Nil
-
-      case v => v
-    }
-
-  private def postCommit_=(lst: List[() => Unit]): Unit = _postCommitFuncs.set(lst)
-
-  /**
-   * perform this function post-commit.  THis is helpful for sending messages to Actors after we know
-   * a transaction has committed
-   */
-  def performPostCommit(f: => Unit) {
-    postCommit = (() => f) :: postCommit
-  }
-
-  // remove thread-local association
-  private def clearThread(success: Boolean): Unit = {
-    val ks = info.keySet
-    if (ks.isEmpty) {
-      postCommit.foreach(f => tryo(f.apply()))
-
-      _postCommitFuncs.remove
-      threadStore.remove
-    } else {
-      ks.foreach(n => releaseConnectionNamed(n, !success))
-      clearThread(success)
-    }
-  }
-
-  private def newConnection(name: ConnectionIdentifier): SuperConnection = {
-    val ret = ((threadLocalConnectionManagers.box.flatMap(_.get(name)) or Box(connectionManagers.get(name))).flatMap(cm => cm.newSuperConnection(name) or cm.newConnection(name).map(c => new SuperConnection(c, () => cm.releaseConnection(c))))) openOr {
-      Helpers.tryo {
-        val uniqueId = if (logger.isDebugEnabled) Helpers.nextNum.toString else ""
-        logger.debug("Connection ID " + uniqueId + " for JNDI connection " + name.jndiName + " opened")
-        val conn = (new InitialContext).lookup("java:/comp/env").asInstanceOf[Context].lookup(name.jndiName).asInstanceOf[DataSource].getConnection
-        new SuperConnection(conn, () => {logger.debug("Connection ID " + uniqueId + " for JNDI connection " + name.jndiName + " closed"); conn.close})
-      } openOr {
-        throw new NullPointerException("Looking for Connection Identifier " + name + " but failed to find either a JNDI data source " +
-                                       "with the name " + name.jndiName + " or a lift connection manager with the correct name")
-      }
-    }
-    ret.setAutoCommit(false)
-    ret
-  }
-
-  private class ThreadBasedConnectionManager(connections: List[ConnectionIdentifier]) {
-    private var used: Set[ConnectionIdentifier] = Set()
-
-    def use(conn: ConnectionIdentifier): Int = if (connections.contains(conn)) {
-      used += conn
-      1
-    } else 0
-  }
-
-  private object CurrentConnectionSet extends DynoVar[ThreadBasedConnectionManager]
-
+  
+  
   /**
    * Build a LoanWrapper to pass into S.addAround() to make requests for
    * the DefaultConnectionIdentifier transactional for the complete HTTP request
    */
   def buildLoanWrapper(): LoanWrapper =
-  buildLoanWrapper(List(DefaultConnectionIdentifier))
+    buildLoanWrapper(List(DefaultConnectionIdentifier))
 
   /**
    * Build a LoanWrapper to pass into S.addAround() to make requests for
    * the List of ConnectionIdentifiers transactional for the complete HTTP request
    */
   def buildLoanWrapper(in: List[ConnectionIdentifier]): LoanWrapper =
-  buildLoanWrapper(true, in)
+    buildLoanWrapper(true, in)
 
   /**
    * Build a LoanWrapper to pass into S.addAround() to make requests for
    * the DefaultConnectionIdentifier transactional for the complete HTTP request
    */
   def buildLoanWrapper(eager: Boolean): LoanWrapper =
-  buildLoanWrapper(eager, List(DefaultConnectionIdentifier))
+    buildLoanWrapper(eager, List(DefaultConnectionIdentifier))
 
   /**
    * Build a LoanWrapper to pass into S.addAround() to make requests for
@@ -201,7 +90,7 @@ object DB extends Loggable {
                 clearThread(success)
               }
 
-            case x :: xs => DB.use(x) {ignore => recurseMe(xs)}
+            case x :: xs => use(x) {ignore => recurseMe(xs)}
           }
           recurseMe(in)
         } else {
@@ -218,53 +107,16 @@ object DB extends Loggable {
 
       }
     }
-
-  private def releaseConnection(conn: SuperConnection): Unit = conn.close
-
-  private def calcBaseCount(conn: ConnectionIdentifier): Int =
-  CurrentConnectionSet.is.map(_.use(conn)) openOr 0
-
-  private def getConnection(name: ConnectionIdentifier): SuperConnection = {
-    logger.trace("Acquiring connection " + name + " On thread " + Thread.currentThread)
-    var ret = info.get(name) match {
-      case None => ConnectionHolder(newConnection(name), calcBaseCount(name) + 1, Nil)
-      case Some(ConnectionHolder(conn, cnt, post)) => ConnectionHolder(conn, cnt + 1, post)
-    }
-    info(name) = ret
-    logger.trace("Acquired connection " + name + " on thread " + Thread.currentThread +
-              " count " + ret.cnt)
-    ret.conn
-  }
-
-  private def releaseConnectionNamed(name: ConnectionIdentifier, rollback: Boolean) {
-    logger.trace("Request to release connection: " + name + " on thread " + Thread.currentThread)
-    (info.get(name): @unchecked) match {
-      case Some(ConnectionHolder(c, 1, post)) =>
-        if (rollback) tryo{c.rollback}
-        else c.commit
-        tryo(c.releaseFunc())
-        info -= name
-        post.reverse.foreach(f => tryo(f()))
-        logger.trace("Released connection " + name + " on thread " + Thread.currentThread)
-
-      case Some(ConnectionHolder(c, n, post)) =>
-        logger.trace("Did not release connection: " + name + " on thread " + Thread.currentThread + " count " + (n - 1))
-        info(name) = ConnectionHolder(c, n - 1, post)
-
-      case _ =>
-        // ignore
-    }
-  }
-
+  
   /**
-   *  Append a function to be invoked after the commit has taken place for the given connection identifier
+   * queryCollector can be used to collect all statements executed in a single request when passed to addLogFunc
+   * 
+   * Use S.queryLog to get the list of (statement, duration) entries or set an analyzer function using
+   * S.addAnalyzer
    */
-  def appendPostFunc(name: ConnectionIdentifier, func: () => Unit) {
-    info.get(name) match {
-      case Some(ConnectionHolder(c, n, post)) => info(name) = ConnectionHolder(c, n, func :: post)
-      case _ =>
-    }
-  }
+  val queryCollector: LogFunc = {case (query:DBLog, time) => 
+    query.statementEntries.foreach({case DBLogEntry(stmt, duration) => S.logQuery(stmt, duration)}
+  )}
 
   private def runLogger(logged: Statement, time: Long) = logged match {
     case st: DBLog => logFuncs.foreach(_(st, time))
@@ -296,7 +148,7 @@ object DB extends Loggable {
     st =>
     f(st.executeQuery(query))
   }
-
+  
   private def asString(pos: Int, rs: ResultSet, md: ResultSetMetaData): String = {
     import _root_.java.sql.Types._
     md.getColumnType(pos) match {
@@ -374,7 +226,25 @@ object DB extends Loggable {
 
     (colNames, lb.toList)
   }
-
+  
+  /**
+   * Executes function  { @code f } with the connection named  { @code name }. Releases the connection
+   * before returning.
+   */
+  def use[T](name: ConnectionIdentifier)(f: (SuperConnection with MapperConnection) => T): T = {
+    val conn = getConnection(name, Full(sc => MapperConnection(sc))).asInstanceOf[MapperConnection]
+    currentConn.run(conn) {
+      var rollback = true
+      try {
+        val ret = f(conn)
+        rollback = false
+        ret
+      } finally {
+        releaseConnectionNamed(name, rollback)
+      }
+    }
+  }
+  
   /**
    * Executes the given parameterized query string with the given parameters.
    * Parameters are substituted in order. For Date/Time types, passing a java.util.Date will result in a
@@ -382,7 +252,7 @@ object DB extends Loggable {
    * java.sql.Date, java.sql.Time, or java.sql.Timestamp classes.
    */
   def runQuery(query: String, params: List[Any]): (List[String], List[List[String]]) =
-  runQuery(query, params, DefaultConnectionIdentifier)
+    runQuery(query, params, DefaultConnectionIdentifier)
 
   /**
    * Executes the given parameterized query string with the given parameters.
@@ -411,11 +281,10 @@ object DB extends Loggable {
           case (bn: _root_.java.math.BigDecimal, idx) => ps.setBigDecimal(idx + 1, bn)
           case (obj, idx) => ps.setObject(idx + 1, obj)
         }
-
         resultSetTo(ps.executeQuery)
       })
   }
-
+  
   /**
    * Executes the given parameterized query string with the given parameters.
    * Parameters are substituted in order. For Date/Time types, passing a java.util.Date will result in a
@@ -423,7 +292,7 @@ object DB extends Loggable {
    * java.sql.Date, java.sql.Time, or java.sql.Timestamp classes.
    */
   def performQuery(query: String, params: List[Any]): (List[String], List[List[Any]]) =
-  performQuery(query, params, DefaultConnectionIdentifier)
+    performQuery(query, params, DefaultConnectionIdentifier)
 
   /**
    * Executes the given parameterized query string with the given parameters.
@@ -541,16 +410,15 @@ object DB extends Loggable {
    * If the driver supports it, generated keys for the given column names can be retrieved.
    */
   def prepareStatement[T](statement: String, autoColumns: Array[String], conn: SuperConnection)(f: (PreparedStatement) => T): T = {
-    val st =
-    if (loggingEnabled_?) {
+    val st = if (loggingEnabled_?)
       DBLog.prepareStatement(conn.connection, statement, autoColumns)
-    } else {
+    else
       conn.prepareStatement(statement, autoColumns)
-    }
+    
     runPreparedStatement(st)(f)
   }
 
-  private def runPreparedStatement[T](st: PreparedStatement)(f: (PreparedStatement) => T): T = {
+  def runPreparedStatement[T](st: PreparedStatement)(f: (PreparedStatement) => T): T = {
     queryTimeout.foreach(to => st.setQueryTimeout(to))
     Helpers.calcTime {
       try {
@@ -562,29 +430,7 @@ object DB extends Loggable {
       case (time, (query, res)) => runLogger(query, time); res
     }
   }
-
-  private object currentConn extends DynoVar[SuperConnection]
-
-  def currentConnection: Box[SuperConnection] = currentConn.is
-
-  /**
-   * Executes function  { @code f } with the connection named  { @code name }. Releases the connection
-   * before returning.
-   */
-  def use[T](name: ConnectionIdentifier)(f: (SuperConnection) => T): T = {
-    val conn = getConnection(name)
-    currentConn.run(conn) {
-      var rollback = true
-      try {
-        val ret = f(conn)
-        rollback = false
-        ret
-      } finally {
-        releaseConnectionNamed(name, rollback)
-      }
-    }
-  }
-
+  
   /**
   * The SQL reserved words.  These words will be changed if they are used for column or table names.
   */
@@ -595,8 +441,7 @@ object DB extends Loggable {
   * DB.userReservedWords = Full(Set("foo", "bar"))
   */
   @volatile var userReservedWords: Box[ _root_.scala.collection.immutable.Set[String]] = Empty
-
-
+  
   /**
   * The default reserved words.
   */
@@ -956,177 +801,11 @@ object DB extends Loggable {
        "work",
        "write",
        "xor")
-}
 
-class SuperConnection(val connection: Connection, val releaseFunc: () => Unit, val schemaName: Box[String]) {
-  def this(c: Connection, rf: () => Unit) = this (c, rf, Empty)
 
-  lazy val brokenLimit_? = driverType.brokenLimit_?
 
-  def createTablePostpend: String = driverType.createTablePostpend
-
-  def supportsForeignKeys_? : Boolean = driverType.supportsForeignKeys_?
-
-  lazy val driverType: DriverType = DriverType.calcDriver(connection)
-
-  lazy val metaData = connection.getMetaData
-}
-
-object SuperConnection {
-  implicit def superToConn(in: SuperConnection): Connection = in.connection
-}
-
-trait ConnectionIdentifier {
-  def jndiName: String
-
-  override def toString() = "ConnectionIdentifier(" + jndiName + ")"
-
-  override def hashCode() = jndiName.hashCode()
-
-  override def equals(other: Any): Boolean = other match {
-    case ci: ConnectionIdentifier => ci.jndiName == this.jndiName
-    case _ => false
-  }
-}
-
-case object DefaultConnectionIdentifier extends ConnectionIdentifier {
-  var jndiName = "lift"
 }
 
 
-/**
- * The standard DB vendor.
- * @param driverName the name of the database driver
- * @param dbUrl the URL for the JDBC data connection
- * @param dbUser the optional username
- * @param dbPassword the optional db password
- */
-class StandardDBVendor(driverName: String,
-                       dbUrl: String,
-                       dbUser: Box[String],
-                       dbPassword: Box[String]) extends ProtoDBVendor {
-  protected def createOne: Box[Connection] = try {
-    Class.forName(driverName)
+}}
 
-    val dm = (dbUser, dbPassword) match {
-      case (Full(user), Full(pwd)) =>
-        DriverManager.getConnection(dbUrl, user, pwd)
-
-      case _ => DriverManager.getConnection(dbUrl)
-    }
-
-    Full(dm)
-  } catch {
-    case e: Exception => e.printStackTrace; Empty
-  }
-}
-
-trait ProtoDBVendor extends ConnectionManager {
-  private val logger = Logger(classOf[ProtoDBVendor])
-  private var pool: List[Connection] = Nil
-  private var poolSize = 0
-  private var tempMaxSize = maxPoolSize
-
-  /**
-   * Override and set to false if the maximum pool size can temporarilly be expanded to avoid pool starvation
-   */
-  protected def allowTemporaryPoolExpansion = true
-
-  /**
-   *  Override this method if you want something other than
-   * 4 connections in the pool
-   */
-  protected def maxPoolSize = 4
-
-  /**
-   * The absolute maximum that this pool can extend to
-   * The default is 20.  Override this method to change.
-   */
-  protected def doNotExpandBeyond = 20
-
-  /**
-   * The logic for whether we can expand the pool beyond the current size.  By
-   * default, the logic tests allowTemporaryPoolExpansion &amp;&amp; poolSize &lt;= doNotExpandBeyond
-   */
-  protected def canExpand_? : Boolean = allowTemporaryPoolExpansion && poolSize <= doNotExpandBeyond
-
-  /**
-   *   How is a connection created?
-   */
-  protected def createOne: Box[Connection]
-
-  /**
-   * Test the connection.  By default, setAutoCommit(false),
-   * but you can do a real query on your RDBMS to see if the connection is alive
-   */
-  protected def testConnection(conn: Connection) {
-    conn.setAutoCommit(false)
-  }
-
-  def newConnection(name: ConnectionIdentifier): Box[Connection] =
-    synchronized {
-      pool match {
-        case Nil if poolSize < tempMaxSize =>
-          val ret = createOne
-          ret.foreach(_.setAutoCommit(false))
-          poolSize = poolSize + 1
-          logger.debug("Created new pool entry. name=%s, poolSize=%d".format(name, poolSize))
-          ret
-
-        case Nil =>
-          val curSize = poolSize
-          logger.trace("No connection left in pool, waiting...")
-          wait(50L)
-          // if we've waited 50 ms and the pool is still empty, temporarily expand it
-          if (pool.isEmpty && poolSize == curSize && canExpand_?) {
-            tempMaxSize += 1
-            logger.debug("Temporarily expanding pool. name=%s, tempMaxSize=%d".format(name, tempMaxSize))
-          }
-          newConnection(name)
-
-        case x :: xs =>
-          logger.trace("Found connection in pool, name=%s".format(name))
-          pool = xs
-          try {
-            this.testConnection(x)
-            Full(x)
-          } catch {
-            case e => try {
-              logger.debug("Test connection failed, removing connection from pool, name=%s".format(name))
-              poolSize = poolSize - 1
-              tryo(x.close)
-              newConnection(name)
-            } catch {
-              case e => newConnection(name)
-            }
-          }
-      }
-    }
-
-  def releaseConnection(conn: Connection): Unit = synchronized {
-    if (tempMaxSize > maxPoolSize) {
-      tryo {conn.close()}
-      tempMaxSize -= 1
-      poolSize -= 1
-    } else {
-      pool = conn :: pool
-    }
-    logger.debug("Released connection. poolSize=%d".format(poolSize))
-    notifyAll
-  }
-
-  def closeAllConnections_!(): Unit = synchronized {
-    logger.info("Closing all connections")
-    if (poolSize == 0) ()
-    else {
-      pool.foreach {c => tryo(c.close); poolSize -= 1}
-      pool = Nil
-      
-      if (poolSize > 0) wait(250)
-
-      closeAllConnections_!()
-    }
-  }
-}
-}
-}

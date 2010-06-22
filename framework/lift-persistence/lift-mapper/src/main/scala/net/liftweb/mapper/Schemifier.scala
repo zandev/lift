@@ -21,6 +21,7 @@ import _root_.java.sql.{Connection, ResultSet, DatabaseMetaData}
 import _root_.scala.collection.mutable.{HashMap, ListBuffer}
 import _root_.net.liftweb.common.{Full, Box, Loggable}
 import _root_.net.liftweb.util.Helpers
+import _root_.net.liftweb.jdbc.common.{SuperConnection,ConnectionIdentifier,DefaultConnectionIdentifier}
 import Helpers._
 
 /**
@@ -33,7 +34,7 @@ import Helpers._
  * </ul>
  */
 object Schemifier extends Loggable {
-  implicit def superToRegConnection(sc: SuperConnection): Connection = sc.connection
+  implicit def superToRegConnection(sc: MapperConnection): Connection = sc.connection
 
   /**
    * Convenience function to be passed to schemify. Will log executed statements at the info level
@@ -128,11 +129,11 @@ object Schemifier extends Loggable {
   /**
    * Retrieves schema name where the unqualified db objects are searched.
    */
-  def getDefaultSchemaName(connection: SuperConnection): String =
-  (connection.schemaName or connection.driverType.defaultSchemaName or DB.globalDefaultSchemaName).openOr(connection.getMetaData.getUserName)
+  def getDefaultSchemaName(connection: MapperConnection): String =
+    (connection.schemaName or connection.driverType.defaultSchemaName or DB.globalDefaultSchemaName).openOr(connection.getMetaData.getUserName)
 
 
-  private def hasTable_? (table: BaseMetaMapper, connection: SuperConnection, actualTableNames: HashMap[String, String]): Boolean = {
+  private def hasTable_? (table: BaseMetaMapper, connection: MapperConnection, actualTableNames: HashMap[String, String]): Boolean = {
     val md = connection.getMetaData
     using(md.getTables(null, getDefaultSchemaName(connection), null, null)){ rs =>
       def hasTable(rs: ResultSet): Boolean =
@@ -157,7 +158,7 @@ object Schemifier extends Loggable {
    *
    * @returns SQL command.
    */
-  private def maybeWrite(performWrite: Boolean, logFunc: (=> AnyRef) => Unit, connection: SuperConnection) (makeSql: () => String) : String ={
+  private def maybeWrite(performWrite: Boolean, logFunc: (=> AnyRef) => Unit, connection: MapperConnection) (makeSql: () => String) : String ={
     val ct = makeSql()
     if (performWrite) {
       logFunc(ct)
@@ -168,7 +169,7 @@ object Schemifier extends Loggable {
     ct
   }
 
-  private def ensureTable(performWrite: Boolean, logFunc: (=> AnyRef) => Unit, table: BaseMetaMapper, connection: SuperConnection, actualTableNames: HashMap[String, String]): Collector = {
+  private def ensureTable(performWrite: Boolean, logFunc: (=> AnyRef) => Unit, table: BaseMetaMapper, connection: MapperConnection, actualTableNames: HashMap[String, String]): Collector = {
     val hasTable = hasTable_?(table, connection, actualTableNames)
     val cmds = new ListBuffer[String]()
     if (!hasTable) {
@@ -191,11 +192,11 @@ object Schemifier extends Loggable {
     } else Collector(Nil, cmds.toList)
   }
 
-  private def createColumns(table: BaseMetaMapper, connection: SuperConnection): Seq[String] = {
+  private def createColumns(table: BaseMetaMapper, connection: MapperConnection): Seq[String] = {
     table.mappedFields.flatMap(_.fieldCreatorString(connection.driverType))
   }
 
-  private def ensureColumns(performWrite: Boolean, logFunc: (=> AnyRef) => Unit, table: BaseMetaMapper, connection: SuperConnection, actualTableNames: HashMap[String, String]): Collector = {
+  private def ensureColumns(performWrite: Boolean, logFunc: (=> AnyRef) => Unit, table: BaseMetaMapper, connection: MapperConnection, actualTableNames: HashMap[String, String]): Collector = {
     val cmds = new ListBuffer[String]()
     val rc = table.mappedFields.toList.flatMap {
       field =>
@@ -237,7 +238,7 @@ object Schemifier extends Loggable {
 
   }
 
-  private def ensureIndexes(performWrite: Boolean, logFunc: (=> AnyRef) => Unit, table: BaseMetaMapper, connection: SuperConnection, actualTableNames: HashMap[String, String]): Collector = {
+  private def ensureIndexes(performWrite: Boolean, logFunc: (=> AnyRef) => Unit, table: BaseMetaMapper, connection: MapperConnection, actualTableNames: HashMap[String, String]): Collector = {
     val cmds = new ListBuffer[String]()
     // val byColumn = new HashMap[String, List[(String, String, Int)]]()
     val byName = new HashMap[String, List[String]]()
@@ -299,7 +300,7 @@ object Schemifier extends Loggable {
     Collector(single, cmds.toList)
   }
 
-  private def ensureConstraints(performWrite: Boolean, logFunc: (=> AnyRef) => Unit, table: BaseMetaMapper, dbId: ConnectionIdentifier, connection: SuperConnection, actualTableNames: HashMap[String, String]): Collector = {
+  private def ensureConstraints(performWrite: Boolean, logFunc: (=> AnyRef) => Unit, table: BaseMetaMapper, dbId: ConnectionIdentifier, connection: MapperConnection, actualTableNames: HashMap[String, String]): Collector = {
     val cmds = new ListBuffer[String]()
     val ret = if (connection.supportsForeignKeys_? && MapperRules.createForeignKeys_?(dbId)) {
       table.mappedFields.flatMap{f => f match {case f: BaseMappedField with BaseForeignKey => List(f); case _ => Nil}}.toList.flatMap {

@@ -20,6 +20,7 @@ package mapper {
 import _root_.net.liftweb.util._
 import _root_.net.liftweb.common._
 import Helpers._
+import _root_.net.liftweb.jdbc.common.ConnectionIdentifier
 
 trait MetaProtoTag[ModelType <: ProtoTag[ModelType]] extends KeyedMetaMapper[Long, ModelType] {
   self: ModelType =>
