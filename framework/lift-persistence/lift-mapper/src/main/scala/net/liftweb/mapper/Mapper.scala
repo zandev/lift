@@ -144,7 +144,7 @@ trait Mapper[A<:Mapper[A]] extends BaseMapper {
   def formFields: List[MappedField[_, A]] =
   getSingleton.formFields(this)
 
-   def allFields: Seq[BaseField] = formFields
+   def allFields: scala.collection.Seq[BaseField] = formFields
 
   /**
    * map the fields titles and forms to generate a list
@@ -159,7 +159,7 @@ trait Mapper[A<:Mapper[A]] extends BaseMapper {
    * @param func called with displayHtml, fieldId, form
    */
   def flatMapFieldTitleForm[T]
-  (func: (NodeSeq, Box[NodeSeq], NodeSeq) => Seq[T]): List[T] =
+  (func: (NodeSeq, Box[NodeSeq], NodeSeq) => scala.collection.Seq[T]): List[T] =
   getSingleton.flatMapFieldTitleForm(this, func)
 
     /**
@@ -167,7 +167,7 @@ trait Mapper[A<:Mapper[A]] extends BaseMapper {
    * @param func called with displayHtml, fieldId, form
    */
   def flatMapFieldTitleForm2[T]
-  (func: (NodeSeq, MappedField[_, A], NodeSeq) => Seq[T]): List[T] =
+  (func: (NodeSeq, MappedField[_, A], NodeSeq) => scala.collection.Seq[T]): List[T] =
   getSingleton.flatMapFieldTitleForm2(this, func)
 
   /**
@@ -303,7 +303,7 @@ trait LongKeyedMapper[OwnerType <: LongKeyedMapper[OwnerType]] extends KeyedMapp
 
 trait BaseKeyedMapper extends BaseMapper {
   type TheKeyType
-  type KeyedMapperType <: KeyedMapper[TheKeyType, MapperType]
+  type KeyedMapperType <: KeyedMapper[TheKeyType, KeyedMapperType]
 
   def primaryKeyField: MappedField[TheKeyType, MapperType] with IndexedField[TheKeyType]
   /**

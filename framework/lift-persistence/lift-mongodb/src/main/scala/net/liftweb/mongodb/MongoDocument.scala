@@ -94,7 +94,8 @@ trait MongoDocumentMeta[BaseDocument] extends JsonObjectMeta[BaseDocument] with 
   * Find all documents in this collection
   */
   def findAll: List[BaseDocument] = {
-    import scala.collection.jcl.Conversions._
+    // import scala.collection.jcl.Conversions._
+    import scala.collection.JavaConversions._
 
     /*
     * The call to toArray retrieves all documents and puts them in memory.
@@ -108,7 +109,8 @@ trait MongoDocumentMeta[BaseDocument] extends JsonObjectMeta[BaseDocument] with 
   * Find all documents using a DBObject query.
   */
   private def findAll(qry: DBObject, sort: Option[DBObject], opts: FindOption*): List[BaseDocument] = {
-    import scala.collection.jcl.Conversions._
+    import scala.collection.JavaConversions._
+    //    import scala.collection.jcl.Conversions._
 
     val findOpts = opts.toList
 

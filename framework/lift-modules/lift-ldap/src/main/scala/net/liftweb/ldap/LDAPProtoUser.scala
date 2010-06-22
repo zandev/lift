@@ -5,7 +5,8 @@
  *  - Redirected to the homepage after login
  *
  */
-package net.liftweb.ldap
+package net.liftweb {
+package ldap {
 
 import javax.naming.directory.{Attributes}
 import scala.util.matching.{Regex}
@@ -21,6 +22,9 @@ import net.liftweb.util.{Helpers}
 import net.liftweb.common.{Box, Empty, Full}
 
 import Helpers._
+
+import scala.util.matching.{Regex}
+import scala.xml.{Elem, NodeSeq}
 
 trait MetaLDAPProtoUser[ModelType <: LDAPProtoUser[ModelType]] extends MetaMegaProtoUser[ModelType] {
     self: ModelType =>
@@ -169,7 +173,7 @@ trait LDAPProtoUser[T <: LDAPProtoUser[T]] extends MegaProtoUser[T] {
         return ldapRoles.get
     }
 
-    def setRoles(userDn: String, ldapVendor: LDAPVendor): AnyRef = {
+    def setRoles(userDn: String, ldapVendor: LDAPVendor) {
         def getGroupNameFromDn(dn: String): String = {
             val regex = new Regex(rolesNameRegex)
 
@@ -181,8 +185,9 @@ trait LDAPProtoUser[T <: LDAPProtoUser[T]] extends MegaProtoUser[T] {
         val filter = rolesSearchFilter.format(userDn)
 
         val groups = ldapVendor.search(filter)
-        groups.foreach(g => {
-            ldapRoles.set(ldapRoles.get + getGroupNameFromDn(g))
-        })
+        groups foreach { g => ldapRoles.set(ldapRoles.get :+ getGroupNameFromDn(g)) }
     }
+}
+
+}
 }

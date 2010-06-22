@@ -39,7 +39,7 @@ trait BaseMetaMapper {
 
   def dbTableName: String
   def _dbTableNameLC: String
-  def mappedFields: Seq[BaseMappedField];
+  def mappedFields: scala.collection.Seq[BaseMappedField];
   def dbAddTable: Box[() => Unit]
 
   def dbIndexes: List[BaseIndex[RealType]]
@@ -260,13 +260,13 @@ trait MetaMapper[A<:Mapper[A]] extends BaseMetaMapper with Mapper[A] {
     }
   }
 
-  type KeyDude = T forSome {type T}
-  type OtherMapper = T forSome {type T <: KeyedMapper[KeyDude, T]}
-  type OtherMetaMapper = T forSome {type T <: KeyedMetaMapper[KeyDude, OtherMapper]}
+  //type KeyDude = T forSome {type T}
+  type OtherMapper = KeyedMapper[_, _] // T forSome {type T <: KeyedMapper[KeyDude, T]}
+  type OtherMetaMapper = KeyedMetaMapper[_, _] // T forSome {type T <: KeyedMetaMapper[KeyDude, OtherMapper]}
   //type OtherMapper = KeyedMapper[_, (T forSome {type T})]
   //type OtherMetaMapper = KeyedMetaMapper[_, OtherMapper]
 
-  def findAllFields(fields: Seq[SelectableField],
+  def findAllFields(fields: scala.collection.Seq[SelectableField],
                     by: QueryParam[A]*): List[A] =
   findMapFieldDb(dbDefaultConnectionIdentifier,
                  fields, by :_*)(v => Full(v))
@@ -278,7 +278,7 @@ trait MetaMapper[A<:Mapper[A]] extends BaseMetaMapper with Mapper[A] {
 
   private def dealWithPrecache(ret: List[A], by: Seq[QueryParam[A]]): List[A] = {
 
-    val precache = by.flatMap{case j: PreCache[A] => List(j) case _ => Nil}
+    val precache: List[PreCache[A, _, _]] = by.toList.flatMap{case j: PreCache[A, _, _] => List[PreCache[A, _, _]](j) case _ => Nil}
     for (j <- precache) {
       type FT = j.field.FieldType
       type MT = T forSome {type T <: KeyedMapper[FT, T]}
@@ -323,8 +323,7 @@ trait MetaMapper[A<:Mapper[A]] extends BaseMetaMapper with Mapper[A] {
         getActualField(i, j.field).asInstanceOf[MappedForeignKey[FT, A, _]]
 
         map.get(field.is) match {
-          case Some(v) => field.primeObj(Full(v))
-          case _ => field.primeObj(Empty)
+          case v => field._primeObj(Box(v))
         }
         //field.primeObj(Box(map.get(field.is).map(_.asInstanceOf[QQ])))
       }
@@ -1019,11 +1018,13 @@ trait MetaMapper[A<:Mapper[A]] extends BaseMetaMapper with Mapper[A] {
     )
   }
 
-  def checkFieldNames(in: A): Unit = mappedFieldList.foreach(f =>
-    ??(f.method, in) match {
-      case field if (field.i_name_! eq null) => field.setName_!(f.name)
-      case _ =>
-    })
+  private[mapper] def checkFieldNames(in: A): Unit = {
+    mappedFieldList.foreach(f =>
+      ??(f.method, in) match {
+        case field if (field.i_name_! eq null) => field.setName_!(f.name)
+        case _ =>
+      })
+  }
 
   /**
    * Get a field by the field name
@@ -1088,8 +1089,9 @@ trait MetaMapper[A<:Mapper[A]] extends BaseMetaMapper with Mapper[A] {
         case null => Nil
         case c =>
           // get the fields
+
           val fields = Map(c.getDeclaredFields.
-                           filter(f => Modifier.isPrivate(f.getModifiers)).
+                           // filter(f => Modifier.isPrivate(f.getModifiers)). // Issue 513 -- modifiers changed in Scala 2.8
                            filter(f => classOf[MappedField[_, _]].isAssignableFrom(f.getType)).
                            map(f => (deMod(f.getName), f)) :_*)
 
@@ -1445,20 +1447,35 @@ object OprEnum extends Enumeration {
   val Like = Value(9, "LIKE")
 }
 
-sealed abstract class BaseIndex[A <: Mapper[A]](val columns : IndexItem[A]*)
-case class Index[A <: Mapper[A]](indexColumns : IndexItem[A]*) extends BaseIndex[A](indexColumns : _*)
+sealed trait BaseIndex[A <: Mapper[A]] {
+  def columns: Seq[IndexItem[A]]
+}
+
+final case class Index[A <: Mapper[A]](columns: List[IndexItem[A]]) extends BaseIndex[A] // (columns :_*)
+
+object Index {
+  def apply[A <: Mapper[A]](cols: IndexItem[A] *): Index[A] = new Index[A](cols.toList)
+}
 
 /**
  *  Represents a unique index on the given columns
  */
-case class UniqueIndex[A <: Mapper[A]](uniqueColumns : IndexItem[A]*) extends BaseIndex[A](uniqueColumns : _*)
+final case class UniqueIndex[A <: Mapper[A]](columns: List[IndexItem[A]]) extends BaseIndex[A] // (uniqueColumns : _*)
+
+object UniqueIndex {
+  def apply[A <: Mapper[A]](cols: IndexItem[A] *): UniqueIndex[A] = new UniqueIndex[A](cols.toList)
+}
 
 /**
  * Represents a generic user-specified index on the given columns. The user provides a function to generate the SQL needed to create
  * the index based on the table and columns. Validation is required since this is raw SQL being run on the database server.
  */
-case class GenericIndex[A <: Mapper[A]](createFunc : (String,List[String]) => String, validated : IHaveValidatedThisSQL, indexColumns : IndexItem[A]*) extends BaseIndex[A](indexColumns : _*)
+final case class GenericIndex[A <: Mapper[A]](createFunc: (String,List[String]) => String, validated: IHaveValidatedThisSQL, columns: List[IndexItem[A]]) extends BaseIndex[A] // (indexColumns : _*)
 
+object GenericIndex {
+  def apply[A <: Mapper[A]](createFunc: (String,List[String]) => String, validated: IHaveValidatedThisSQL, cols: IndexItem[A] *): GenericIndex[A] =
+    new GenericIndex[A](createFunc, validated, cols.toList)
+}
 
 abstract class IndexItem[A <: Mapper[A]] {
   def field: BaseMappedField
@@ -1561,11 +1578,11 @@ sealed abstract class InThing[OuterType <: Mapper[OuterType]] extends QueryParam
  * false if the query is not deterministic.  In this case, a SELECT * FROM FK_TABLE WHERE primary_key in (xxx) will
  * be generated
  */
-final case class PreCache[TheType <: Mapper[TheType]](field: MappedForeignKey[_, TheType, _], deterministic: Boolean)
+final case class PreCache[TheType <: Mapper[TheType], FieldType, OtherType <: KeyedMapper[FieldType, OtherType]](field: MappedForeignKey[FieldType, TheType, OtherType], deterministic: Boolean)
 extends QueryParam[TheType]
 
 object PreCache {
-  def apply[TheType <: Mapper[TheType]](field: MappedForeignKey[_, TheType, _]) =
+  def apply[TheType <: Mapper[TheType], FieldType, OtherType <: KeyedMapper[FieldType, OtherType]](field: MappedForeignKey[FieldType , TheType, OtherType]) =
   new PreCache(field, true)
 }
 

@@ -75,7 +75,7 @@ class EnumField[OwnerType <: Record[OwnerType], EnumType <: Enumeration](rec: Ow
     val options = enum.map(a => (Full(a), a.toString)).toList
     if (optional_?) (Empty, emptyOptionLabel)::options else options
   }
-          
+
 
   private def elem = SHtml.selectObj[Box[EnumType#Value]](buildDisplayList, Full(valueBox), setBox(_)) % ("tabindex" -> tabIndex.toString)
 
@@ -99,7 +99,7 @@ class EnumField[OwnerType <: Record[OwnerType], EnumType <: Enumeration](rec: Ow
     }
   }
 
-  def defaultValue: EnumType#Value = enum.elements.next
+  def defaultValue: EnumType#Value = enum.iterator.next
 
   def asJs = valueBox.map(_ => Str(toString)) openOr JsNull
 

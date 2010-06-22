@@ -61,15 +61,17 @@ object TimeHelpersSpec extends Specification with  ScalaCheck {
       3.seconds.after(new Date(0)) must beTrue
     }
     "be implicitly converted to a Long" in {
-      3.seconds must_== 3000L
+      (3.seconds : Long) must_== 3000L
     }
     "be compared to an int" in {
-      3.seconds must_== 3000
-      3.seconds must_!= 2000
+      (3.seconds == 3000) must_== true
+
+      (3.seconds != 2000) must_== true
     }
     "be compared to a long" in {
-      3.seconds must_== 3000L
-      3.seconds must_!= 2000L
+      (3.seconds == 3000L) must_== true
+
+      (3.seconds != 2000L) must_== true
     }
     "be compared to another TimeSpan" in {
       3.seconds must_== 3.seconds

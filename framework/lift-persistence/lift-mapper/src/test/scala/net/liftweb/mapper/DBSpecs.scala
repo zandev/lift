@@ -23,6 +23,8 @@ import _root_.org.specs.runner.ConsoleRunner
 import _root_.net.liftweb.common._
 import _root_.net.liftweb.util._
 import _root_.net.liftweb.http.{S,LiftSession,LiftRules}
+import _root_.net.liftweb.jdbc.common.{ConnectionIdentifier,DefaultConnectionIdentifier,ConnectionManager}
+
 
 import Helpers._
 

@@ -740,7 +740,11 @@ abstract class BaseResponse(override val baseUrl: String,
       case g: Group => unapply(g.nodes)
       case n: Text => None
       case sn: SpecialNode => None
-      case n: NodeSeq => n.flatMap(unapply).firstOption
+      case n: NodeSeq => 
+       val ns: Seq[Node] = n
+       val x: Seq[Elem] = ns.flatMap(v => unapply(v))
+       x.headOption
+      case _ => None
     }
   }
 

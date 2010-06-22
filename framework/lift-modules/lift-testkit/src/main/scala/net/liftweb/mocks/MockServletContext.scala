@@ -33,6 +33,7 @@ import _root_.java.util.Locale
 import _root_.java.util.Vector
 import _root_.javax.servlet._
 import _root_.javax.servlet.http._
+import scala.collection.JavaConversions._
 
 /**
  * An example of how to use these mock classes in your unit tests:
@@ -155,7 +156,7 @@ class MockHttpSession extends HttpSession {
   @volatile protected var values: Map[String, Object] = Map()
   @volatile protected var attr: Map[String, Object] = Map()
 
-  import scala.collection.jcl.Conversions._
+  import scala.collection.JavaConversions._
 
   protected var maxii: Int = 0
   protected var creationTime: Long = System.currentTimeMillis
@@ -175,7 +176,7 @@ class MockHttpSession extends HttpSession {
   def setAttribute(key: String, value: Object): Unit = attr += (key -> value)
   def getValueNames(): Array[String] = values.keys.toList.toArray
   def getAttributeNames(): java.util.Enumeration[Object] = new java.util.Enumeration[Object] {
-    private val keys = attr.keys
+    private val keys = attr.keys.iterator
     def hasMoreElements() = keys.hasNext
     def nextElement(): Object = keys.next
   }

@@ -24,6 +24,7 @@ import _root_.net.liftweb.common._
 import _root_.net.liftweb.util._
 import _root_.net.liftweb.http.LiftRules
 import _root_.net.liftweb.http.provider.HTTPRequest
+import _root_.net.liftweb.jdbc.common.{ConnectionIdentifier,DefaultConnectionIdentifier,ConnectionManager}
 
 import Helpers._
 import _root_.net.liftweb.json._
@@ -44,12 +45,23 @@ object MapperSpecs extends Specification {
     else
       DBProviders.asList
 
-  private def logDBStuff(log: DBLog, len: Long) {
-    println(" in log stuff "+log.getClass.getName)
-    log match {
-      case null =>
-      case _ => println(log.allEntries)
-    }
+  /*
+   private def logDBStuff(log: DBLog, len: Long) {
+   println(" in log stuff "+log.getClass.getName)
+   log match {
+   case null =>
+   case _ => println(log.allEntries)
+   }
+   }
+
+   DB.addLogFunc(logDBStuff)
+   */
+
+  def dbSetup() {
+    Schemifier.destroyTables_!!(ignoreLogger _, SampleModel, SampleTag,
+                                Dog, User, Mixer, Dog2)
+    Schemifier.schemify(true, ignoreLogger _, SampleModel, SampleTag,
+                        User, Dog, Mixer, Dog2)
   }
 
   def snakify(connid: ConnectionIdentifier, name: String): String = {
@@ -59,8 +71,10 @@ object MapperSpecs extends Specification {
       name.toLowerCase
   }
 
+  /*
   if (!DB.loggingEnabled_? && doLog)
     DB.addLogFunc(logDBStuff)
+*/
 
   MapperRules.columnName = snakify
   MapperRules.tableName = snakify
@@ -327,7 +341,7 @@ object MapperSpecs extends Specification {
         "work with Mixed case update and delete" in {
           cleanup()
 
-          
+
           val elwood = Mixer.find(By(Mixer.name, "Elwood")).open_!
 
 
@@ -346,7 +360,7 @@ object MapperSpecs extends Specification {
           Mixer.find(By(Mixer.weight, 966)).isDefined must_== false
           Mixer.find(By(Mixer.name, "FruitBar")).isDefined must_== false
           Mixer.find(By(Mixer.name, "Elwood")).isDefined must_== false
-         
+
         }
 
         "work with Mixed case update and delete for Dog2" in {
@@ -363,7 +377,7 @@ object MapperSpecs extends Specification {
           fb.name.is must_== "FruitBar"
 
           fb.actualAge.is must_== 966
-         
+
           fb.delete_!
 
           Dog2.find(By(Dog2.actualAge, 966)).isDefined must_== false
@@ -641,6 +655,8 @@ object Dog extends Dog with LongKeyedMetaMapper[Dog] {
     create.name("Archer").save
     create.name("fido").owner(User.find(By(User.firstName, "Elwood"))).save
   }
+
+  def who(in: Dog): Box[User] = in.owner
 }
 
 class Mixer extends LongKeyedMapper[Mixer] with IdPK {

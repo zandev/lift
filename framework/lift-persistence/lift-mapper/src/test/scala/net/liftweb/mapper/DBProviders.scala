@@ -24,6 +24,7 @@ import _root_.scala.testing.SUnit
 import _root_.net.liftweb.mapper._
 import _root_.java.sql.{Connection, DriverManager}
 import _root_.java.io.File
+import _root_.net.liftweb.jdbc.common.{ConnectionIdentifier,DefaultConnectionIdentifier,ConnectionManager}
 
 object DBProviders {
   //    def asList = MySqlProvider :: DerbyProvider :: PostgreSqlProvider :: H2Provider :: H2MemoryProvider :: SqlServerProvider :: Nil

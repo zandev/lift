@@ -36,6 +36,7 @@ import _root_.java.util.{HashMap => JHash}
 import _root_.javax.servlet._
 import _root_.javax.servlet.http._
 import _root_.net.liftweb.util.Helpers
+import scala.collection.JavaConversions._
 
 /**
  * A Mock ServletRequest. Change it's state to to create the request you are
@@ -113,7 +114,7 @@ class MockHttpServletRequest extends HttpServletRequest {
   def getIntHeader(h: String): Int = {
     headers.get(h).flatMap(_.headOption).map(_.toInt) getOrElse -1
   }
-  def getHeaderNames(): JEnum[Object] = headers.keys
+  def getHeaderNames(): JEnum[Object] = headers.keys.iterator
   def getHeaders(s: String): JEnum[Object] =
     headers.getOrElse(s, Nil).elements
 
@@ -157,7 +158,7 @@ class MockHttpServletRequest extends HttpServletRequest {
   def getParameterValues(key: String): Array[String] =
     parameterMap.get(key).map(_.toArray) getOrElse null
 
-  def getParameterNames(): JEnum[Object] = parameterMap.keys
+  def getParameterNames(): JEnum[Object] = parameterMap.keys.iterator
   def getParameter(key: String): String = parameterMap.get(key) match {
     case Some(x :: _) => x
     case _ => null
@@ -168,7 +169,7 @@ class MockHttpServletRequest extends HttpServletRequest {
   def getContentLength(): Int = contentLength
   def getCharacterEncoding(): String = charEncoding
   def setCharacterEncoding(enc: String): Unit = charEncoding = enc
-  def getAttributeNames(): JEnum[Object] = attr.keys
+  def getAttributeNames(): JEnum[Object] = attr.keys.iterator
   def getAttribute(key: String): Object = attr.get(key).getOrElse(null)
 }
 

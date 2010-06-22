@@ -540,7 +540,7 @@ class LiftSession(private[http] val _contextPath: String, val uniqueId: String,
   def contextPath = LiftRules.calculateContextPath() openOr _contextPath
 
   private[http] def processRequest(request: Req): Box[LiftResponse] = {
-    def processTemplate(loc: Box[NodeSeq], path: ParsePath, code: Int): Box[LiftResponse] =       
+    def processTemplate(loc: Box[NodeSeq], path: ParsePath, code: Int): Box[LiftResponse] =
       (loc or findVisibleTemplate(path, request)).map { xhtml =>
         // Phase 1: snippets & templates processing
         val rawXml: NodeSeq = processSurroundAndInclude(PageName get, xhtml)
@@ -758,7 +758,6 @@ class LiftSession(private[http] val _contextPath: String, val uniqueId: String,
   private def findAttributeSnippet(attrValue: String, rest: MetaData, params: AnyRef*): MetaData = {
     S.doSnippet(attrValue) {
       val (cls, method) = splitColonPair(attrValue, null, "render")
-      
       first(LiftRules.snippetNamesToSearch.vend(cls)) { nameToTry =>
         findSnippetClass(nameToTry) flatMap { clz =>
           instantiateOrRedirect(clz) flatMap { inst =>
@@ -780,7 +779,7 @@ class LiftSession(private[http] val _contextPath: String, val uniqueId: String,
       in.toList.flatMap {
         case e: Elem => Some(e)
         case _ => None
-      } firstOption
+      } headOption
 
     for{
       template <- findAnyTemplate(name, S.locale) ?~ ("Template " + name + " not found")
@@ -904,9 +903,9 @@ class LiftSession(private[http] val _contextPath: String, val uniqueId: String,
       for (loc <- S.location;
            func <- loc.snippet(snippet)) yield func(kids)
 
-    def locateAndCacheSnippet(tagName: String): Box[AnyRef] = 
+    def locateAndCacheSnippet(tagName: String): Box[AnyRef] =
       snippetMap.is.get(tagName) or {
-        first(LiftRules.snippetNamesToSearch.vend(tagName)) { nameToTry => 
+        first(LiftRules.snippetNamesToSearch.vend(tagName)) { nameToTry =>
           val ret = LiftRules.snippet(nameToTry) or findSnippetInstance(nameToTry)
           ret.foreach(s => snippetMap.set(snippetMap.is.update(tagName, s)))
           ret
@@ -1298,7 +1297,7 @@ class LiftSession(private[http] val _contextPath: String, val uniqueId: String,
       case f@Failure(msg, be, _) if Props.devMode =>
         failedFind(f)
       case Full(s) => bind(atWhat, s)
-      case _ => atWhat.values.flatMap(_.elements).toList
+      case _ => atWhat.values.flatMap(_.toSeq).toList
     }
   }
 

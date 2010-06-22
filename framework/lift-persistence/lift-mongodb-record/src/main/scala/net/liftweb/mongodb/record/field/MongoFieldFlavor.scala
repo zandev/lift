@@ -12,7 +12,9 @@
 */
 
 package net.liftweb {
-package mongodb.record.field {
+package mongodb {
+package record {
+package field {
 
 import net.liftweb.common.Box
 
@@ -33,5 +35,7 @@ trait MongoFieldFlavor[MyType] {
 
 }
 
+}
+}
 }
 }
