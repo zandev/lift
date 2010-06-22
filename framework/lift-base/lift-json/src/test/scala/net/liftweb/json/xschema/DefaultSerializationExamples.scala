@@ -59,6 +59,22 @@ object DefaultSerializationExamples extends Specification {
   "Map of String to something can be extracted from object" in {
     StringMapExtractor(StringExtractor).extract(JObject(JField("foo", JString("bar")) :: Nil)) mustEqual Map("foo" -> "bar")
   }
+  
+  "Order of elements in List is not changed" in {
+    val l = List(1, 2, 3, 4, 5)
+    
+    val s = ListDecomposer(IntDecomposer).decompose(l)
+    
+    ListExtractor(IntExtractor).extract(s) mustEqual l
+  }
+  
+  "Order of elements in Array is not changed" in {
+    val l = Array(1, 2, 3, 4, 5)
+    
+    val s = ArrayDecomposer(IntDecomposer).decompose(l)
+    
+    ArrayExtractor(IntExtractor).extract(s).toList mustEqual l.toList
+  }
 }
 
 
