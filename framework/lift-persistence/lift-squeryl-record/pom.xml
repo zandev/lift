@@ -46,7 +46,7 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>lift-mapper</artifactId> <!-- FIXME we only need DB out of here, and that should be moved out of mapper -->
+      <artifactId>lift-jdbc-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -57,6 +57,7 @@
     <dependency>
       <groupId>org.squeryl</groupId>
       <artifactId>squeryl_${scala.version}</artifactId>
+      <version>0.9.4beta6</version>
     </dependency>
     <dependency>
       <groupId>cglib</groupId>

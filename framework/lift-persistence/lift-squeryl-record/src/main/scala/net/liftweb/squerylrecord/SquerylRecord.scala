@@ -15,7 +15,8 @@ package net.liftweb {
 package squerylrecord {
 
 import _root_.net.liftweb.common.{Box, Full, Loggable}
-import _root_.net.liftweb.mapper.DB // FIXME should be moved out of mapper
+// import _root_.net.liftweb.mapper.DB // FIXME should be moved out of mapper
+import _root_.net.liftweb.jdbc.common.ConnectionAccessor
 import _root_.net.liftweb.util.DynoVar
 import _root_.org.squeryl.{Session, SessionFactory}
 import _root_.org.squeryl.internals.{DatabaseAdapter, FieldMetaData}
@@ -32,7 +33,7 @@ object SquerylRecord extends Loggable {
   def init(mkAdapter: () => DatabaseAdapter) = {
     FieldMetaData.factory = new RecordMetaDataFactory
     SessionFactory.externalTransactionManagementAdapter = Some(() => currentSession.is openOr {
-      DB.currentConnection match {
+      ConnectionAccessor.currentConnection match {
         case Full(superConn) =>
           val sess = Session.create(superConn.connection, mkAdapter())
           sess.setLogger(s => logger.debug(s))
