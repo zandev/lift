@@ -45,34 +45,34 @@ class EmailField[OwnerType <: Record[OwnerType]](rec: OwnerType, maxLength: Int)
 }
 
 
-import _root_.java.sql.{ResultSet, Types}
-import _root_.net.liftweb.mapper.{DriverType}
+// import _root_.java.sql.{ResultSet, Types}
+// import _root_.net.liftweb.mapper.{DriverType}
 
 /**
  * An email field holding DB related logic
  */
-class DBEmailField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType, maxLength: Int) extends
-  EmailField[OwnerType](rec, maxLength) with JDBCFieldFlavor[String]{
-
-  def this(rec: OwnerType, maxLength: Int, value: String) = {
-    this(rec, maxLength)
-    set(value)
-  }
-
-  def this(rec: OwnerType, value: String) = {
-    this(rec, 100)
-    set(value)
-  }
-
-  def targetSQLType = Types.VARCHAR
-
-  /**
-   * Given the driver type, return the string required to create the column in the database
-   */
-  def fieldCreatorString(dbType: DriverType, colName: String): String = colName+" VARCHAR("+maxLength+")"
-
-  def jdbcFriendly(field : String) : String = value
-}
+// class DBEmailField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType, maxLength: Int) extends
+//   EmailField[OwnerType](rec, maxLength) with JDBCFieldFlavor[String]{
+// 
+//   def this(rec: OwnerType, maxLength: Int, value: String) = {
+//     this(rec, maxLength)
+//     set(value)
+//   }
+// 
+//   def this(rec: OwnerType, value: String) = {
+//     this(rec, 100)
+//     set(value)
+//   }
+// 
+//   def targetSQLType = Types.VARCHAR
+// 
+//   /**
+//    * Given the driver type, return the string required to create the column in the database
+//    */
+//   def fieldCreatorString(dbType: DriverType, colName: String): String = colName+" VARCHAR("+maxLength+")"
+// 
+//   def jdbcFriendly(field : String) : String = value
+// }
 
 }
 }

@@ -70,22 +70,22 @@ class TimeZoneField[OwnerType <: Record[OwnerType]](rec: OwnerType) extends Stri
   }
 }
 
-import _root_.java.sql.{ResultSet, Types}
-import _root_.net.liftweb.mapper.{DriverType}
-
-class DBTimeZoneField[OwnerType <: Record[OwnerType]](rec: OwnerType) extends TimeZoneField(rec)
-  with JDBCFieldFlavor[String] {
-
-  def targetSQLType = Types.VARCHAR
-
-  /**
-   * Given the driver type, return the string required to create the column in the database
-   */
-  def fieldCreatorString(dbType: DriverType, colName: String): String = colName+" VARCHAR("+32+")"
-
-  def jdbcFriendly(field : String) : String = value
-
-}
+// import _root_.java.sql.{ResultSet, Types}
+// import _root_.net.liftweb.mapper.{DriverType}
+// 
+// class DBTimeZoneField[OwnerType <: Record[OwnerType]](rec: OwnerType) extends TimeZoneField(rec)
+//   with JDBCFieldFlavor[String] {
+// 
+//   def targetSQLType = Types.VARCHAR
+// 
+//   /**
+//    * Given the driver type, return the string required to create the column in the database
+//    */
+//   def fieldCreatorString(dbType: DriverType, colName: String): String = colName+" VARCHAR("+32+")"
+// 
+//   def jdbcFriendly(field : String) : String = value
+// 
+// }
 
 }
 }

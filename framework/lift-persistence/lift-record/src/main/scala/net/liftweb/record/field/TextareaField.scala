@@ -66,24 +66,24 @@ class TextareaField[OwnerType <: Record[OwnerType]](rec: OwnerType, maxLength: I
 
 }
 
-import _root_.java.sql.{ResultSet, Types}
-import _root_.net.liftweb.mapper.{DriverType}
-
-/**
- * A string field holding DB related logic
- */
-abstract class DBTextareaField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType, maxLength: Int) extends
-TextareaField[OwnerType](rec, maxLength) with JDBCFieldFlavor[String]{
-
-  def targetSQLType = Types.VARCHAR
-
-  /**
-   * Given the driver type, return the string required to create the column in the database
-   */
-  def fieldCreatorString(dbType: DriverType, colName: String): String = colName+" VARCHAR("+maxLength+")"
-
-  def jdbcFriendly(field : String) : String = value
-}
+// import _root_.java.sql.{ResultSet, Types}
+// import _root_.net.liftweb.mapper.{DriverType}
+// 
+// /**
+//  * A string field holding DB related logic
+//  */
+// abstract class DBTextareaField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType, maxLength: Int) extends
+// TextareaField[OwnerType](rec, maxLength) with JDBCFieldFlavor[String]{
+// 
+//   def targetSQLType = Types.VARCHAR
+// 
+//   /**
+//    * Given the driver type, return the string required to create the column in the database
+//    */
+//   def fieldCreatorString(dbType: DriverType, colName: String): String = colName+" VARCHAR("+maxLength+")"
+// 
+//   def jdbcFriendly(field : String) : String = value
+// }
 
 }
 }

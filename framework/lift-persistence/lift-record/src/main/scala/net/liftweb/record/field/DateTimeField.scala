@@ -94,27 +94,27 @@ class DateTimeField[OwnerType <: Record[OwnerType]](rec: OwnerType) extends Fiel
   }
 }
 
-import _root_.java.sql.{ResultSet, Types}
-import _root_.net.liftweb.mapper.{DriverType}
+// import _root_.java.sql.{ResultSet, Types}
+// import _root_.net.liftweb.mapper.{DriverType}
 
-/**
- * An int field holding DB related logic
- */
-abstract class DBDateTimeField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType) extends DateTimeField[OwnerType](rec)
-  with JDBCFieldFlavor[_root_.java.sql.Date] {
-
-  def targetSQLType = Types.TIMESTAMP
-
-  /**
-   * Given the driver type, return the string required to create the column in the database
-   */
-  def fieldCreatorString(dbType: DriverType, colName: String): String = colName + " " + dbType.enumColumnType
-
-  def jdbcFriendly(field : String) = value match {
-    case null => null
-    case d => new _root_.java.sql.Date(d.getTime.getTime)
-  }
-}
+// /**
+//  * An int field holding DB related logic
+//  */
+// abstract class DBDateTimeField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType) extends DateTimeField[OwnerType](rec)
+//   with JDBCFieldFlavor[_root_.java.sql.Date] {
+// 
+//   def targetSQLType = Types.TIMESTAMP
+// 
+//   /**
+//    * Given the driver type, return the string required to create the column in the database
+//    */
+//   def fieldCreatorString(dbType: DriverType, colName: String): String = colName + " " + dbType.enumColumnType
+// 
+//   def jdbcFriendly(field : String) = value match {
+//     case null => null
+//     case d => new _root_.java.sql.Date(d.getTime.getTime)
+//   }
+// }
 
 }
 }

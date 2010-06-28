@@ -61,19 +61,19 @@ import _root_.net.liftweb.mapper.{DriverType}
 /**
  * An int field holding DB related logic
  */
-abstract class DBLongField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType) extends LongField[OwnerType](rec)
-  with JDBCFieldFlavor[Long]{
-
-  def targetSQLType = Types.BIGINT
-
-  /**
-   * Given the driver type, return the string required to create the column in the database
-   */
-  def fieldCreatorString(dbType: DriverType, colName: String): String = colName + " " + dbType.enumColumnType
-
-  def jdbcFriendly(field : String) : Long = value
-
-}
+// abstract class DBLongField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType) extends LongField[OwnerType](rec)
+//   with JDBCFieldFlavor[Long]{
+// 
+//   def targetSQLType = Types.BIGINT
+// 
+//   /**
+//    * Given the driver type, return the string required to create the column in the database
+//    */
+//   def fieldCreatorString(dbType: DriverType, colName: String): String = colName + " " + dbType.enumColumnType
+// 
+//   def jdbcFriendly(field : String) : Long = value
+// 
+// }
 
 }
 }

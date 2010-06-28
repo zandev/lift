@@ -61,25 +61,25 @@ class BinaryField[OwnerType <: Record[OwnerType]](rec: OwnerType) extends Field[
   def setFromJValue(jvalue: JValue) = setFromJString(jvalue)(s => tryo(base64Decode(s)))
 }
 
-import _root_.java.sql.{ResultSet, Types}
-import _root_.net.liftweb.mapper.{DriverType}
+// import _root_.java.sql.{ResultSet, Types}
+// import _root_.net.liftweb.mapper.{DriverType}
 
 /**
  * An int field holding DB related logic
  */
-abstract class DBBinaryField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType) extends BinaryField[OwnerType](rec)
-  with JDBCFieldFlavor[Array[Byte]] {
-
-  def targetSQLType = Types.BINARY
-
-  /**
-   * Given the driver type, return the string required to create the column in the database
-   */
-  def fieldCreatorString(dbType: DriverType, colName: String): String = colName + " " + dbType.enumColumnType
-
-  def jdbcFriendly(field : String) : Array[Byte] = value
-
-}
+// abstract class DBBinaryField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType) extends BinaryField[OwnerType](rec)
+//   with JDBCFieldFlavor[Array[Byte]] {
+// 
+//   def targetSQLType = Types.BINARY
+// 
+//   /**
+//    * Given the driver type, return the string required to create the column in the database
+//    */
+//   def fieldCreatorString(dbType: DriverType, colName: String): String = colName + " " + dbType.enumColumnType
+// 
+//   def jdbcFriendly(field : String) : Array[Byte] = value
+// 
+// }
 
 }
 }

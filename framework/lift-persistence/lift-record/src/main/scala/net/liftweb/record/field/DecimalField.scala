@@ -125,28 +125,28 @@ import _root_.net.liftweb.mapper.{DriverType}
 /**
  * An Decimal field holding DB related logic
  */
-abstract class DBDecimalField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType, context : MathContext, scale : Int) extends DecimalField[OwnerType](rec, context, scale)
-  with JDBCFieldFlavor[JBigDecimal]{
-
-  def targetSQLType = Types.DECIMAL
-
-  /**
-   * Returns the SQL creation string for this field. See the note for DecimalField
-   * concerning default precision.
-   */
-  def fieldCreatorString(dbType: DriverType, colName: String): String = {
-    val suffix = if (context.getPrecision == 0) {
-      ""
-    } else {
-      "(" + context.getPrecision + "," + scale + ")"
-    }
-
-    colName + " DECIMAL" + suffix
-  }
-
-  def jdbcFriendly(field : String) : JBigDecimal = value.bigDecimal
-
-}
+// abstract class DBDecimalField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType, context : MathContext, scale : Int) extends DecimalField[OwnerType](rec, context, scale)
+//   with JDBCFieldFlavor[JBigDecimal]{
+// 
+//   def targetSQLType = Types.DECIMAL
+// 
+//   /**
+//    * Returns the SQL creation string for this field. See the note for DecimalField
+//    * concerning default precision.
+//    */
+//   def fieldCreatorString(dbType: DriverType, colName: String): String = {
+//     val suffix = if (context.getPrecision == 0) {
+//       ""
+//     } else {
+//       "(" + context.getPrecision + "," + scale + ")"
+//     }
+// 
+//     colName + " DECIMAL" + suffix
+//   }
+// 
+//   def jdbcFriendly(field : String) : JBigDecimal = value.bigDecimal
+// 
+// }
 
 }
 }

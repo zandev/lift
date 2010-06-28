@@ -58,25 +58,25 @@ class IntField[OwnerType <: Record[OwnerType]](rec: OwnerType) extends NumericFi
 
 }
 
-import _root_.java.sql.{ResultSet, Types}
-import _root_.net.liftweb.mapper.{DriverType}
-
-/**
- * An int field holding DB related logic
- */
-abstract class DBIntField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType) extends IntField[OwnerType](rec)
-  with JDBCFieldFlavor[Int]{
-
-  def targetSQLType = Types.INTEGER
-
-  /**
-   * Given the driver type, return the string required to create the column in the database
-   */
-  def fieldCreatorString(dbType: DriverType, colName: String): String = colName + " " + dbType.enumColumnType
-
-  def jdbcFriendly(field : String) : Int = value
-
-}
+// import _root_.java.sql.{ResultSet, Types}
+// import _root_.net.liftweb.mapper.{DriverType}
+// 
+// /**
+//  * An int field holding DB related logic
+//  */
+// abstract class DBIntField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType) extends IntField[OwnerType](rec)
+//   with JDBCFieldFlavor[Int]{
+// 
+//   def targetSQLType = Types.INTEGER
+// 
+//   /**
+//    * Given the driver type, return the string required to create the column in the database
+//    */
+//   def fieldCreatorString(dbType: DriverType, colName: String): String = colName + " " + dbType.enumColumnType
+// 
+//   def jdbcFriendly(field : String) : Int = value
+// 
+// }
 
 }
 }

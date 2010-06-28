@@ -127,33 +127,33 @@ class PasswordField[OwnerType <: Record[OwnerType]](rec: OwnerType) extends Fiel
 
 }
 
-import _root_.java.sql.{ResultSet, Types}
-import _root_.net.liftweb.mapper.{DriverType}
-
-/**
- * A password field holding DB related logic
- */
-abstract class DBPasswordField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType, maxLength: Int) extends
-  PasswordField[OwnerType](rec) with JDBCFieldFlavor[String]{
-
-  def targetSQLType = Types.VARCHAR
-
-  /**
-   * Given the driver type, return the string required to create the column in the database
-   */
-  def fieldCreatorString(dbType: DriverType, colName: String): String = if (colName.endsWith("_pw")) colName+" VARCHAR(48)" else colName+" VARCHAR(20)"
-
-  def jdbcFriendly(columnName : String) = {
-    if (columnName.endsWith("_slt")) {
-      salt.get
-    } else if (columnName.endsWith("_pw")) {
-      value
-    } else {
-      null
-    }
-  }
-
-}
+// import _root_.java.sql.{ResultSet, Types}
+// import _root_.net.liftweb.mapper.{DriverType}
+// 
+// /**
+//  * A password field holding DB related logic
+//  */
+// abstract class DBPasswordField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType, maxLength: Int) extends
+//   PasswordField[OwnerType](rec) with JDBCFieldFlavor[String]{
+// 
+//   def targetSQLType = Types.VARCHAR
+// 
+//   /**
+//    * Given the driver type, return the string required to create the column in the database
+//    */
+//   def fieldCreatorString(dbType: DriverType, colName: String): String = if (colName.endsWith("_pw")) colName+" VARCHAR(48)" else colName+" VARCHAR(20)"
+// 
+//   def jdbcFriendly(columnName : String) = {
+//     if (columnName.endsWith("_slt")) {
+//       salt.get
+//     } else if (columnName.endsWith("_pw")) {
+//       value
+//     } else {
+//       null
+//     }
+//   }
+// 
+// }
 
 }
 }

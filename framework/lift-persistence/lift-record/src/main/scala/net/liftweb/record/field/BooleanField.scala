@@ -83,24 +83,24 @@ class BooleanField[OwnerType <: Record[OwnerType]](rec: OwnerType) extends Field
 
 }
 
-import _root_.java.sql.{ResultSet, Types}
-import _root_.net.liftweb.mapper.{DriverType}
+// import _root_.java.sql.{ResultSet, Types}
+// import _root_.net.liftweb.mapper.{DriverType}
 
 /**
  * An int field holding DB related logic
  */
-class DBBooleanField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType) extends BooleanField[OwnerType](rec) with JDBCFieldFlavor[Boolean] {
-
-  def targetSQLType = _root_.java.sql.Types.BOOLEAN
-
-  /**
-   * Given the driver type, return the string required to create the column in the database
-   */
-  def fieldCreatorString(dbType: DriverType, colName: String): String = colName + " " + dbType.enumColumnType
-
-  def jdbcFriendly(field : String) : Boolean = value
-
-}
+// class DBBooleanField[OwnerType <: DBRecord[OwnerType]](rec: OwnerType) extends BooleanField[OwnerType](rec) with JDBCFieldFlavor[Boolean] {
+// 
+//   def targetSQLType = _root_.java.sql.Types.BOOLEAN
+// 
+//   /**
+//    * Given the driver type, return the string required to create the column in the database
+//    */
+//   def fieldCreatorString(dbType: DriverType, colName: String): String = colName + " " + dbType.enumColumnType
+// 
+//   def jdbcFriendly(field : String) : Boolean = value
+// 
+// }
 
 }
 }
