@@ -23,7 +23,6 @@ import common._
 import scala.xml._
 import net.liftweb.http.js.JsExp
 import net.liftweb.http.{Req, SHtml}
-import net.liftweb.mapper.Safe
 import field._
 
 trait Record[MyType <: Record[MyType]] {

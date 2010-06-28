@@ -119,8 +119,8 @@ class DecimalField[OwnerType <: Record[OwnerType]](rec: OwnerType, val context :
   def setFromJValue(jvalue: JValue) = setFromJString(jvalue)(s => tryo(BigDecimal(s)))
 }
 
-import _root_.java.sql.{ResultSet, Types}
-import _root_.net.liftweb.mapper.{DriverType}
+// import _root_.java.sql.{ResultSet, Types}
+// import _root_.net.liftweb.mapper.{DriverType}
 
 /**
  * An Decimal field holding DB related logic

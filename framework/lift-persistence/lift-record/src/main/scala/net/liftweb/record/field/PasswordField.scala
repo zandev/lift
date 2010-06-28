@@ -23,7 +23,7 @@ import _root_.net.liftweb.common._
 import _root_.net.liftweb.http.{S}
 import _root_.net.liftweb.http.js._
 import _root_.net.liftweb.json.JsonAST.{JNothing, JNull, JString, JValue}
-import _root_.net.liftweb.mapper.{Safe}
+// import _root_.net.liftweb.mapper.{Safe}
 import _root_.net.liftweb.util._
 import _root_.java.util.regex._
 import Helpers._

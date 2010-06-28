@@ -51,7 +51,7 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>lift-mapper</artifactId>
+      <artifactId>lift-webkit</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

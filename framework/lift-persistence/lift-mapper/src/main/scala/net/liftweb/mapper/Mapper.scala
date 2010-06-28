@@ -23,7 +23,7 @@ import _root_.net.liftweb.http.S
 import S._
 import _root_.net.liftweb.jdbc.common.{ConnectionAccessor,ConnectionIdentifier,SuperConnection}
 import _root_.net.liftweb.http.js._
-import _root_.net.liftweb.util.{FieldError, FieldContainer, BaseField}
+import _root_.net.liftweb.util.{FieldError, FieldContainer, BaseField, Safe}
 import _root_.net.liftweb.common.{Box, Empty, Full, ParamFailure}
 
 trait BaseMapper extends FieldContainer {

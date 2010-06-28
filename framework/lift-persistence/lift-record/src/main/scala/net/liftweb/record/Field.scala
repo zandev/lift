@@ -324,23 +324,23 @@ trait Field[ThisType, OwnerType <: Record[OwnerType]] extends OwnedField[OwnerTy
   }
 }
 
-import _root_.java.sql.{ResultSet, Types}
-import net.liftweb.mapper.{DriverType}
-
-/**
- * Desribes common aspects related with JDBC
- */
-trait JDBCFieldFlavor[MyType] {
-
-  def jdbcFriendly(field : String) : MyType
-
-  def targetSQLType : Int
-
-  /**
-   * Given the driver type, return the string required to create the column in the database
-   */
-  def fieldCreatorString(dbType: DriverType, colName: String): String
-}
+// import _root_.java.sql.{ResultSet, Types}
+// import net.liftweb.mapper.{DriverType}
+// 
+// /**
+//  * Desribes common aspects related with JDBC
+//  */
+// trait JDBCFieldFlavor[MyType] {
+// 
+//   def jdbcFriendly(field : String) : MyType
+// 
+//   def targetSQLType : Int
+// 
+//   /**
+//    * Given the driver type, return the string required to create the column in the database
+//    */
+//   def fieldCreatorString(dbType: DriverType, colName: String): String
+// }
 
 trait KeyField[MyType, OwnerType <: Record[OwnerType] with KeyedRecord[OwnerType, MyType]] extends Field[MyType, OwnerType] {
   def ===(other: KeyField[MyType, OwnerType]): Boolean = this.valueBox == other.valueBox
