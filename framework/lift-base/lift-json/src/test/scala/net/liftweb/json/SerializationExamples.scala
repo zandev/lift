@@ -193,6 +193,7 @@ case class Obj[A](a: A)
 object CustomClassExamples extends Specification {
   import Serialization.{read, write => swrite}
   import JsonAST._
+  import java.util.regex.Pattern
 
   class IntervalSerializer extends Serializer[Interval] {
     private val IntervalClass = classOf[Interval]
@@ -212,13 +213,35 @@ object CustomClassExamples extends Specification {
     }
   }
 
-  implicit val formats = Serialization.formats(NoTypeHints) + new IntervalSerializer
+  class PatternSerializer extends Serializer[Pattern] {
+    private val PatternClass = classOf[Pattern]
+
+    def deserialize(implicit format: Formats): PartialFunction[(TypeInfo, JValue), Pattern] = {
+      case (TypeInfo(PatternClass, _), json) => json match {
+        case JObject(JField("$pattern", JString(s)) :: Nil) => Pattern.compile(s)
+        case x => throw new MappingException("Can't convert " + x + " to Pattern")
+      }
+    }
+
+    def serialize(implicit format: Formats): PartialFunction[Any, JValue] = {
+      case x: Pattern => JObject(JField("$pattern", JString(x.pattern)) :: Nil)
+    }
+  }
+
+  implicit val formats = 
+    Serialization.formats(NoTypeHints) + new IntervalSerializer + new PatternSerializer
+
   val i = new Interval(1, 4)
   val ser = swrite(i)
   ser mustEqual """{"start":1,"end":4}"""
   val i2 = read[Interval](ser) 
   i2.startTime mustEqual i.startTime
   i2.endTime mustEqual i.endTime
+
+  val p = Pattern.compile("^Curly")
+  val pser = swrite(p)
+  pser mustEqual """{"$pattern":"^Curly"}"""
+  read[Pattern](pser).pattern mustEqual p.pattern
 }
 
 class Interval(start: Long, end: Long) {
