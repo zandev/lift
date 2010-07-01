@@ -457,7 +457,7 @@ object SampleSchemas extends SchemaHelpers {
         XRealField("value", Map(), XLong, JInt(-1), XOrderAscending),
         XConstantField("constantNumber", Map(), XInt,     JInt(123)),
         XConstantField("constantString", Map(), XString,  JString("foo")),
-        XConstantField("constantBool",   Map(), XBoolean, JString("foo")),
+        XConstantField("constantBool",   Map(), XBoolean, JBool(true)),
         XConstantField("constantDate",   Map(), XDate,    JInt(275296173))
       )
     ) ::

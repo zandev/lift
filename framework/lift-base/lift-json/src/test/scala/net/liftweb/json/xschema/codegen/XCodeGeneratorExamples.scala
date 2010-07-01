@@ -36,7 +36,7 @@ package net.liftweb.json.xschema.codegen {
         val sw = new StringWriter()
         
         val out = using(new PrintWriter(sw) with Uncloseable) { out => 
-          ScalaCodeGenerator.generator.generate(FringeFeaturesSchema, "src/main/scala", "src/test/scala", Nil, _ => out)
+          HaXeCodeGenerator.generator.generate(XSchemaSchema, "src/main/scala", "src/test/scala", Nil, _ => out)
           sw.toString
         }
         
