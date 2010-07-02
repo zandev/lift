@@ -75,9 +75,9 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       import haxe.data.transcode.Transcode;
       import haxe.data.transcode.JValue;
       import haxe.abstract.PartialFunction;
-      import haxe.data.collections.Set;
-      import haxe.data.collections.Map;
-      import haxe.data.collections.List;
+      import Set;
+      import Map;
+      import List;
       
       using Prelude;
       using haxe.text.json.JValue;
@@ -107,9 +107,9 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         import Prelude;
         import haxe.text.json.JValue;
         import haxe.data.transcode.JValue;
-        import haxe.data.collections.Set;
-        import haxe.data.collections.Map;
-        import haxe.data.collections.List;
+        import Set;
+        import Map;
+        import List;
 
         using Prelude;
         using haxe.text.json.JValue;
@@ -586,7 +586,7 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     ref match {
       case x: XPrimitiveRef  => getTypeHintFor(ref) + ".DecomposerT()"
       
-      case x: XMap if (x.keyType == XString) => "haxe.data.collections.Map.StringKeyDecomposerT(" + getDecomposerFor(x.valueType) + ")"
+      case x: XMap if (x.keyType == XString) => "Map.StringKeyDecomposerT(" + getDecomposerFor(x.valueType) + ")"
 
       case x: XContainerRef => getTypeHintFor(ref) + ".DecomposerT(" + (x match {
         case x: XSet        => getDecomposerFor(x.elementType)      
@@ -610,11 +610,11 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
   
   private def getExtractorFor(ref: XReference)(implicit database: XSchemaDatabase): String = {
     ref match {
-      case x: XMap if (x.keyType == XString) => "haxe.data.collections.Map.StringKeyExtractorT(" + getExtractorFor(x.valueType) + ")"
+      case x: XMap if (x.keyType == XString) => "Map.StringKeyExtractorT(" + getExtractorFor(x.valueType) + ")"
       
-      case x: XSet  => "haxe.data.collections.Set.ExtractorT("  + getExtractorFor(x.elementType) + ", " + getHasherFor(x.elementType) + ", " + getEqualFor(x.elementType) + ")"
-      case x: XList => "haxe.data.collections.List.ExtractorT(" + getExtractorFor(x.elementType) + ", " + getEqualFor(x.elementType) + ")"
-      case x: XMap  => "haxe.data.collections.Map.ExtractorT("  + getExtractorFor(x.keyType) + ", " + getExtractorFor(x.valueType) + ", " + 
+      case x: XSet  => "Set.ExtractorT("  + getExtractorFor(x.elementType) + ", " + getHasherFor(x.elementType) + ", " + getEqualFor(x.elementType) + ")"
+      case x: XList => "List.ExtractorT(" + getExtractorFor(x.elementType) + ", " + getEqualFor(x.elementType) + ")"
+      case x: XMap  => "Map.ExtractorT("  + getExtractorFor(x.keyType) + ", " + getExtractorFor(x.valueType) + ", " + 
                                                                   getHasherFor(x.keyType)    + ", " + getEqualFor(x.keyType) + ", " +
                                                                   getHasherFor(x.valueType)  + ", " + getEqualFor(x.valueType) + ")"
 
@@ -701,14 +701,14 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
     
     override def begin(data: CodeBuilder, col: XCollection) = {
       data += ((col match {
-        case x: XSet   => "haxe.data.collections.Set"
+        case x: XSet   => "Set"
         case x: XArray => "Array"
-        case x: XList  => "haxe.data.collections.List"
+        case x: XList  => "List"
       }) + "<")
     }
     
     override def begin(data: CodeBuilder, map: XMap) = {
-      data += "haxe.data.collections.Map<"
+      data += "Map<"
     }
     
     override def begin(data: CodeBuilder, tuple: XTuple) = {
@@ -725,7 +725,7 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         case XFloat   => "Float"
         case XDouble  => "Float"
         case XBoolean => "Bool"
-        case XJSON    => "haxe.text.json.JValue"
+        case XJSON    => "JValue"
         case XDate    => "Date"
       })
     }
