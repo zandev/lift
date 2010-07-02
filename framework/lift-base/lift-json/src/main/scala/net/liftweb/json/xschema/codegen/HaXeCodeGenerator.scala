@@ -624,6 +624,7 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         case x: XArray      => getExtractorFor(x.elementType)      
         case x: XTuple      => x.types.map(getExtractorFor _).mkString(", ")
         case x: XOptional   => getExtractorFor(x.optionalType)
+        case _ => error("Impossible")
       }) + ")"
 
       case x: XDefinitionRef => database.resolve(x) match {
