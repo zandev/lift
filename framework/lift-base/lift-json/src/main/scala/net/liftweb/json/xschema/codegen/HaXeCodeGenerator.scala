@@ -417,19 +417,19 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
                   case XOrderIgnore     => "0"
                 }
                 
-                "function(){return " + getOrderFor(field.fieldType) + ".compare(v1." + field.name + ", v2." + field.name + ") * " + sign + ";}"
+                "function(){return " + getOrderFor(field.fieldType) + ".compare(v1." + fieldNameOf(field.name) + ", v2." + fieldNameOf(field.name) + ") * " + sign + ";}"
               }).mkString(", "),
               
               "showCode" -> (x.realFields.map { field =>
-                getShowFor(field.fieldType) + ".show(v." + field.name + ")"
+                getShowFor(field.fieldType) + ".show(v." + fieldNameOf(field.name) + ")"
               }).mkString(", "),
               
               "hashCode" -> (x.realFields.map { field =>
-                getHasherFor(field.fieldType) + ".hash(v." + field.name + ")"
+                getHasherFor(field.fieldType) + ".hash(v." + fieldNameOf(field.name) + ")"
               }).mkString(", "),
               
               "decomposerCode" -> (x.realFields.map { field =>
-                getDecomposerFor(field.fieldType) + ".decompose(v." + field.name + ")"
+                "JField('" + field.name + "', " + getDecomposerFor(field.fieldType) + ".decompose(v." + fieldNameOf(field.name) + ")" + ")"
               }).mkString(", "),
               
               "extractorCode" -> (x.realFields.map { field =>
@@ -440,7 +440,7 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
             // Build fields:
             code.join(x.terms, code.newline) { field =>
               code.add("public var ${fieldName} (default, null): ${fieldType};",
-                "fieldName" -> field.name,
+                "fieldName" -> fieldNameOf(field.name),
                 "fieldType" -> typeSignatureOf(field.fieldType)
               )
             }
@@ -449,15 +449,15 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
               code.newline(2).addln("public static var Instance: ${type} = new ${type}();");
             }
             
-            val argsList = x.realFields.map(_.name).mkString(", ")
-            val constructorArgs = (x.realFields.map { realField =>
-              realField.name + ": " + typeSignatureOf(realField.fieldType)
+            val argsList = x.realFields.map { f => fieldNameOf(f.name) }.mkString(", ")
+            val constructorArgs = (x.realFields.map { f =>
+              fieldNameOf(f.name) + ": " + typeSignatureOf(f.fieldType)
             }).mkString(", ")
             
             // Build constructor:
             code.newline.add("public function new(${constructorArgs}) ", "constructorArgs" -> constructorArgs).block {
               code.join(x.terms, code.newline) { field => 
-                code.using("fieldName" -> field.name, "fieldType" -> typeSignatureOf(field.fieldType)) {
+                code.using("fieldName" -> fieldNameOf(field.name), "fieldType" -> typeSignatureOf(field.fieldType)) {
                   code.add("this.${fieldName} = ${fieldValue};",
                     "fieldValue" -> (field match {
                       case x: XRealField => "${fieldName}"
@@ -465,7 +465,7 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
                       case x: XViewField => 
                         val product = database.resolve(field.fieldType).asInstanceOf[XProduct]
                       
-                        "new ${fieldType}(" + product.realFields.map(_.name).mkString(", ") + ")"
+                        "new ${fieldType}(" + product.realFields.map { f => fieldNameOf(f.name) }.mkString(", ") + ")"
 
                       case x: XConstantField => getExtractorFor(x.fieldType) + ".extract(" + renderHaXe(x.default) + ")"
                     })
@@ -477,8 +477,8 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
             // Build "with" methods to create copies:
             code.newline(2).join(x.realFields, code.newline) { field =>
               code.add("public function with${withName}(${fieldName}: ${fieldType}): ${type} { return new ${name}(${argsList}); }", "argsList" -> argsList,
-                "withName"  -> (field.name.charAt(0).toUpperCase.toString + field.name.substring(1)),
-                "fieldName" -> field.name,
+                "withName"  -> { var name = fieldNameOf(field.name); name.charAt(0).toUpperCase.toString + name.substring(1) },
+                "fieldName" -> fieldNameOf(field.name),
                 "fieldType" -> typeSignatureOf(field.fieldType)
               )
             }
@@ -562,7 +562,7 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
         case x: XList       => getTypeclassFor(typeclass, x.elementType)      
         case x: XArray      => getTypeclassFor(typeclass, x.elementType)      
         case x: XMap        => getTypeclassFor(typeclass, x.keyType) + ", " + getTypeclassFor(typeclass, x.valueType)
-        case x: XTuple      => x.types.map(x => getTypeclassFor(typeclass, x)).mkString(", ")
+        case x: XTuple      => x.types.map { x => getTypeclassFor(typeclass, x) }.mkString(", ")
         case x: XOptional   => getTypeclassFor(typeclass, x.optionalType)
       }) + ")"
 
@@ -599,7 +599,7 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
 
       case x: XDefinitionRef => database.resolve(x) match {
         case t : XMultitype => 
-          var classname = x.namespace + "." + getTypeHintFor(x);
+          var classname = x.namespace + "." + getTypeHintFor(x)
           
           classname + "Extensions.DecomposerT(" + (if (t.isInstanceOf[XUnion]) "" else classname) + ")"
         
@@ -676,13 +676,19 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       case JNothing     => "JNull"
       case JNull        => "JNull"
       case JString(v)   => "JString('" + escapeHaXeString(v) + "')"
-      case JBool(v)     => "JBool(" + v.toString + ")"
+      case JBool(v)     => "JBool(" + v + ")"
       case JInt(v)      => "JNumber(" + v + ")"
       case JDouble(v)   => "JNumber(" + v + ")"
       case JArray(v)    => "JArray([" + v.map(renderHaXe).mkString(", ") + "])"
       case JObject(v)   => "JObject([" + v.map(renderHaXe).mkString(", ") + "])"
       case JField(k, v) => "JField('" + escapeHaXeString(k) + "', " + renderHaXe(v) + ")"
     }
+  }
+  
+  private def fieldNameOf(name: String) = {
+    val haXeKeywords = "default, case, function, callback, return, break, continue, typedef, package, class, interface, public, private, static, new, null, import, using, switch, if, else, while, for, in, var"
+    
+    haXeKeywords.split("\\s*,\\s*").toList.find(_ == name).map(_ + "Value").getOrElse(name)
   }
   
   private def typeSignatureOf(x: XReference)(implicit database: XSchemaDatabase): String = walk(x, CodeBuilder.empty, typeSignatureWalker(database)).code
