@@ -53,7 +53,7 @@
   <modules>
     <module>framework</module>
     <module>archetypes</module>
-    <!-- <module>examples</module> -->
+    <module>examples</module>
   </modules>
 
   <!--
