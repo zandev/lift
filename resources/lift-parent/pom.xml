@@ -856,9 +856,6 @@
           <version>2.14</version>
           <configuration>
             <charset>${project.build.sourceEncoding}</charset>
-            <jvmArgs>
-              <jvmArg>-Xmx1024m</jvmArg>
-            </jvmArgs>
             <args>
               <arg>-Xno-varargs-conversion</arg>
             </args>
