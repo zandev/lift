@@ -31,7 +31,7 @@
     <version>2.1-SNAPSHOT</version>
     <relativePath>../lift-parent/pom.xml</relativePath>
   </parent>
-  <artifactId>lift-site-skin</artifactId>
+  <artifactId>lift-site-skin_2.8.0.RC7</artifactId>
 
   <!--
     ~ More Project Information
