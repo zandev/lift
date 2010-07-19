@@ -62,10 +62,10 @@ class LiftFrameworkProject(info: ProjectInfo) extends LiftParentProject(info) {
 
     // Lift Modules Subprojects
     lazy val testkit      = project("lift-testkit",       "lift-testkit",       new LiftTestkitProject(_))
+    lazy val osgi         = project("lift-osgi",          "lift-osgi",          new LiftOsgiProject(_))
     lazy val wizard       = project("lift-wizard",        "lift-wizard",        new LiftWizardProject(_))
     lazy val widgets      = project("lift-widgets",       "lift-widgets",       new LiftWidgetsProject(_))
     lazy val machine      = project("lift-machine",       "lift-machine",       new LiftMachineProject(_))
-    lazy val scalate      = project("lift-scalate",       "lift-scalate",       new LiftScalateProject(_))
     lazy val textile      = project("lift-textile",       "lift-textile",       new LiftTextileProject(_))
     lazy val facebook     = project("lift-facebook",      "lift-facebook",      new LiftFacebookProject(_))
     lazy val amqp         = project("lift-amqp",          "lift-amqp",          new LiftAMQPProject(_))
@@ -79,10 +79,10 @@ class LiftFrameworkProject(info: ProjectInfo) extends LiftParentProject(info) {
     lazy val ldap         = project("lift-ldap",          "lift-ldap",          new LiftLDAPProject(_))
 
     class LiftTestkitProject    (info: ProjectInfo) extends LiftDefaultProject(info)
+    class LiftOsgiProject       (info: ProjectInfo) extends LiftDefaultProject(info)
     class LiftWizardProject     (info: ProjectInfo) extends LiftDefaultProject(info)
     class LiftWidgetsProject    (info: ProjectInfo) extends LiftDefaultProject(info)
     class LiftMachineProject    (info: ProjectInfo) extends LiftDefaultProject(info)
-    class LiftScalateProject    (info: ProjectInfo) extends LiftDefaultProject(info)
     class LiftTextileProject    (info: ProjectInfo) extends LiftDefaultProject(info)
     class LiftFacebookProject   (info: ProjectInfo) extends LiftDefaultProject(info)
     class LiftAMQPProject       (info: ProjectInfo) extends LiftDefaultProject(info)
@@ -201,7 +201,7 @@ abstract class LiftDefaultProject(info: ProjectInfo) extends DefaultProject(info
 
   // Compile options
   override def compileOptions =
-    super.compileOptions ++ Seq(Unchecked) ++ Seq("-Xcheckinit", "-Xmigration", "-encoding", "utf8").map(x => CompileOption(x))
+    super.compileOptions ++ Seq(Unchecked) ++ Seq("-Xcheckinit", "-encoding", "utf8").map(x => CompileOption(x))
 
   // Test options
   // override def testOptions = super.testOptions ++ TODO
@@ -227,9 +227,8 @@ abstract class LiftDefaultProject(info: ProjectInfo) extends DefaultProject(info
     "Copyright (c) " + projectInceptionyear.value + "-" + C.getInstance().get(C.YEAR) + " " +
     projectOrganizationName.value + ". All Rights Reserved."
 
-  // TODO: comply with scaladoc for 2.8
-//  override def documentOptions =
-//    super.documentOptions ++ Seq(LinkSource, documentBottom(docBottom), documentCharset("utf8"))
+  override def documentOptions =
+    super.documentOptions ++ Seq(LinkSource, documentBottom(docBottom), documentCharset("utf8"))
 
   // Make `package` depend on `test`
   override def packageAction = super.packageAction dependsOn testAction
