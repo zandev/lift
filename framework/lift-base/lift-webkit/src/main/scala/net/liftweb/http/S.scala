@@ -1251,6 +1251,7 @@ for {
           TransientRequestVarHandler(Full(session),
             RequestVarHandler(Full(session),
               _responseCookies.doWith(CookieHolder(getCookies(containerRequest), Nil)) {
+                if (Props.devMode) LiftRules.siteMap // materialize the sitemap very early
                 _innerInit(request, f)
               }
             )
