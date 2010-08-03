@@ -80,7 +80,7 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       import haxe.data.collections.List;
       
       using Prelude;
-      using haxe.text.json.JValue;
+      using haxe.text.json.JValueExtensions;
       using haxe.data.transcode.JValue;
       using haxe.abstract.PartialFunction;""",
       
