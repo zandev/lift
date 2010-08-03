@@ -24,14 +24,13 @@ import net.liftweb.util._
 import scala.reflect.Manifest
 import scala.xml._
 
-
 trait OwnedField[OwnerType <: Record[OwnerType]] extends FieldIdentifier {
   private[record] var needsDefault = true
   private[record] var dirty = false
   private[record] var fieldName: String = _
 
   type MyType
-  type ValidationFunction = Box[MyType] => Box[Node]
+  type ValidationFunction = Box[MyType] => List[FieldError]
 
   /**
    * Return the owner of this field
@@ -167,8 +166,20 @@ trait OwnedField[OwnerType <: Record[OwnerType]] extends FieldIdentifier {
 
   /** Helper function that does validation of a value by using the validators specified for the field */
   protected def runValidation(in: Box[MyType]): List[FieldError] =
-    validators.flatMap(_(in).map(FieldError(this, _))).removeDuplicates
+    validators.flatMap(_(in)).removeDuplicates
 
+  protected implicit def boxNodeToFieldError(in: Box[Node]): List[FieldError] =
+    in match {
+      case Full(node) => List(FieldError(this, node))
+      case _ => Nil
+    }
+
+  protected implicit def nodeToFieldError(node: Node): List[FieldError] =
+    List(FieldError(this, node))
+
+  protected implicit def boxNodeFuncToFieldError(in: Box[MyType] => Box[Node]):
+  Box[MyType] => List[FieldError] =
+    param => boxNodeToFieldError(in(param))
 
   private[record] var data: Box[MyType] = Empty
 
