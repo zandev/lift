@@ -73,16 +73,16 @@ class BaseHaXeCodeGenerator extends CodeGenerator with CodeGeneratorHelpers {
       import Prelude;
       import haxe.text.json.JValue;
       import haxe.data.transcode.Transcode;
-      import haxe.data.transcode.JValue;
+      import haxe.data.transcode.TranscodeJValue;
       import haxe.abstract.PartialFunction;
       import haxe.data.collections.Set;
       import haxe.data.collections.Map;
       import haxe.data.collections.List;
       
-      using Prelude;
+      using PreludeExtensions;
       using haxe.text.json.JValueExtensions;
-      using haxe.data.transcode.JValue;
-      using haxe.abstract.PartialFunction;""",
+      using haxe.data.transcode.TranscodeJValueExtensions;
+      using haxe.abstract.PartialFunctionExtensions;""",
       
       "namespace" -> namespace
     ).newline(2)

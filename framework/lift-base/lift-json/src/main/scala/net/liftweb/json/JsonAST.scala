@@ -360,8 +360,6 @@ object JsonAST {
       case o: JObject => Set(obj.toArray: _*) == Set(o.obj.toArray: _*)
       case _ => false
     }
-    
-    def compare(that: JValue) = 0
   }
   case class JArray(arr: List[JValue]) extends JValue {
     type Values = List[Any]

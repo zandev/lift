@@ -284,18 +284,14 @@ object Extraction {
     build(json, mapping)
   }
   
-  private def isInteger(c: Class[_]) = {
-    val classes = List(classOf[Int],    classOf[JavaInteger], classOf[Long],   classOf[JavaLong], 
-                       classOf[Short],  classOf[JavaShort],   classOf[Byte],   classOf[JavaByte])
-
-    classes.contains(c)
-  }
-
-  private def isReal(c: Class[_]) = {
-    val classes = List(classOf[Float], classOf[Double], classOf[JavaFloat], classOf[JavaDouble])
-
-    classes.contains(c)
-  }
+  private val IntegerClasses = List(classOf[Int],    classOf[JavaInteger], classOf[Long],   classOf[JavaLong], 
+                                    classOf[Short],  classOf[JavaShort],   classOf[Byte],   classOf[JavaByte]);
+  
+  private val RealClasses = List(classOf[Float], classOf[Double], classOf[JavaFloat], classOf[JavaDouble])
+  
+  private def isInteger(c: Class[_]) = IntegerClasses.contains(c)
+  
+  private def isReal(c: Class[_]) = RealClasses.contains(c)
 
   private def convert(json: JValue, targetType: Class[_], formats: Formats): Any = json match {
     case JInt(x) if (targetType == classOf[Int]) => x.intValue
