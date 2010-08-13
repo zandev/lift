@@ -66,7 +66,7 @@ class ObjectIdField[OwnerType <: MongoRecord[OwnerType]](rec: OwnerType)
     }
   }
 
-  def toForm = <div></div>
+  def toForm = Empty
 
   def owner = rec
 }

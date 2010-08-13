@@ -65,7 +65,7 @@ class MongoPasswordField[OwnerType <: MongoRecord[OwnerType]](rec: OwnerType, mi
     )
   }
 
-  override def validateField: List[FieldError] = runValidation(validatorValue)
+  override def validate: List[FieldError] = runValidation(validatorValue)
 
   private def elem = S.fmapFunc(S.SFuncHolder(this.setPassword(_))) {
     funcName => <input type="password"
@@ -73,22 +73,11 @@ class MongoPasswordField[OwnerType <: MongoRecord[OwnerType]](rec: OwnerType, mi
       value=""
       tabindex={tabIndex toString}/>}
 
-  override def toForm = {
+  override def toForm =
     uniqueFieldId match {
-      case Full(id) =>
-        <div id={id+"_holder"}><div><label for={id+"_field"}>{displayName}</label></div>{elem % ("id" -> (id+"_field"))}<lift:msg id={id}/></div>
-      case _ => <div>{elem}</div>
+      case Full(id) => Full(elem % ("id" -> (id+"_field")))
+      case _ => Full(elem)
     }
-  }
-
-  override def asXHtml: NodeSeq = {
-    var el = elem
-
-    uniqueFieldId match {
-      case Full(id) =>  el % ("id" -> (id+"_field"))
-      case _ => el
-    }
-  }
 
   private def validatePassword(pwdBox: Box[Password]): Box[Node] = pwdBox.map(_.pwd) match {
     case Full(null | "" | "*" | MongoPasswordField.blankPw) =>

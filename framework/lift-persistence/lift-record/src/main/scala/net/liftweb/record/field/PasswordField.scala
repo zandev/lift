@@ -75,7 +75,7 @@ class PasswordField[OwnerType <: Record[OwnerType]](rec: OwnerType) extends Fiel
     case _                => setBox(Full(s))
   }
 
-  override def validateField: List[FieldError] = runValidation(validatedValue)
+  override def validate: List[FieldError] = runValidation(validatedValue)
 
   private def elem = S.fmapFunc(SFuncHolder(this.setFromAny(_))){
     funcName => <input type="password"
@@ -83,23 +83,11 @@ class PasswordField[OwnerType <: Record[OwnerType]](rec: OwnerType) extends Fiel
       value={valueBox openOr ""}
       tabindex={tabIndex toString}/>}
 
-  def toForm = {
+  def toForm =
     uniqueFieldId match {
-      case Full(id) =>
-        <div id={id+"_holder"}><div><label for={id+"_field"}>{displayName}</label></div>{elem % ("id" -> (id+"_field"))}<lift:msg id={id}/></div>
-      case _ => <div>{elem}</div>
+      case Full(id) => Full(elem % ("id" -> (id + "_field")))
+      case _ => Full(elem)
     }
-
-  }
-
-  def asXHtml: NodeSeq = {
-    var el = elem
-
-    uniqueFieldId match {
-      case Full(id) =>  el % ("id" -> (id+"_field"))
-      case _ => el
-    }
-  }
 
   protected def validatePassword(pwdBox: Box[String]): List[FieldError] = 
     pwdBox match {

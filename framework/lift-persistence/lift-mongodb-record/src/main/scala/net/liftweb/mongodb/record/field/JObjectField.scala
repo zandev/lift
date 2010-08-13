@@ -56,7 +56,7 @@ class JObjectField[OwnerType <: Record[OwnerType]](rec: OwnerType) extends Field
     Full(set(JsonParser.parse(in).asInstanceOf[JObject]))
   }
 
-  def toForm = <div></div>
+  def toForm = Empty
 
   def owner = rec
 }

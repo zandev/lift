@@ -24,12 +24,13 @@ import net.liftweb.util._
 import scala.reflect.Manifest
 import scala.xml._
 
-trait OwnedField[OwnerType <: Record[OwnerType]] extends FieldIdentifier {
+trait OwnedField[OwnerType <: Record[OwnerType]] extends FieldIdentifier with BaseField {
   private[record] var needsDefault = true
   private[record] var dirty = false
   private[record] var fieldName: String = _
 
   type MyType
+  type ValueType = MyType
   type ValidationFunction = Box[MyType] => List[FieldError]
 
   /**
@@ -61,11 +62,6 @@ trait OwnedField[OwnerType <: Record[OwnerType]] extends FieldIdentifier {
   def name: String = fieldName
 
   /**
-   * The display name of the field (by default, the 'internal' name of the field)
-   */
-  def displayName = name
-
-  /**
    * Can the value of this field be read without obscuring the result?
    */
   def canRead_? = owner.safe_? || checkCanRead_?
@@ -85,9 +81,10 @@ trait OwnedField[OwnerType <: Record[OwnerType]] extends FieldIdentifier {
    */
   def toXHtml: NodeSeq = Text(toString)
 
-  def toForm: NodeSeq
-
-  def asXHtml: NodeSeq
+  /**
+   * Generate a form control for the field
+   */
+  def toForm: Box[NodeSeq]
 
   /**
    * Returns the field's value as a valid JavaScript expression
@@ -161,8 +158,10 @@ trait OwnedField[OwnerType <: Record[OwnerType]] extends FieldIdentifier {
    */
   def validators: List[ValidationFunction] = Nil
 
+  def validations = validators.map(f => in => f(Full(in)))
+
   /** Validate this field's setting, returning any errors found */
-  def validateField: List[FieldError] = runValidation(valueBox)
+  def validate: List[FieldError] = runValidation(valueBox)
 
   /** Helper function that does validation of a value by using the validators specified for the field */
   protected def runValidation(in: Box[MyType]): List[FieldError] =
@@ -209,7 +208,7 @@ trait OwnedField[OwnerType <: Record[OwnerType]] extends FieldIdentifier {
    */
   def set(in: MyType): MyType = setBox(Full(in)) openOr defaultValue
 
-  def setBox(in: Box[MyType]): Box[MyType] = synchronized {
+    def setBox(in: Box[MyType]): Box[MyType] = synchronized {
     needsDefault = false
     data = in match {
       case _ if !checkCanWrite_? => Failure(noValueErrorMessage)
@@ -221,14 +220,16 @@ trait OwnedField[OwnerType <: Record[OwnerType]] extends FieldIdentifier {
     data
   }
 
-  protected def set_!(in: Box[MyType]): Box[MyType] = runFilters(in, setFilter)
+  protected def set_!(in: Box[MyType]): Box[MyType] = runFilters(in, setFilterBox)
+
+  protected def setFilter: List[MyType => MyType] = Nil
 
   /**
    * A list of functions that transform the value before it is set.  The transformations
    * are also applied before the value is used in a query.  Typical applications
    * of this are trimming and/or toLowerCase-ing strings
    */
-  protected def setFilter: List[Box[MyType] => Box[MyType]] = Nil
+  protected def setFilterBox: List[Box[MyType] => Box[MyType]] = ((in: Box[MyType]) => in.map(v => setFilter.foldLeft(v)((prev, f) => f(prev)))) :: Nil
 
   def runFilters(in: Box[MyType], filter: List[Box[MyType] => Box[MyType]]): Box[MyType] = filter match {
     case Nil => in
@@ -284,6 +285,9 @@ trait OwnedField[OwnerType <: Record[OwnerType]] extends FieldIdentifier {
 
   def value: MyType = valueBox openOr defaultValue
 
+  def get: MyType = value
+  def is: MyType = value
+
   def valueBox: Box[MyType] = synchronized {
     if (needsDefault) {
       data = defaultValueBox
@@ -312,7 +316,6 @@ trait OwnedField[OwnerType <: Record[OwnerType]] extends FieldIdentifier {
 trait Field[ThisType, OwnerType <: Record[OwnerType]] extends OwnedField[OwnerType] {
   type MyType = ThisType
 
-
   def apply(in: MyType): OwnerType = apply(Full(in))
 
   def apply(in: Box[MyType]): OwnerType = if (owner.meta.mutable_?) {
@@ -322,6 +325,26 @@ trait Field[ThisType, OwnerType <: Record[OwnerType]] extends OwnedField[OwnerTy
     owner.meta.createWithMutableField(owner, this, in)
   }
 }
+
+/**
+ * Mix in to a field to change its form display to be formatted with the label aside.
+ *
+ * E.g.
+ *   <div id={ id + "_holder" }>
+ *     <div><label for={ id + "_field" }>{ displayName }</label></div>
+ *     { control }
+ *   </div>
+ */
+trait DisplayWithLabel[OwnerType <: Record[OwnerType]] extends OwnedField[OwnerType] {
+  override abstract def toForm =
+    for (id <- uniqueFieldId; control <- super.toForm)
+    yield
+      <div id={ id + "_holder" }>
+        <div><label for={ id + "_field" }>{ displayName }</label></div>
+        { control }
+      </div>
+}
+
 
 import _root_.java.sql.{ResultSet, Types}
 import net.liftweb.mapper.{DriverType}

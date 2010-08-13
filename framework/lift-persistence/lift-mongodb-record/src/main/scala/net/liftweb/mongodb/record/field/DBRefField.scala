@@ -91,7 +91,7 @@ class DBRefField[OwnerType <: MongoRecord[OwnerType], RefType <: MongoRecord[Ref
     })
   }
 
-  def toForm = <div></div>
+  def toForm = Empty
 
   def owner = rec
 }

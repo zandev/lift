@@ -62,7 +62,7 @@ class MongoMapField[OwnerType <: MongoRecord[OwnerType], MapValueType](rec: Owne
   // parse String into a JObject
   def setFromString(in: String): Box[Map[String, MapValueType]] = setFromJValue(JsonParser.parse(in))
 
-  def toForm = <div></div> // not implemented
+  def toForm = Empty // not implemented
 
   def owner = rec
 

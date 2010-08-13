@@ -44,8 +44,7 @@ class MongoListField[OwnerType <: MongoRecord[OwnerType], ListType](rec: OwnerTy
 
   def owner = rec
 
-  def toForm = NodeSeq.Empty // FIXME
-  def asXHtml = NodeSeq.Empty // FIXME
+  def toForm = Empty // FIXME
 
   def asJs = Str(toString) // FIXME
 
