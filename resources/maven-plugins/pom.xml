@@ -33,7 +33,7 @@
     <groupId>net.liftweb</groupId>
     <artifactId>lift-parent</artifactId>
     <version>3.0-SNAPSHOT</version>
-    <relativePath>../resources/lift-parent/pom.xml</relativePath>
+    <relativePath>../lift-parent/pom.xml</relativePath>
   </parent>
   <artifactId>lift-maven-plugins</artifactId>
   <packaging>pom</packaging>
