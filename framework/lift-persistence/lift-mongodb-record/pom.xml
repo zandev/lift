@@ -46,11 +46,6 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>lift-json</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
       <artifactId>lift-mongodb</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -58,6 +53,12 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>lift-record</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>lift-json-ext</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mongodb</groupId>
