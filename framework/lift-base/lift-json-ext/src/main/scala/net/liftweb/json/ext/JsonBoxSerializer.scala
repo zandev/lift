@@ -15,15 +15,15 @@
  */
 
 package net.liftweb {
-package util {
+package json {
+package ext {
 
 import java.io._
 import java.lang.reflect.ParameterizedType
 import scala.reflect.Manifest
 import common._
-import json.Extraction.{decompose, extract}
-import json.{Formats, MappingException, TypeInfo, Serializer}
-import json.JsonAST._
+import Extraction.{decompose, extract}
+import JsonAST._
 import _root_.org.apache.commons.codec.binary.Base64
 
 class JsonBoxSerializer extends Serializer[Box[_]] {
@@ -33,8 +33,8 @@ class JsonBoxSerializer extends Serializer[Box[_]] {
   def deserialize(implicit format: Formats): PartialFunction[(TypeInfo, JValue), Box[_]] = {
     case (TypeInfo(BoxClass, ptype), json) => json match {
       case JNull | JNothing => Empty
-      case JObject(JField("$box_failure", JString("Failure")) :: 
-                   JField("msg", JString(msg)) :: 
+      case JObject(JField("box_failure", JString("Failure")) ::
+                   JField("msg", JString(msg)) ::
                    JField("exception", exn) ::
                    JField("chain", chain) :: Nil) => 
                      Failure(msg, deserializeException(exn), 
@@ -56,14 +56,14 @@ class JsonBoxSerializer extends Serializer[Box[_]] {
   def serialize(implicit format: Formats): PartialFunction[Any, JValue] = {
     case Full(x) => decompose(x)
     case Empty => JNull
-    case Failure(msg, exn, chain) => 
-      JObject(JField("$box_failure", JString("Failure")) :: 
-              JField("msg", JString(msg)) :: 
+    case Failure(msg, exn, chain) =>
+      JObject(JField("box_failure", JString("Failure")) ::
+              JField("msg", JString(msg)) ::
               JField("exception", serializeException(exn)) ::
               JField("chain", decompose(chain)) :: Nil)
-    case ParamFailure(msg, exn, chain, param) => 
-      JObject(JField("$box_failure", JString("ParamFailure")) :: 
-              JField("msg", JString(msg)) :: 
+    case ParamFailure(msg, exn, chain, param) =>
+      JObject(JField("box_failure", JString("ParamFailure")) ::
+              JField("msg", JString(msg)) ::
               JField("exception", serializeException(exn)) ::
               JField("chain", decompose(chain)) :: 
               JField("paramType", JString(param.asInstanceOf[AnyRef].getClass.getName)) ::
@@ -100,5 +100,6 @@ class JsonBoxSerializer extends Serializer[Box[_]] {
   }
 }
 
+}
 }
 }
