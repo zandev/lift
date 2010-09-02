@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 WorldWide Conferencing, LLC
+ * Copyright 2010 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,22 @@
  */
 
 package net.liftweb {
-package builtin {
+package example {
 package snippet {
 
-import _root_.scala.xml._
-import _root_.net.liftweb.http._
+import net.liftweb.util.Helpers._
 
-object TestCond extends DispatchSnippet {
-  def dispatch : DispatchIt = {
-    case "loggedin" |
-    "logged_in" |
-    "LoggedIn" | "loggedIn" => loggedIn _
+object LongTime {
+  def render = {
+    val delay = 1000L + randomLong(10000)
 
-    case "loggedout" |
-    "logged_out" |
-    "LoggedOut" |
-    "loggedOut"
-    => loggedOut _
+    Thread.sleep(delay)
+    
+    <div>
+    This thread delayed {delay / 1000L} seconds
+    </div>
   }
-
-  def loggedIn(xhtml: NodeSeq): NodeSeq =
-  if (S.loggedIn_?) xhtml else NodeSeq.Empty
-
-  def loggedOut(xhtml: NodeSeq): NodeSeq =
-  if (S.loggedIn_?) NodeSeq.Empty else xhtml
 }
-
 }
 }
 }

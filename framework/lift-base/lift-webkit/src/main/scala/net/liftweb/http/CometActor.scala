@@ -205,22 +205,32 @@ trait ListenerManager {
   protected def lowPriority: PartialFunction[Any, Unit] = Map.empty
 }
 
-trait CometListener extends CometListenee
+trait CometListener extends CometListenee {
+  self: CometActor =>
+}
 
-trait CometListenee extends CometActor {
+trait LocalSetupAndShutdown {
+  protected def localSetup(): Unit
+
+  protected def localShutdown(): Unit
+}
+
+trait CometListenee extends LocalSetupAndShutdown {
+  self: CometActor =>
   protected def registerWith: SimpleActor[Any]
 
   /**
-   * Override this in order to selectively update listeners based on the given message.
+   * Override this in order to selectively update listeners based on the given message.  This method has been deprecated because it's executed in a seperate context from the session's context.  This causes problems.  Accept/reject logic should be done in the partial function that handles the message.
    */
+  @deprecated
   protected def shouldUpdate: PartialFunction[Any, Boolean] = { case _ => true}
 
-  override protected def localSetup() {
+  abstract override protected def localSetup() {
     registerWith ! AddAListener(this, shouldUpdate)
     super.localSetup()
   }
 
-  override protected def localShutdown() {
+  abstract override protected def localShutdown() {
     registerWith ! RemoveAListener(this)
     super.localShutdown()
   }
@@ -569,6 +579,8 @@ trait CometActor extends LiftActor with LiftCometActor with BindHelpers {
     this ! ReRender(sendAll)
   }
 
+  def reRender() {reRender(false)}
+
   private def performReRender(sendAll: Boolean) {
     lastRenderTime = Helpers.nextNum
     wasLastFullRender = sendAll & hasOuter
@@ -761,10 +773,10 @@ private[http] class XmlOrJsCmd(val id: String,
             ((if (ignoreHtmlOnJs) Empty else xml, javaScript, displayAll) match {
               case (Full(xml), Full(js), false) => LiftRules.jsArtifacts.setHtml(id, Helpers.stripHead(xml)) & JsCmds.JsTry(js, false)
               case (Full(xml), _, false) => LiftRules.jsArtifacts.setHtml(id, Helpers.stripHead(xml))
-              case (Full(xml), Full(js), true) => LiftRules.jsArtifacts.setHtml(id + "_outer", (fixedXhtml.openOr(Text("")) ++ 
-                spanFunc(0, Helpers.stripHead(xml)))) & JsCmds.JsTry(js, false)
-              case (Full(xml), _, true) => LiftRules.jsArtifacts.setHtml(id + "_outer", (fixedXhtml.openOr(Text("")) ++ 
-                spanFunc(0, Helpers.stripHead(xml))))
+              case (Full(xml), Full(js), true) => LiftRules.jsArtifacts.setHtml(id + "_outer", ( 
+                spanFunc(0, Helpers.stripHead(xml)) ++ fixedXhtml.openOr(Text("")))) & JsCmds.JsTry(js, false)
+              case (Full(xml), _, true) => LiftRules.jsArtifacts.setHtml(id + "_outer", ( 
+                spanFunc(0, Helpers.stripHead(xml)) ++ fixedXhtml.openOr(Text(""))))
               case (_, Full(js), _) => js
               case _ => JsCmds.Noop
             }) & JsCmds.JsTry(JsCmds.Run("destroy_" + id + " = function() {" + (destroy.openOr(JsCmds.Noop).toJsCmd) + "};"), false)

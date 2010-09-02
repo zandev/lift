@@ -30,14 +30,14 @@
     <artifactId>lift-persistence_2.8.0</artifactId>
     <version>2.1-SNAPSHOT</version>
   </parent>
-  <artifactId>lift-mongodb_2.8.0</artifactId>
+  <artifactId>lift-squeryl-record_2.8.0</artifactId>
 
   <!--
     ~ More Project Information
   -->
-  <name>Lift MongoDB</name>
+  <name>Lift Squeryl Integration</name>
   <description>
-    Lift's MongoDB integration
+    Lift's Squeryl integration for Lift Record
   </description>
 
   <!--
@@ -46,35 +46,21 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>lift-common_${scala.version}</artifactId>
+      <artifactId>lift-mapper_${scala.version}</artifactId> <!-- FIXME we only need DB out of here, and that should be moved out of mapper -->
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>lift-json_${scala.version}</artifactId>
+      <artifactId>lift-record_${scala.version}</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>lift-json-ext_${scala.version}</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
+      <groupId>org.squeryl</groupId>
+      <artifactId>squeryl_${scala.version}</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongo-java-driver</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-tools.testing</groupId>
-      <artifactId>specs_${scala.version}</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-tools.testing</groupId>
-      <artifactId>scalacheck_${scala.version}</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>cglib</groupId>
+      <artifactId>cglib-nodep</artifactId>
     </dependency>
   </dependencies>
 </project>

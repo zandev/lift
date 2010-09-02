@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2010 WorldWide Conferencing, LLC
+  ~ Copyright 2009-2010 WorldWide Conferencing, LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~     http://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,18 +27,23 @@
   -->
   <parent>
     <groupId>net.liftweb</groupId>
-    <artifactId>lift-persistence_2.8.0</artifactId>
+    <artifactId>lift-base_2.8.0</artifactId>
     <version>2.1-SNAPSHOT</version>
   </parent>
-  <artifactId>lift-mongodb_2.8.0</artifactId>
+  <artifactId>lift-json-ext_2.8.0</artifactId>
 
   <!--
     ~ More Project Information
   -->
-  <name>Lift MongoDB</name>
+  <name>Lift Json Extensions</name>
   <description>
-    Lift's MongoDB integration
+    Lift-Json extensions
   </description>
+
+  <!--
+    ~ Environment Settings
+  -->
+  <!-- <properties/> -->
 
   <!--
     ~ Dependency Settings
@@ -55,14 +60,8 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>lift-json-ext_${scala.version}</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongo-java-driver</artifactId>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
     </dependency>
     <dependency>
       <groupId>org.scala-tools.testing</groupId>
@@ -77,4 +76,27 @@
       <artifactId>junit</artifactId>
     </dependency>
   </dependencies>
+
+  <!--
+    ~ Build Settings
+  -->
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <configuration>
+          <instructions>
+            <Export-Package>net.liftweb.json.ext*;version="${project.version}"</Export-Package>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!--
+    ~ Reporting Settings
+  -->
+  <!-- <reporting/> -->
+
 </project>

@@ -369,9 +369,9 @@ object MongoRecordExamples extends Specification {
 
     // get the docs back from the db
     MainDoc.find(md1.id).foreach(m => {
-      m.refdoc.value.getId _== ref1.getRef.getId
+      m.refdoc.value.getId must_== ref1.getRef.getId
       m.refdoc.value.getRef must_== ref1.getRef.getRef
-      m.refstringdoc.value.getId _== refString1.getRef.getId
+      m.refstringdoc.value.getId must_== refString1.getRef.getId
       m.refstringdoc.value.getRef must_== refString1.getRef.getRef
     })
 
@@ -412,6 +412,11 @@ object MongoRecordExamples extends Specification {
     // Find all documents using a k, v query
     val mdq3 = MainDoc.findAll("_id", md1.id)
     mdq3.size must_== 1
+
+    // find all documents with field selection
+    val mdq4 = MainDoc.findAll(("name" -> "md1"), ("name" -> 1), Empty)
+    mdq4.size must_== 1
+    println(mdq4.first.refdoc.value)
 
     // Upsert - this should add a new row
     val md5 = MainDoc.createRecord

@@ -122,10 +122,21 @@ trait MongoMetaRecord[BaseRecord <: MongoRecord[BaseRecord]]
   * Find all rows using a DBObject query.
   */
   def findAll(qry: DBObject, sort: Option[DBObject], opts: FindOption*): List[BaseRecord] = {
+    findAll(sort, opts:_*) { coll => coll.find(qry) }
+  }
+
+  /**
+   * Find all rows and retrieve only keys fields.
+   */
+  def findAll(qry: DBObject, keys: DBObject, sort: Option[DBObject], opts: FindOption*): List[BaseRecord] = {
+    findAll(sort, opts:_*) { coll => coll.find(qry, keys) }
+  }
+
+  private def findAll(sort: Option[DBObject], opts: FindOption*)(f: (DBCollection) => DBCursor): List[BaseRecord] = {
     val findOpts = opts.toList
 
     MongoDB.useCollection(mongoIdentifier, collectionName) ( coll => {
-      val cur = coll.find(qry).limit(
+      val cur = f(coll).limit(
         findOpts.find(_.isInstanceOf[Limit]).map(x => x.value).getOrElse(0)
       ).skip(
         findOpts.find(_.isInstanceOf[Skip]).map(x => x.value).getOrElse(0)
@@ -134,6 +145,14 @@ trait MongoMetaRecord[BaseRecord <: MongoRecord[BaseRecord]]
       // The call to toArray retrieves all documents and puts them in memory.
       cur.toArray.flatMap(dbo => fromDBObject(dbo).toList).toList
     })
+  }
+
+  /**
+   * Find all rows and retrieve only keys fields.
+   */
+  def findAll(qry: JObject, keys: JObject, sort: Option[JObject], opts: FindOption*): List[BaseRecord] = {
+    val s = sort.map(JObjectParser.parse(_))
+    findAll(JObjectParser.parse(qry), JObjectParser.parse(keys), s, opts :_*)
   }
 
   /**
@@ -256,6 +275,7 @@ trait MongoMetaRecord[BaseRecord <: MongoRecord[BaseRecord]]
         case Full(field: MongoFieldFlavor[Any]) =>
           dbo.add(f.name, field.asInstanceOf[MongoFieldFlavor[Any]].asDBObject)
         case Full(field) => field.valueBox foreach (_.asInstanceOf[AnyRef] match {
+          case null => dbo.add(f.name, null)
           case x if primitive_?(x.getClass) => dbo.add(f.name, x)
           case x if datetype_?(x.getClass) => dbo.add(f.name, datetype2dbovalue(x))
           case x if mongotype_?(x.getClass) => dbo.add(f.name, mongotype2dbovalue(x, formats))
