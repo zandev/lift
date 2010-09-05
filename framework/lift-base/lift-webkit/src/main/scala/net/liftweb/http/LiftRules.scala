@@ -377,10 +377,6 @@ object LiftRules extends Factory with FormVendor with LazyLoggable {
    */
   @volatile var resourceNames: List[String] = List("lift")
   
-  val resourceNameCalculator = 
-    new FactoryMaker[Box[Req] => String](
-      req => req.map(r => r.path.partPath.last).openOr("")){}
-  
   val resourceBundleFactories = RulesSeq[ResourceBundleFactoryPF]
   
   
