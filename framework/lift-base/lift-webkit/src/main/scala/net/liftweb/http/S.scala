@@ -165,7 +165,16 @@ object S extends HasParams with Loggable {
   private val autoCleanUp = new ThreadGlobal[Boolean]
   private val _oneShot = new ThreadGlobal[Boolean]
   private val _disableTestFuncNames = new ThreadGlobal[Boolean]
-
+  
+  /**
+   * A list of the templates (flattened string) that were used to serve this "page".
+   */
+  private val _utilizedTempates = new ThreadGlobal[List[String]]
+  
+  private[http] def utilizedTempate(path: List[String]){
+    _utilizedTempates.set((path.mkString("_").replace("-","_")) :: _utilizedTempates.box.openOr(Nil))
+  }
+  
   private object postFuncs extends TransientRequestVar(new ListBuffer[() => Unit])
   private object p_queryLog extends TransientRequestVar(new ListBuffer[(String, Long)])
   private object p_notice extends TransientRequestVar(new ListBuffer[(NoticeType.Value, NodeSeq, Box[String])])
@@ -614,14 +623,14 @@ object S extends HasParams with Loggable {
      }
      _resBundle.box match {
        case Full(Nil) => {
-         val bundleBox: Box[List[ResourceBundle]] = tryo(getBundle(
-           LiftRules.resourceNameCalculator.vend(request))) or tryo {
-           LiftRules.resourceNames.flatMap(name => tryo(getBundle(name)).openOr(
-             NamedPF.applyBox((name, locale), 
-              LiftRules.resourceBundleFactories.toList).map(List(_)) openOr Nil
-           ))
-         }
-         _resBundle.set(bundleBox.openOr(Nil))
+         _resBundle.set(
+           tryo(_utilizedTempates.box.openOr(Nil).flatMap(t => getBundle(t))) or tryo {
+             LiftRules.resourceNames.flatMap(name => tryo(getBundle(name)).openOr(
+               NamedPF.applyBox((name, locale), 
+                LiftRules.resourceBundleFactories.toList).map(List(_)) openOr Nil
+             ))
+           } openOr Nil
+         )
          _resBundle.value
        }
        case Full(bundles) => bundles
@@ -1206,11 +1215,13 @@ for {
   private def _innerInit[B](request: Req, f: () => B): B = {
     _lifeTime.doWith(false) {
       _attrs.doWith(Nil) {
-          _resBundle.doWith(Nil) {
+        _resBundle.doWith(Nil) {
+          _utilizedTempates.doWith(Nil){
             inS.doWith(true) {
               withReq(doStatefulRewrite(request)) {
                 _nest2InnerInit(f)
               }
+            }
           }
         }
       }
@@ -1240,8 +1251,10 @@ for {
           _lifeTime.doWith(false) {
             _attrs.doWith(attrs) {
               _resBundle.doWith(Nil) {
-                inS.doWith(true) {
-                  f
+                _utilizedTempates.doWith(Nil){
+                  inS.doWith(true) {
+                    f
+                  }
                 }
               }
             }

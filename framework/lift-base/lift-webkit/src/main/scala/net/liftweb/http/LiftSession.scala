@@ -1448,7 +1448,10 @@ object TemplateFinder {
 
     val key = (locale, places)
     val tr = cache.get(key)
-
+    
+    // record this template being requested
+    S.utilizedTempate(places)
+    
     if (tr.isDefined) tr
     else
       {
