@@ -54,6 +54,7 @@ object LiftRules extends Factory with FormVendor with LazyLoggable {
   type ResourceBundleFactoryPF = PartialFunction[(String, Locale), ResourceBundle]
   type SplitSuffixPF = PartialFunction[List[String], (List[String], String)]
   type CometCreationPF = PartialFunction[CometCreationInfo, LiftCometActor]
+  
   /**
    * A partial function that allows the application to define requests that should be
    * handled by lift rather than the default handler
@@ -370,12 +371,19 @@ object LiftRules extends Factory with FormVendor with LazyLoggable {
    * return the NodeSeq.
    */
   @volatile var localizeStringToXml: String => NodeSeq = _stringToXml _
-
+  
   /**
    * The base name of the resource bundle
    */
   @volatile var resourceNames: List[String] = List("lift")
-
+  
+  val resourceNameCalculator = 
+    new FactoryMaker[Box[Req] => String](
+      req => req.map(r => r.path.partPath.last).openOr("")){}
+  
+  val resourceBundleFactories = RulesSeq[ResourceBundleFactoryPF]
+  
+  
   @volatile var noticesToJsCmd: () => JsCmd = () => {
     import builtin.snippet._
 
@@ -618,8 +626,6 @@ object LiftRules extends Factory with FormVendor with LazyLoggable {
 
   def defaultLocaleCalculator(request: Box[HTTPRequest]) =
     request.flatMap(_.locale).openOr(Locale.getDefault())
-
-  val resourceBundleFactories = RulesSeq[ResourceBundleFactoryPF]
 
   private var _sitemap: Box[SiteMap] = Empty
 

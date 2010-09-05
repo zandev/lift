@@ -596,33 +596,41 @@ object S extends HasParams with Loggable {
    * the LiftRules.resourceNames and LiftRules.resourceBundleFactories variables.
    *
    * @see LiftRules.resourceNames
+   * @see LiftRules.resourceNameCalculator
    * @see LiftRules.resourceBundleFactories
    */
-  def resourceBundles: List[ResourceBundle] = {
-    _resBundle.box match {
-      case Full(Nil) => {
-        _resBundle.set(LiftRules.resourceNames.flatMap(name => tryo{
-              if (Props.devMode) {
-                tryo{
-                  val clz = this.getClass.getClassLoader.loadClass("java.util.ResourceBundle")
-                  val meth = clz.getDeclaredMethods.
-                  filter{m => m.getName == "clearCache" && m.getParameterTypes.length == 0}.
-                  toList.head
-                  meth.invoke(null)
-                }
-              }
-          List(ResourceBundle.getBundle(name, locale))
-        }.openOr(
-          NamedPF.applyBox((name, locale), LiftRules.resourceBundleFactories.toList).map(List(_)) openOr Nil
-          )))
-        _resBundle.value
-      }
-      case Full(bundles) => bundles
-      case _ => throw new IllegalStateException("Attempted to use resource bundles outside of an initialized S scope. " +
-                                                "S only usable when initialized, such as during request processing. " +
-                                                "Did you call S.? from Boot?")
-    }
-  }
+   def resourceBundles: List[ResourceBundle] = {
+     def getBundle(name: String): List[ResourceBundle] = {
+       if (Props.devMode){
+         tryo{
+           val clz = this.getClass.getClassLoader.loadClass("java.util.ResourceBundle")
+           val meth = clz.getDeclaredMethods.
+           filter{m => m.getName == "clearCache" && m.getParameterTypes.length == 0}.
+           toList.head
+           meth.invoke(null)
+         }
+       }
+       List(ResourceBundle.getBundle(name,locale))
+     }
+     _resBundle.box match {
+       case Full(Nil) => {
+         val bundleBox: Box[List[ResourceBundle]] = tryo(getBundle(
+           LiftRules.resourceNameCalculator.vend(request))) or tryo {
+           LiftRules.resourceNames.flatMap(name => tryo(getBundle(name)).openOr(
+             NamedPF.applyBox((name, locale), 
+              LiftRules.resourceBundleFactories.toList).map(List(_)) openOr Nil
+           ))
+         }
+         _resBundle.set(bundleBox.openOr(Nil))
+         _resBundle.value
+       }
+       case Full(bundles) => bundles
+       case _ => throw new IllegalStateException("Attempted to use resource bundles outside of an initialized S scope. " +
+                                                 "S only usable when initialized, such as during request processing. " +
+                                                 "Did you call S.? from Boot?")
+     }
+   }
+  
 
   private object _liftCoreResBundle extends
   RequestVar[Box[ResourceBundle]](tryo(ResourceBundle.getBundle(LiftRules.liftCoreResourceName, locale)))
