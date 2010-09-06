@@ -379,6 +379,9 @@ object LiftRules extends Factory with FormVendor with LazyLoggable {
   
   val resourceBundleFactories = RulesSeq[ResourceBundleFactoryPF]
   
+  val resourceBundleRequestCalculator = 
+    new FactoryMaker[Box[Req] => String](
+      (req: Box[Req]) => req.map(_.path.partPath.last).openOr("request")){}
   
   @volatile var noticesToJsCmd: () => JsCmd = () => {
     import builtin.snippet._
