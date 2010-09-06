@@ -603,9 +603,16 @@ object S extends HasParams with Loggable {
   /**
    * Get a List of the resource bundles for the current locale. The resource bundles are defined by
    * the LiftRules.resourceNames and LiftRules.resourceBundleFactories variables.
+   * 
+   * The resolution pipeline works like this:
+   *
+   * <name_of_page_from_request>_<locale>.properties
+   * <template_parts>_<locale>.properties
+   * <global>_<locale>.properties
+   * <bundlefactories>_<locale>.properties
    *
    * @see LiftRules.resourceNames
-   * @see LiftRules.resourceNameCalculator
+   * @see LiftRules.resourceBundleRequestCalculator
    * @see LiftRules.resourceBundleFactories
    */
    def resourceBundles: List[ResourceBundle] = {
@@ -624,12 +631,13 @@ object S extends HasParams with Loggable {
      _resBundle.box match {
        case Full(Nil) => {
          _resBundle.set(
-           tryo(_utilizedTempates.box.openOr(Nil).flatMap(t => getBundle(t))) or tryo {
+           tryo(getBundle(LiftRules.resourceBundleRequestCalculator.vend(request))) or
+           tryo(_utilizedTempates.box.openOr(Nil).flatMap(t => getBundle(t))) or
+           tryo(
              LiftRules.resourceNames.flatMap(name => tryo(getBundle(name)).openOr(
                NamedPF.applyBox((name, locale), 
                 LiftRules.resourceBundleFactories.toList).map(List(_)) openOr Nil
-             ))
-           } openOr Nil
+             ))) openOr Nil
          )
          _resBundle.value
        }
