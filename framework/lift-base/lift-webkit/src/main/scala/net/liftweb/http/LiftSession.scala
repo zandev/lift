@@ -1455,7 +1455,7 @@ object TemplateFinder {
         val part = places.dropRight(1)
         val last = places.last
 
-	(LiftRules.findScalateView(places, locale) or
+	(LiftRules.findExtenalTemplateView(places, locale) or
          findInViews(places, part, last, LiftRules.viewDispatch.toList)) match {
           case Full(lv) =>
             Full(lv)
