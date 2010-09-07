@@ -20,26 +20,6 @@ package cms
 import common._
 
 /**
- * The first name of a user
- */
-final case class FirstName(name: String)
-
-/**
- * The last name of a user
- */
-final case class LastName(name: String)
-
-/**
- * The display name of a user
- */
-final case class DisplayName(name: String)
-
-/**
- * Permissions for a user
- */
-final case class UserPermissions(superUser: Boolean)
-
-/**
  * The core definition of the CMS system
  */
 trait CoreCMS {
@@ -52,11 +32,17 @@ trait CoreCMS {
    * Get a record from backing store
    */
   def getRecord(key: Key): Box[Record]
-
   /**
    * Save the record in backing store
    */
   def putRecord(key: Key, record: Record): Unit
+  /**
+   * Get the user's first name
+   */
+  implicit def userToFirstName(user: UserType): FirstName
 
-  
+  /**
+   * Get the user's first name
+   */
+  implicit def userToLastName(user: UserType): LastName
 }
