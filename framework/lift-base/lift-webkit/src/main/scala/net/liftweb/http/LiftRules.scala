@@ -182,6 +182,12 @@ object LiftRules extends Factory with FormVendor with LazyLoggable {
   }
 
   /**
+   * In Boot.scala, change this function to hook Scalate in.
+   */
+  @volatile var findScalateView: (List[String], Locale) => Box[NodeSeq] =
+    (a, b) => None
+
+  /**
    * The path to handle served resources
    */
   @volatile var resourceServerPath = "classpath"
