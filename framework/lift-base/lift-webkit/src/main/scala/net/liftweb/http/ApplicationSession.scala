@@ -13,9 +13,9 @@ package http {
        * and returns a LiftSession reference. This can be used in cases subclassing
        * LiftSession is necessary.
        */
-      @volatile var sessionCreator: (HTTPSession, String) => LiftSession = {
-        case (httpSession, contextPath) => new LiftSession(contextPath, httpSession.sessionId, Full(httpSession))
-      }
+      val sessionCreator = new FactoryMaker[(HTTPSession,String) => LiftSession](
+        (httpSession: HTTPSession,contextPath: String) => new LiftSession(contextPath,httpSession.sessionId,Full(httpSession))
+      ){}
 
       //val sessionCreator = new FactoryMaker[(HTTPSession, String) => LiftSession](){}
 

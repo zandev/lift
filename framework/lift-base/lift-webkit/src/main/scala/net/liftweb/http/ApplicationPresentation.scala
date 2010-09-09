@@ -11,7 +11,7 @@ package http {
   import net.liftweb.http.js.jquery.{JQuery13Artifacts,JQuery14Artifacts}
   
   trait PresentationComponent { 
-    _: HTTPComponent with LazyLoggable with Factory with FormVendor =>
+    _: EnvironmentComponent with HTTPComponent with LazyLoggable with Factory with FormVendor =>
     
     object Presentation {
       
@@ -83,14 +83,12 @@ package http {
 
         val cssFixer: HTTP.DispatchPF = new HTTP.DispatchPF {
           def functionName = "default css fixer"
-
           def isDefinedAt(r: Req): Boolean = {
             r.path.partPath == path
           }
-
           def apply(r: Req): () => Box[LiftResponse] = {
             val cssPath = path.mkString("/", "/", ".css")
-            val css = Enviroment.loadResourceAsString(cssPath);
+            val css = Environment.loadResourceAsString(cssPath);
 
             () => {
               css.map(str => CSSHelpers.fixCSS(new BufferedReader(
@@ -246,7 +244,8 @@ package http {
        * The names are searched in order.
        * See also searchSnippetsWithRequestPath for an implementation.
        */
-      @volatile val snippetNamesToSearch: FactoryMaker[String => List[String]] = new FactoryMaker(() => (name: String) => name :: Nil) {}
+      val snippetNamesToSearch: FactoryMaker[String => List[String]] = 
+        new FactoryMaker(() => (name: String) => name :: Nil) {}
       
       /**
        * The function that calculates if the response should be rendered in

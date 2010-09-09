@@ -140,8 +140,9 @@ package http {
       /**
        * The maximum allowed size of a complete mime multi-part POST.  Default 8MB
        */
-      @volatile var maxMimeSize: Long = 8 * 1024 * 1024
-
+      //@volatile var maxMimeSize: Long = 8 * 1024 * 1024
+      val maxMimeSize = new FactoryMaker[Int](() => 8 * 1024 * 1024){}
+      
       /**
        * Should pages that are not found be passed along the request processing chain to the
        * next handler outside Lift?
