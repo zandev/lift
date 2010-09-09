@@ -251,7 +251,6 @@ package http {
         }
       }
       
-      
       /**
        * If there is an alternative way of calculating the context path
        * (by default returning Empty)
@@ -260,7 +259,6 @@ package http {
        *
        */
       @volatile var calculateContextPath: () => Box[String] = () => Empty
-      
       
       /**
        * The maximum concurrent requests.  If this number of
