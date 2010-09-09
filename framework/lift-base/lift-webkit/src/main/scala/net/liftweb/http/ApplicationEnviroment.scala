@@ -11,15 +11,15 @@ package http {
   
   trait EnvironmentComponent { _: HTTPComponent with Factory with LazyLoggable => 
     
-    type ExceptionHandlerPF = PartialFunction[(Props.RunModes.Value, Req, Throwable), LiftResponse]
-    
     object Environment {
       
+      type ExceptionHandlerPF = PartialFunction[(Props.RunModes.Value, Req, Throwable), LiftResponse]
+      
       lazy val liftVersion: String = {
-        val cn = """\.""".r.replaceAllIn(LiftRules.getClass.getName, "/")
+        val cn = """\.""".r.replaceAllIn(Application.getClass.getName, "/")
         val ret: Box[String] =
         for{
-          url <- Box !! LiftRules.getClass.getResource("/" + cn + ".class")
+          url <- Box !! Application.getClass.getResource("/" + cn + ".class")
           val newUrl = new URL(url.toExternalForm.split("!")(0) + "!" + "/META-INF/MANIFEST.MF")
           str <- tryo(new String(readWholeStream(newUrl.openConnection.getInputStream), "UTF-8"))
           ma <- """lift_version: (.*)""".r.findFirstMatchIn(str)
@@ -28,10 +28,10 @@ package http {
       }
       
       lazy val liftBuildDate: Date = {
-        val cn = """\.""".r.replaceAllIn(LiftRules.getClass.getName, "/")
+        val cn = """\.""".r.replaceAllIn(Application.getClass.getName, "/")
         val ret: Box[Date] =
         for{
-          url <- Box !! LiftRules.getClass.getResource("/" + cn + ".class")
+          url <- Box !! Application.getClass.getResource("/" + cn + ".class")
           val newUrl = new URL(url.toExternalForm.split("!")(0) + "!" + "/META-INF/MANIFEST.MF")
           str <- tryo(new String(readWholeStream(newUrl.openConnection.getInputStream), "UTF-8"))
           ma <- """Bnd-LastModified: (.*)""".r.findFirstMatchIn(str)
@@ -59,12 +59,12 @@ package http {
       }
       
       private[http] def runAsSafe[T](f: => T): T = synchronized {
-         val old = LiftRules.doneBoot
+         val old = doneBoot
          try {
-            LiftRules.doneBoot = false
+            doneBoot = false
             f
          } finally {
-            LiftRules.doneBoot = old
+            doneBoot = old
          }
       }
       
@@ -155,10 +155,10 @@ package http {
       @volatile var exceptionHandler = RulesSeq[ExceptionHandlerPF].append {
         case (Props.RunModes.Development, r, e) =>
           logger.error("Exception being returned to browser when processing " + r.uri.toString + ": " + showException(e))
-          XhtmlResponse((<html> <body>Exception occured while processing {r.uri}<pre>{showException(e)}</pre> </body> </html>), LiftRules.docType.vend(r), List("Content-Type" -> "text/html; charset=utf-8"), Nil, 500, S.ieMode)
+          XhtmlResponse((<html> <body>Exception occured while processing {r.uri}<pre>{showException(e)}</pre> </body> </html>), HTTP.docType.vend(r), List("Content-Type" -> "text/html; charset=utf-8"), Nil, 500, S.ieMode)
         case (_, r, e) =>
           logger.error("Exception being returned to browser when processing " + r, e)
-          XhtmlResponse((<html> <body>Something unexpected happened while serving the page at {r.uri}</body> </html>), LiftRules.docType.vend(r), List("Content-Type" -> "text/html; charset=utf-8"), Nil, 500, S.ieMode)
+          XhtmlResponse((<html> <body>Something unexpected happened while serving the page at {r.uri}</body> </html>), HTTP.docType.vend(r), List("Content-Type" -> "text/html; charset=utf-8"), Nil, 500, S.ieMode)
       }
       
       

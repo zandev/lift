@@ -13,10 +13,14 @@ package http {
   trait PresentationComponent { 
     _: HTTPComponent with LazyLoggable with Factory with FormVendor =>
     
-    type SnippetPF = PartialFunction[List[String], NodeSeq => NodeSeq]
-    type LiftTagPF = PartialFunction[(String, Elem, MetaData, NodeSeq, String), NodeSeq]
-    
     object Presentation {
+      
+      type SnippetPF = PartialFunction[List[String], NodeSeq => NodeSeq]
+      type LiftTagPF = PartialFunction[(String, Elem, MetaData, NodeSeq, String), NodeSeq]
+      
+      /**
+       * Default notice for notices / errors / warnings created by S.notice etc
+       */
       val noticesContainerId = "lift__noticesContainer__"
       
       /**
@@ -43,12 +47,14 @@ package http {
       val liftTagProcessing = RulesSeq[LiftTagPF]
       
       /**
-       * Define the XHTML validator
+       * Define a XHTML validator if you want your template markup to be automatically validated
+       * using one of the W3C validators. If you have markup errors, you will be alerted in the 
+       * the browser upon loading the offending page.
        */
       @volatile var xhtmlValidator: Box[XHtmlValidator] = Empty // Full(TransitionalXHTML1_0Validator)
-
+      
       @volatile var calcIE6ForResponse: () => Boolean = () => S.request.map(_.isIE6) openOr false
-
+      
       @volatile var flipDocTypeForIE6 = true
       
       private[http] def snippet(name: String): Box[DispatchSnippet] = NamedPF.applyBox(name, HTTP.snippetDispatch.toList)
@@ -63,7 +69,7 @@ package http {
        */
       def fixCSS(path: List[String], prefix: Box[String]) {
 
-        val liftReq: LiftRules.LiftRequestPF = new LiftRules.LiftRequestPF {
+        val liftReq: HTTP.LiftRequestPF = new HTTP.LiftRequestPF {
           def functionName = "Default CSS Fixer"
 
           def isDefinedAt(r: Req): Boolean = {
@@ -75,7 +81,7 @@ package http {
           }
         }
 
-        val cssFixer: LiftRules.DispatchPF = new LiftRules.DispatchPF {
+        val cssFixer: HTTP.DispatchPF = new HTTP.DispatchPF {
           def functionName = "default css fixer"
 
           def isDefinedAt(r: Req): Boolean = {
@@ -84,7 +90,7 @@ package http {
 
           def apply(r: Req): () => Box[LiftResponse] = {
             val cssPath = path.mkString("/", "/", ".css")
-            val css = LiftRules.loadResourceAsString(cssPath);
+            val css = Enviroment.loadResourceAsString(cssPath);
 
             () => {
               css.map(str => CSSHelpers.fixCSS(new BufferedReader(
@@ -98,8 +104,8 @@ package http {
             }
           }
         }
-        LiftRules.dispatch.prepend(cssFixer)
-        LiftRules.liftRequest.append(liftReq)
+        HTTP.dispatch.prepend(cssFixer)
+        HTTP.liftRequest.append(liftReq)
       }
       
       
@@ -173,27 +179,17 @@ package http {
        * entities when rendered?
        */
       val convertToEntity: FactoryMaker[Boolean] = new FactoryMaker(false) {}
-
-      /**
-       * Set the doc type used.
-       */
-      val docType: FactoryMaker[Req => Box[String]] = new FactoryMaker( (r: Req) => r  match {
-        case _ if S.skipDocType => Empty
-        case _ if S.getDocType._1 => S.getDocType._2
-        case _ => Full(DocType.xhtmlTransitional)
-      }){}
-      
       
       @volatile var noticesToJsCmd: () => JsCmd = () => {
         import builtin.snippet._
 
         def noticesFadeOut(noticeType: NoticeType.Value, id: String): JsCmd =
-          (LiftRules.noticesAutoFadeOut()(noticeType) map {
-            case (duration, fadeTime) => LiftRules.jsArtifacts.fadeOut(id, duration, fadeTime)
+          (noticesAutoFadeOut()(noticeType) map {
+            case (duration, fadeTime) => jsArtifacts.fadeOut(id, duration, fadeTime)
           }) openOr JsCmds.Noop
 
         def effects(noticeType: Box[NoticeType.Value], id: String): JsCmd =
-          LiftRules.noticesEffects()(noticeType, id) match {
+          noticesEffects()(noticeType, id) match {
             case Full(jsCmd) => jsCmd
             case _ => JsCmds.Noop
           }
@@ -213,9 +209,9 @@ package http {
             if (notices.isEmpty) Nil else List((meta, notices, title, id))
 
         val xml =
-          ((makeList(MsgsErrorMeta.get, f(S.errors), S.??("msg.error"), LiftRules.noticesContainerId + "_error")) ++
-           (makeList(MsgsWarningMeta.get, f(S.warnings), S.??("msg.warning"), LiftRules.noticesContainerId + "_warn")) ++
-           (makeList(MsgsNoticeMeta.get, f(S.notices), S.??("msg.notice"), LiftRules.noticesContainerId + "_notice"))) flatMap {
+          ((makeList(MsgsErrorMeta.get, f(S.errors), S.??("msg.error"), noticesContainerId + "_error")) ++
+           (makeList(MsgsWarningMeta.get, f(S.warnings), S.??("msg.warning"), noticesContainerId + "_warn")) ++
+           (makeList(MsgsNoticeMeta.get, f(S.notices), S.??("msg.notice"), noticesContainerId + "_notice"))) flatMap {
              msg => msg._1 match {
                case Full(meta) => <div id={msg._4}>{func(msg._2 _, meta.title openOr "",
                  meta.cssClass.map(new UnprefixedAttribute("class",_, Null)) openOr Null)}</div>
@@ -225,13 +221,13 @@ package http {
 
         val groupMessages = xml match {
           case Nil => JsCmds.Noop
-          case _ => LiftRules.jsArtifacts.setHtml(LiftRules.noticesContainerId, xml) &
-            noticesFadeOut(NoticeType.Notice, LiftRules.noticesContainerId + "_notice") &
-            noticesFadeOut(NoticeType.Warning, LiftRules.noticesContainerId + "_warn") &
-            noticesFadeOut(NoticeType.Error, LiftRules.noticesContainerId + "_error") &
-            effects(Full(NoticeType.Notice), LiftRules.noticesContainerId + "_notice") &
-            effects(Full(NoticeType.Warning), LiftRules.noticesContainerId + "_warn") &
-            effects(Full(NoticeType.Error), LiftRules.noticesContainerId + "_error")
+          case _ => jsArtifacts.setHtml(noticesContainerId, xml) &
+            noticesFadeOut(NoticeType.Notice, noticesContainerId + "_notice") &
+            noticesFadeOut(NoticeType.Warning, noticesContainerId + "_warn") &
+            noticesFadeOut(NoticeType.Error, noticesContainerId + "_error") &
+            effects(Full(NoticeType.Notice), noticesContainerId + "_notice") &
+            effects(Full(NoticeType.Warning), noticesContainerId + "_warn") &
+            effects(Full(NoticeType.Error), noticesContainerId + "_error")
         }
 
         val g = S.idMessages _
@@ -239,7 +235,7 @@ package http {
           (MsgWarningMeta.get, g(S.warnings)),
           (MsgNoticeMeta.get, g(S.notices))).foldLeft(groupMessages)((car, cdr) => cdr match {
           case (meta, m) => m.foldLeft(car)((left, r) =>
-                  left & LiftRules.jsArtifacts.setHtml(r._1, <span>{r._2 flatMap (node => node)}</span> %
+                  left & jsArtifacts.setHtml(r._1, <span>{r._2 flatMap (node => node)}</span> %
                           (Box(meta.get(r._1)).map(new UnprefixedAttribute("class", _, Null)) openOr Null)) & effects(Empty, r._1))
         })
       }

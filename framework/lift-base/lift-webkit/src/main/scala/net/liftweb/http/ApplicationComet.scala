@@ -9,9 +9,9 @@ package http {
   
   trait CometComponent { _: HTTPComponent with Factory => 
     
-    type CometCreationPF = PartialFunction[CometCreationInfo, LiftCometActor]
-    
     object Comet {
+      
+      type CometCreationPF = PartialFunction[CometCreationInfo, LiftCometActor]
       
       /**
        * A function that takes appropriate action in breaking out of any

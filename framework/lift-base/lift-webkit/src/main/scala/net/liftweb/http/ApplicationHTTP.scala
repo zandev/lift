@@ -13,23 +13,27 @@ package http {
   
   trait HTTPComponent { _: EnvironmentComponent with Factory with LazyLoggable =>
     
-    type DispatchPF = PartialFunction[Req, () => Box[LiftResponse]];
-    type RewritePF = PartialFunction[RewriteRequest, RewriteResponse]
-    type URINotFoundPF = PartialFunction[(Req, Box[Failure]), NotFound]
-    type URLDecoratorPF = PartialFunction[String, String]
-    type ViewDispatchPF = PartialFunction[List[String], Either[() => Box[NodeSeq], LiftView]]
-    type HttpAuthProtectedResourcePF = PartialFunction[Req, Box[Role]]
-    type SplitSuffixPF = PartialFunction[List[String], (List[String], String)]
-    type SnippetDispatchPF = PartialFunction[String, DispatchSnippet]
-    
     object HTTP {
+      
+      type DispatchPF = PartialFunction[Req, () => Box[LiftResponse]];
+      type RewritePF = PartialFunction[RewriteRequest, RewriteResponse]
+      type URINotFoundPF = PartialFunction[(Req, Box[Failure]), NotFound]
+      type URLDecoratorPF = PartialFunction[String, String]
+      type ViewDispatchPF = PartialFunction[List[String], Either[() => Box[NodeSeq], LiftView]]
+      type HttpAuthProtectedResourcePF = PartialFunction[Req, Box[Role]]
+      type SplitSuffixPF = PartialFunction[List[String], (List[String], String)]
+      
+      /**
+       * 
+       */
+      type SnippetDispatchPF = PartialFunction[String, DispatchSnippet]
       
       /**
        * A partial function that allows the application to define requests that should be
        * handled by lift rather than the default handler
        */
       type LiftRequestPF = PartialFunction[Req, Boolean]
-
+      
       /**
        * Holds user functions that willbe executed very early in the request processing. The functions'
        * result will be ignored.
@@ -43,7 +47,7 @@ package http {
       val beforeSend = RulesSeq[(BasicResponse, HTTPResponse, List[(String, String)], Box[Req]) => Any]
 
       /**
-       * The HTTP authentication mechanism that ift will perform. See <i>LiftRules.protectedResource</i>
+       * The HTTP authentication mechanism that ift will perform. See <i>Application.HTTP.protectedResource</i>
        */
       val authentication = new FactoryMaker[HttpAuthentication](() => NoAuthentication){}
 
@@ -99,6 +103,15 @@ package http {
           "application/xhtml+xml; charset=utf-8"
         case _ => "text/html; charset=utf-8"
       }
+      
+      /**
+       * Set the doc type used.
+       */
+      val docType: FactoryMaker[Req => Box[String]] = new FactoryMaker( (r: Req) => r  match {
+        case _ if S.skipDocType => Empty
+        case _ if S.getDocType._1 => S.getDocType._2
+        case _ => Full(DocType.xhtmlTransitional)
+      }){}
       
       /**
        * The list of partial function for defining the behavior of what happens when
@@ -407,7 +420,7 @@ package http {
                   else {
                     val suffix = last.substring(firstDot + 1)
                     // if the suffix isn't in the list of suffixes we care about, don't split it
-                    if (!LiftRules.explicitlyParsedSuffixes.contains(suffix.toLowerCase)) -1
+                    if (!explicitlyParsedSuffixes.contains(suffix.toLowerCase)) -1
                     else firstDot
                   }
                 }
@@ -424,7 +437,7 @@ package http {
       private def cvt(ns: Node, headers: List[(String, String)], cookies: List[HTTPCookie], req: Req, code:Int) =
         convertResponse({
           val ret = XhtmlResponse(ns,
-          LiftRules.docType.vend(req),
+          docType.vend(req),
           headers, cookies, code,
           S.ieMode)
           ret._includeXmlVersion = !S.skipDocType

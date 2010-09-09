@@ -9,9 +9,9 @@ package http {
   
   trait LocalizationComponent { _: Factory =>
     
-    type ResourceBundleFactoryPF = PartialFunction[(String, Locale), ResourceBundle]
-    
     object Localization {
+      
+      type ResourceBundleFactoryPF = PartialFunction[(String, Locale), ResourceBundle]
       
       /**
        * The function referenced here is called if there's a localization lookup failure

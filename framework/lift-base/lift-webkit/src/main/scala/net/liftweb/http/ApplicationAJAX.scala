@@ -5,7 +5,6 @@ package http {
   import net.liftweb.util.Helpers._
   import net.liftweb.http.js.{JsCmd,ScriptRenderer}
   
-  
   trait AJAXComponent {
     object AJAX {
       

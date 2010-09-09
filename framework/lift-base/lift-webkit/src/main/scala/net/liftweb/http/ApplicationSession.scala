@@ -30,7 +30,7 @@ package http {
       private def _getLiftSession(req: Req): LiftSession = {
         val wp = req.path.wholePath
         val cometSessionId =
-        if (wp.length >= 3 && wp.head == LiftRules.cometPath)
+        if (wp.length >= 3 && wp.head == Comet.cometPath)
           Full(wp(2))
         else
           Empty
@@ -55,9 +55,9 @@ package http {
       /**
        * Implementation for snippetNamesToSearch that looks first in a package named by taking the current template path.
        * For example, suppose the following is configured in Boot:
-       *   LiftRules.snippetNamesToSearch.default.set(() => LiftRules.searchSnippetsWithRequestPath)
-       *   LiftRules.addToPackages("com.mycompany.myapp")
-       *   LiftRules.addToPackages("com.mycompany.mylib")
+       *   Application.snippetNamesToSearch.default.set(() => Application.searchSnippetsWithRequestPath)
+       *   Application.addToPackages("com.mycompany.myapp")
+       *   Application.addToPackages("com.mycompany.mylib")
        * The tag <lift:MySnippet> in template foo/bar/baz.html would search for the snippet in the following locations:
        *   - com.mycompany.myapp.snippet.foo.bar.MySnippet
        *   - com.mycompany.myapp.snippet.MySnippet

@@ -5,13 +5,12 @@ package http {
   import net.liftweb.common.{Box,Empty,Failure,Full}
   import net.liftweb.sitemap.{SiteMap}
   
-  trait SitemapComponent extends { _: EnvironmentComponent =>
+  trait SitemapComponent extends { _: EnvironmentComponent with HTTPComponent =>
     object SiteMap {
       
       private var _sitemap: Box[SiteMap] = Empty
       private var sitemapFunc: Box[() => SiteMap] = Empty
       private object sitemapRequestVar extends TransientRequestVar(resolveSitemap())
-      
       
       /**
        * Set to false if you want to have 404's handled the same way in dev and production mode
@@ -54,7 +53,7 @@ package http {
           Environment.runAsSafe {
             sitemapFunc.flatMap {
               smf =>
-              LiftRules.statefulRewrite.remove {
+              HTTP.statefulRewrite.remove {
                 case PerRequestPF(_) => true
                 case _ => false
               }
@@ -62,7 +61,7 @@ package http {
               _sitemap = Full(sm)
               for (menu <- sm.menus;
                    val loc = menu.loc;
-                   rewrite <- loc.rewritePF) LiftRules.statefulRewrite.append(PerRequestPF(rewrite))
+                   rewrite <- loc.rewritePF) HTTP.statefulRewrite.append(PerRequestPF(rewrite))
               _sitemap
             }
           }
@@ -74,7 +73,6 @@ package http {
           sitemapRequestVar.is
         }
       } else _sitemap
-      
       
     }
   }

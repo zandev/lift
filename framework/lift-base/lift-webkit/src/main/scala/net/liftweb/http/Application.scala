@@ -53,16 +53,19 @@ trait Application
    */
   @volatile var loggedInTest: Box[() => Boolean] = Empty
   
-  private def ctor() {
+  // all lift applications will touch Application, so 
+  // calling it directly is a sort of constructor for the singleton
+  private def initilizer() {
     appendGlobalFormBuilder(FormBuilderLocator[String]((value, setter) => SHtml.text(value, setter)))
     appendGlobalFormBuilder(FormBuilderLocator[Int]((value, setter) => SHtml.text(value.toString, s => Helpers.asInt(s).foreach((setter)))))
     appendGlobalFormBuilder(FormBuilderLocator[Boolean]((value, setter) => SHtml.checkbox(value, s => setter(s))))
   }
-  ctor()
+  initilizer()
 }
 
-
-//object Application extends Factory with FormVendor with LazyLoggable {
+/** 
+ * Concrete implementation of Application component traits
+ */
 object Application extends Application 
 
 
@@ -90,11 +93,9 @@ object RulesSeq {
 trait RulesSeq[T] {
   @volatile private var rules: List[T] = Nil
 
-  private def safe_?(f: => Any) {
-    LiftRules.doneBoot match {
-      case false => f
-      case _ => throw new IllegalStateException("Cannot modify after boot.");
-    }
+  private def safe_?(f: => Any){
+    if(Application.Environment.doneBoot) f
+    else throw new IllegalStateException("Cannot modify after boot.");
   }
 
   def toList = rules
