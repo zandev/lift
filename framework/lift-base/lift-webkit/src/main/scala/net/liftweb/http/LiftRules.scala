@@ -1418,6 +1418,7 @@ object LiftRules extends Factory with FormVendor with LazyLoggable {
   ctor()
 }
 
+<<<<<<< HEAD:framework/lift-base/lift-webkit/src/main/scala/net/liftweb/http/LiftRules.scala
 trait NotFound
 
 case object DefaultNotFound extends NotFound
