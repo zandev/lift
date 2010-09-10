@@ -13,35 +13,16 @@
  * See the License for the specific language governing permissions
  * and limitations under the License.
  */
-package bootstrap.liftweb
+
+package org.hoisted
+package core
 
 import net.liftweb._
 import common._
-import util._
-import http._
 import cms._
 
-/**
- * A class that's instantiated early and run.  It allows the application
- * to modify lift's environment
- */
-class Boot {
-  def boot {
+object CMS extends CoreCMS {
 
-    val yak: Locale = null
-
-    
-
-    LiftRules.ajaxStart =
-      Full(() => LiftRules.jsArtifacts.show("ajax-loader").cmd)
-
-    /*
-    * Make the spinny image go away when it ends
-    */
-    LiftRules.ajaxEnd =
-      Full(() => LiftRules.jsArtifacts.hide("ajax-loader").cmd)
-
-    LiftRules.early.append(_.setCharacterEncoding("UTF-8"))
-  }
 }
 
+object CMSDispatch extends Dispatch(CMS)

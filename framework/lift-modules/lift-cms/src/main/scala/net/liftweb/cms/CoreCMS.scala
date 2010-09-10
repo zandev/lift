@@ -19,6 +19,8 @@ package cms
 
 import common._
 
+import java.util.Locale
+
 /**
  * The core definition of the CMS system
  */
@@ -45,4 +47,11 @@ trait CoreCMS {
    * Get the user's first name
    */
   implicit def userToLastName(user: UserType): LastName
+
+  /**
+   * Convert the core information into a key
+   */
+  implicit def infoToKey(host: Host,
+                         path: Path,
+                         locale: Locale): Key
 }

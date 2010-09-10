@@ -17,6 +17,8 @@
 package net.liftweb
 package cms
 
+import scala.xml.Elem
+
 /**
  * The first name of a user
  */
@@ -41,6 +43,11 @@ final case class Email(email: String)
  * Permissions for a user
  */
 final case class UserPermissions(superUser: Boolean)
+
+/**
+ * The host that a request is being made on
+ */
+final case class Host(host: String)
 
 /**
  * A path to a page
@@ -90,3 +97,8 @@ object CMSDate {
 
   implicit def toJodaTate(d: CMSDate): DateTime = new DateTime(d.millis)
 }
+
+sealed trait Content
+final case class HtmlContent(in: Elem) extends Content
+final case class CSSContent(in: String) extends Content
+final case class CodeContent(in: String) extends Content

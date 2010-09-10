@@ -21,15 +21,24 @@ import common._
 import util._
 import Helpers._
 
-import java.io.File
+import java.io.{File, FileInputStream}
 import java.util.Locale
-import scala.xml.NodeSeq
+import scala.xml.{NodeSeq, Elem}
 
-class FileCMS(baseDir: File) extends CoreCMS {
+/**
+ * Where do you 
+ */
+class FileCMS(baseDir: File, _defaultHost: String) extends CoreCMS {
   type UserType = FileUser
   type UserKey = Email
   type Record = FileRecord
   type Key = FileKey
+
+  /**
+   * What's the name of the default host (the Lift CMS system)
+   * supports multiple hosts
+   */
+  def defaultHost: Host = Host(_defaultHost)
 
   @volatile
   private var pages: Map[Key, List[Record]] = Map()
@@ -80,7 +89,39 @@ class FileCMS(baseDir: File) extends CoreCMS {
     ActorPing.schedule(() => scanFiles(), 5 seconds)
   }
 
-  private def parseFile(f: File): Box[(File, Key, Record)] = Empty
+  private def parseFile(f: File): Box[(File, Key, Record)] = {
+    def parseKeyRecord(in: NodeSeq): Box[(Key, Record)] = 
+      for {
+        pathStr <- (in \ "@path").headOption
+        content <- (in \ "content").headOption
+        
+      } yield {
+        val path = pathStr.text.roboSplit("/")
+        val host = ((in \ "@host").headOption.map(_.text)) getOrElse defaultHost.host
+
+        val locale = (
+          for {
+            l <- (in \ "@locale")
+            lo <- Locale.getAvailableLocales if lo.toString == l
+          } yield lo).headOption getOrElse defaultLocale
+        
+        FileKey(host, path, locale) -> FileRecord(host,
+                                                  path,
+                                                  locale,
+                                                  f.getCanonicalPath(),
+                                                  changeDate = f.lastModified(),
+                                                  content = null
+                                                )
+                                                  
+      }
+    
+    for {
+      fis <- tryo(new FileInputStream(f))
+      xml <- PCDataXmlParser(fis)
+      (key, record) <- parseKeyRecord(xml)
+    } yield (f, key, record)
+  }
+
   
   /**
    * Get the user's first name
@@ -112,16 +153,26 @@ class FileCMS(baseDir: File) extends CoreCMS {
   def localeFor(in: String): Box[Locale] = 
     Locale.getAvailableLocales().filter(_.toString == in).headOption
 
+  /**
+   * Convert the core information into a key
+   */
+  implicit def infoToKey(host: Host,
+                         path: Path,
+                         locale: Locale): Key = FileKey(host.host,
+                                                        path.path, locale)
+
+
 }
 
 final case class FileUser(email: String, firstName: String, lastName: String)
 
-final case class FileKey(path: List[String], locale: Locale)
+final case class FileKey(host: String, path: List[String], locale: Locale)
 
-final case class FileRecord(path: List[String], locale: Locale,
+final case class FileRecord(host: String,
+                            path: List[String], locale: Locale,
                             fromFile: String,
                             tags: List[String] = Nil, 
                             validFrom: Box[CMSDate] = Empty,
                             validTo: Box[CMSDate] = Empty,
                             changeDate: CMSDate,
-                            content: NodeSeq)
+                            content: Content)
