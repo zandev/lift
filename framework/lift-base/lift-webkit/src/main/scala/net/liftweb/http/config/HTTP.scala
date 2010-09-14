@@ -1,5 +1,5 @@
-package net.liftweb {
-package http {
+package net.liftweb.http {
+package config {
   
   import java.io.InputStream
   import java.util.{ResourceBundle,Locale}
@@ -8,10 +8,11 @@ package http {
   import net.liftweb.common.{Box,Full,Empty,Failure,LazyLoggable}
   import net.liftweb.util.{NamedPF,SafeNodeSeq}
   import net.liftweb.util.Helpers._
+  import net.liftweb.http._
   import net.liftweb.http.auth.{Role,HttpAuthentication,NoAuthentication}
   import net.liftweb.http.provider.{HTTPRequest,HTTPResponse,HTTPContext,HTTPParam,HTTPCookie}
   
-  trait HTTPComponent { _: EnvironmentComponent with Factory with LazyLoggable =>
+  trait HTTP { _: Environment with Factory with LazyLoggable =>
     
     object HTTP {
       

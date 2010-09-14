@@ -1,5 +1,5 @@
-package net.liftweb {
-package http {
+package net.liftweb.http {
+package config {
   
   import java.io.{InputStream,ByteArrayOutputStream}
   import java.net.URL
@@ -8,8 +8,9 @@ package http {
   import net.liftweb.common.{Box,Full,Empty,Logger,LazyLoggable}
   import net.liftweb.util.{Props,TemplateCache,PCDataXmlParser}
   import net.liftweb.util.Helpers._
+  import net.liftweb.http._
   
-  trait EnvironmentComponent { _: HTTPComponent with Factory with LazyLoggable => 
+  trait Environment { _: HTTP with Factory with LazyLoggable => 
     
     object Environment {
       
@@ -58,7 +59,7 @@ package http {
         ret + also
       }
       
-      private[http] def runAsSafe[T](f: => T): T = synchronized {
+      private[config] def runAsSafe[T](f: => T): T = synchronized {
          val old = doneBoot
          try {
             doneBoot = false

@@ -43,7 +43,7 @@ import _root_.java.util.concurrent.atomic.AtomicInteger
   been normalized with FactoryMaker as the primary config type.""")
 object LiftRules extends FormVendor with LazyLoggable {
   // get those shiney new config objects
-  import Application._
+  import net.liftweb.http.config.Application._
   
   val noticesContainerId = Presentation.noticesContainerId
   private val pageResourceId = Helpers.nextFuncName
@@ -111,9 +111,9 @@ object LiftRules extends FormVendor with LazyLoggable {
   /**
    * The HTTP authentication mechanism that ift will perform. See <i>LiftRules.protectedResource</i>
    */
-  //@volatile var authentication: HttpAuthentication = NoAuthentication
-  def authentication_=(a: HttpAuthentication): HttpAuthentication = HTTP.authentication.default.set(a)
-  def authentication: HttpAuthentication = HTTP.authentication.vend
+  @volatile var authentication: HttpAuthentication = NoAuthentication
+  //def authentication_=(a: HttpAuthentication): HttpAuthentication = HTTP.authentication.default.set(a)
+  //def authentication: HttpAuthentication = HTTP.authentication.vend
   
   /**
    * A function that takes the HTTPSession and the contextPath as parameters

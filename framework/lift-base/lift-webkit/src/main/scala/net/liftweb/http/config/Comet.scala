@@ -1,13 +1,14 @@
-package net.liftweb {
-package http {
+package net.liftweb.http {
+package config {
   
   import net.liftweb.common.{Logger,Box,Full,Empty}
   import net.liftweb.util.{FatLazy,Helpers}
   import net.liftweb.util.Helpers._
+  import net.liftweb.http._
   import net.liftweb.http.js.{JsCmd,JsCmds,JsExp,ScriptRenderer}
   import net.liftweb.http.js.JE.{Str,JsRaw} 
   
-  trait CometComponent { _: HTTPComponent with Factory => 
+  trait Comet { _: HTTP with Factory => 
     
     object Comet {
       

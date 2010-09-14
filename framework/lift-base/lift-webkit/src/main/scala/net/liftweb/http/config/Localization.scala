@@ -1,13 +1,14 @@
-package net.liftweb {
-package http {
+package net.liftweb.http {
+package config {
   
   import java.util.{Locale,ResourceBundle,TimeZone}
   import scala.xml.{NodeSeq,Text}
   import net.liftweb.common.{Box,Full,Empty}
   import net.liftweb.util.{Helpers,DateTimeConverter,DefaultDateTimeConverter}
   import net.liftweb.http.provider.HTTPRequest
+  import net.liftweb.http._
   
-  trait LocalizationComponent { _: Factory =>
+  trait Localization { _: Factory =>
     
     object Localization {
       

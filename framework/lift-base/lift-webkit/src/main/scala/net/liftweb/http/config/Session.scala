@@ -1,11 +1,12 @@
-package net.liftweb {
-package http {
+package net.liftweb.http {
+package config {
   
   import net.liftweb.common.{Full,Box,Empty,Failure}
   import net.liftweb.util.Helpers._
   import net.liftweb.http.provider.HTTPSession
+  import net.liftweb.http._
   
-  trait SessionComponent { _: Factory with CometComponent =>
+  trait Session { _: Factory with Comet =>
     object Session {
       
       /**

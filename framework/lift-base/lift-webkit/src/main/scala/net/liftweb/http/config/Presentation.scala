@@ -1,5 +1,5 @@
-package net.liftweb {
-package http {
+package net.liftweb.http {
+package config {
   
   import java.io.{BufferedReader,StringReader}
   import scala.xml.{NodeSeq,Elem,MetaData,Null,Node,Unparsed,UnprefixedAttribute}
@@ -9,9 +9,10 @@ package http {
   import net.liftweb.http.js.{JsCmd,JSArtifacts}
   import net.liftweb.http.js.JsCmds
   import net.liftweb.http.js.jquery.{JQuery13Artifacts,JQuery14Artifacts}
+  import net.liftweb.http._
   
-  trait PresentationComponent { 
-    _: EnvironmentComponent with HTTPComponent with LazyLoggable with Factory with FormVendor =>
+  trait Presentation { 
+    _: Environment with HTTP with LazyLoggable with Factory with FormVendor =>
     
     object Presentation {
       
@@ -57,7 +58,7 @@ package http {
       
       @volatile var flipDocTypeForIE6 = true
       
-      private[http] def snippet(name: String): Box[DispatchSnippet] = NamedPF.applyBox(name, HTTP.snippetDispatch.toList)
+      private[liftweb] def snippet(name: String): Box[DispatchSnippet] = NamedPF.applyBox(name, HTTP.snippetDispatch.toList)
       
       
       /**
@@ -179,7 +180,7 @@ package http {
       val convertToEntity: FactoryMaker[Boolean] = new FactoryMaker(false) {}
       
       @volatile var noticesToJsCmd: () => JsCmd = () => {
-        import builtin.snippet._
+        import net.liftweb.builtin.snippet._
 
         def noticesFadeOut(noticeType: NoticeType.Value, id: String): JsCmd =
           (noticesAutoFadeOut()(noticeType) map {

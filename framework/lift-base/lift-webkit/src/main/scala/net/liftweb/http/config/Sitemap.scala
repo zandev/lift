@@ -1,11 +1,12 @@
-package net.liftweb {
-package http {
+package net.liftweb.http {
+package config {
   
   import net.liftweb.util.{Helpers,Props}
   import net.liftweb.common.{Box,Empty,Failure,Full}
   import net.liftweb.sitemap.{SiteMap}
+  import net.liftweb.http._
   
-  trait SitemapComponent extends { _: EnvironmentComponent with HTTPComponent =>
+  trait Sitemap extends { _: Environment with HTTP =>
     object SiteMap {
       
       private var _sitemap: Box[SiteMap] = Empty

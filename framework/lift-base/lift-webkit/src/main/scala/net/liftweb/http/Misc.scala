@@ -17,57 +17,10 @@
 package net.liftweb {
 package http {
 
-import _root_.net.liftweb.common._
-import _root_.net.liftweb.util._
-import _root_.net.liftweb.util.Helpers._
-import _root_.net.liftweb.sitemap._
-import _root_.net.liftweb.http.js.JSArtifacts
-import _root_.net.liftweb.http.js.jquery._
-import _root_.net.liftweb.http.provider._
-import _root_.scala.xml._
-import _root_.scala.collection.mutable.{ListBuffer}
-import _root_.java.util.{Locale, TimeZone, ResourceBundle, Date}
-import _root_.java.io.{InputStream, ByteArrayOutputStream, BufferedReader, StringReader}
-import js._
-import JE._
-import JsCmds._
-import auth._
-import _root_.java.util.concurrent.{ConcurrentHashMap => CHash}
-import _root_.scala.reflect.Manifest
-
-
-trait Application 
-  extends EnvironmentComponent 
-  with HTTPComponent
-  with SessionComponent
-  with SitemapComponent
-  with PresentationComponent
-  with AJAXComponent
-  with CometComponent
-  with Factory
-  with LazyLoggable
-  with FormVendor {
-  
-  /**
-   * Put a test for being logged in into this function
-   */
-  @volatile var loggedInTest: Box[() => Boolean] = Empty
-  
-  // all lift applications will touch Application, so 
-  // calling it directly is a sort of constructor for the singleton
-  private def initilizer() {
-    appendGlobalFormBuilder(FormBuilderLocator[String]((value, setter) => SHtml.text(value, setter)))
-    appendGlobalFormBuilder(FormBuilderLocator[Int]((value, setter) => SHtml.text(value.toString, s => Helpers.asInt(s).foreach((setter)))))
-    appendGlobalFormBuilder(FormBuilderLocator[Boolean]((value, setter) => SHtml.checkbox(value, s => setter(s))))
-  }
-  initilizer()
-}
-
-/** 
- * Concrete implementation of Application component traits
- */
-object Application extends Application 
-
+import scala.xml.NodeSeq
+import net.liftweb.common.{Box,Full,Empty,Failure}
+import net.liftweb.util.Helpers._
+import net.liftweb.http.config.Application
 
 trait NotFound
 case object DefaultNotFound extends NotFound
