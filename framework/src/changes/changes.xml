@@ -37,9 +37,6 @@
     </action>
    see http://maven.apache.org/plugins/maven-changes-plugin/usage.html for full guide
    -->
-    <release version="${project.version}" date="${publishDate}" description="Lift 2.1 Snapshot Release">
-    </release>
-
     <release version="2.1-RC2" date="2010-09-14" description="Lift 2.1 Release Candidate 2">
       <action dev="dridus" type="fix" issue="641" system="assembla">
         Breaking toString change in Record Fields
