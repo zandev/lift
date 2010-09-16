@@ -144,6 +144,7 @@ object DriverType {
       case (H2Driver.name,_,_) => H2Driver
       case (SqlServerDriver.name,major,_) if major >= 9 => SqlServerDriver
       case (SqlServerDriver.name,_,_) => SqlServerPre2005Driver
+      case (SybaseASEDriver.name,_,_) => SybaseASEDriver
       case (OracleDriver.name,_,_) => OracleDriver
       case (MaxDbDriver.name,_,_) => MaxDbDriver
       case x => throw new Exception(
@@ -334,6 +335,17 @@ object SqlServerPre2005Driver extends SqlServerBaseDriver
 object SqlServerDriver extends SqlServerBaseDriver {
   override def binaryColumnType = "VARBINARY(MAX)"
   override def clobColumnType = "NVARCHAR(MAX)"
+}
+
+/**
+ * Sybase ASE Driver. Tested with ASE version 15, but should
+ * work with lower versions as well.
+ */
+object SybaseASEDriver extends SqlServerBaseDriver {
+  override val name = "ASE"
+  override def binaryColumnType = "VARBINARY(MAX)"
+  override def clobColumnType = "NVARCHAR(MAX)"
+  override def brokenLimit_? = true
 }
 
 /**
