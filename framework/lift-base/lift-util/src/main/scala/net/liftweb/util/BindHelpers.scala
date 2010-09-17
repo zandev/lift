@@ -190,8 +190,20 @@ trait BindHelpers {
     def calcValue(in: NodeSeq): Option[NodeSeq]
   }
 
+  /**
+   * A trait that indicates what the newly bound attribute name should be.
+   */
   trait BindWithAttr {
     def newAttr: String
+  }
+
+  /**
+   * A case class that wraps attribute-oriented BindParams to allow prefixing the resulting attribute
+   */
+  sealed case class PrefixedBindWithAttr(prefix : String, binding: BindParam with BindWithAttr) extends BindParam with BindWithAttr {
+    val name = binding.name
+    def calcValue(in : NodeSeq) = binding.calcValue(in)
+    val newAttr = binding.newAttr
   }
 
   /**
@@ -229,6 +241,10 @@ trait BindHelpers {
   object AttrBindParam {
     def apply(name: String, myValue: => NodeSeq, newAttr: String) = new AttrBindParam(name, myValue, newAttr)
     def apply(name: String, myValue: String, newAttr: String) = new AttrBindParam(name, Text(myValue), newAttr)
+    def apply(name: String, myValue: => NodeSeq, newAttr: Pair[String,String]) = 
+      PrefixedBindWithAttr(newAttr._1, new AttrBindParam(name, myValue, newAttr._2))
+    def apply(name: String, myValue: String, newAttr: Pair[String,String]) = 
+      PrefixedBindWithAttr(newAttr._1, new AttrBindParam(name, Text(myValue), newAttr._2))
   }
 
   /**
@@ -253,6 +269,8 @@ trait BindHelpers {
 
   object FuncAttrBindParam {
     def apply(name: String, value: => NodeSeq => NodeSeq, newAttr: String) = new FuncAttrBindParam(name, value, newAttr)
+    def apply(name: String, value: => NodeSeq => NodeSeq, newAttr: Pair[String,String]) = 
+      PrefixedBindWithAttr(newAttr._1, new FuncAttrBindParam(name, value, newAttr._2))
   }
 
   final class OptionBindParam(val name: String, value: Option[NodeSeq])
@@ -281,6 +299,8 @@ trait BindHelpers {
   object FuncAttrOptionBindParam {
     def apply(name: String, func: => NodeSeq => Option[NodeSeq], newAttr: String) =
       new FuncAttrOptionBindParam(name, func, newAttr)
+    def apply(name: String, func: => NodeSeq => Option[NodeSeq], newAttr: Pair[String,String]) =
+      PrefixedBindWithAttr(newAttr._1, new FuncAttrOptionBindParam(name, func, newAttr._2))
   }
 
   final class FuncAttrBoxBindParam(val name: String, func: => NodeSeq => Box[NodeSeq], val newAttr: String)
@@ -291,6 +311,8 @@ trait BindHelpers {
   object FuncAttrBoxBindParam {
     def apply(name: String, func: => NodeSeq => Box[NodeSeq], newAttr: String) =
       new FuncAttrBoxBindParam(name, func, newAttr)
+    def apply(name: String, func: => NodeSeq => Box[NodeSeq], newAttr: Pair[String,String]) =
+      PrefixedBindWithAttr(newAttr._1, new FuncAttrBoxBindParam(name, func, newAttr._2))
   }
 
   final class SymbolBindParam(val name: String, value: Symbol)
@@ -574,6 +596,7 @@ trait BindHelpers {
         case upa: UnprefixedAttribute => new UnprefixedAttribute(upa.key, upa.value, attrBind(upa.next))
         case pa: PrefixedAttribute if pa.pre == namespace => map.get(pa.key) match {
           case None => paramFailureXform.map(_(pa)) openOr new PrefixedAttribute(pa.pre, pa.key, Text("FIX"+"ME find to bind attribute"), attrBind(pa.next))
+          case Some(PrefixedBindWithAttr(prefix,binding)) => binding.calcValue(pa.value).map(v => new PrefixedAttribute(prefix, binding.newAttr, v, attrBind(pa.next))) getOrElse attrBind(pa.next)
           case Some(abp: BindWithAttr) => abp.calcValue(pa.value).map(v => new UnprefixedAttribute(abp.newAttr, v, attrBind(pa.next))) getOrElse attrBind(pa.next)
           case Some(bp: BindParam) => bp.calcValue(pa.value).map(v => new PrefixedAttribute(pa.pre, pa.key, v, attrBind(pa.next))) getOrElse attrBind(pa.next)
         }
