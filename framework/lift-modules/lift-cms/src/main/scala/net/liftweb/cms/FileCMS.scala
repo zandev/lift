@@ -28,7 +28,7 @@ import scala.xml.{NodeSeq, Elem}
 /**
  * Where do you 
  */
-class FileCMS(baseDir: File, _defaultHost: String) extends CoreCMS {
+abstract class FileCMS(baseDir: File, _defaultHost: String) extends CoreCMS {
   type UserType = FileUser
   type UserKey = Email
   type Record = FileRecord

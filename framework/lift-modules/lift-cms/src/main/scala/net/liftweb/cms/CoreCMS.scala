@@ -18,6 +18,7 @@ package net.liftweb
 package cms
 
 import common._
+import http._
 
 import java.util.Locale
 
@@ -47,6 +48,11 @@ trait CoreCMS {
    * Get the user's first name
    */
   implicit def userToLastName(user: UserType): LastName
+
+  implicit def requestToHost(in: Req): Host =
+    Host(in.hostName)
+
+  implicit def recordToContent(in: Record): Content
 
   /**
    * Convert the core information into a key

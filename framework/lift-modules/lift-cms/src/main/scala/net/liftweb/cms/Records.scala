@@ -59,6 +59,7 @@ object Path {
     new Path(it.toList)
 }
 
+/*
 /**
  * The name of a domain
  */
@@ -76,6 +77,7 @@ object PageKey {
   implicit def basePairToPageKey[A <% Domain, B <% Path](in: (A, B)): PageKey =
     new PageKey(in._1, in._2)
 }
+*/
 
 /**
  * Nobody can agree on a date format, so
@@ -102,3 +104,4 @@ sealed trait Content
 final case class HtmlContent(in: Elem) extends Content
 final case class CSSContent(in: String) extends Content
 final case class CodeContent(in: String) extends Content
+final case class TextContent(in: String) extends Content

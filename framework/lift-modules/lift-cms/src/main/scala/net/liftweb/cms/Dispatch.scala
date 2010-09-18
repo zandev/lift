@@ -20,24 +20,101 @@ package cms
 import common._
 import http._
 
-abstract class Dispatch[CMS <: CoreCMS](val cms: CMS) extends 
-LiftRules.DispatchPF {
-  type UserType = CMS#UserType
-  type UserKey = CMS#UserKey
-  type Record = CMS#Record
-  type Key = CMS#Key
+import util._
+import Helpers._
+
+import java.util.Locale
+
+class Dispatch[CMS <: CoreCMS](val cms: CMS) extends LiftRules.DispatchPF {
+  type UserType = cms.UserType
+  type UserKey = cms.UserKey
+  type Record = cms.Record
+  type Key = cms.Key
   
   import cms._
 
   /**
-   * This method canonilizes the domain.  By default, it just
-   * returns the domain
+   * Sets the current Req and clears out the key, etc. vars
    */
-  def canonicalizeDomain(domain: Domain): Domain = domain
+  private def setReq(req: Req) {
+    if (currentReq.is != Full(req)) {
+      currentReq.set(Full(req))
+      currentLocale.remove()
+      currentHost.remove()
+      currentKey.remove()
+      currentRecord.remove()
+    }
+  }
+  
+  /**
+   * Set up current request state... calculate the host
+   */
+  private def calcHost() = currentReq.map(cms.requestToHost)
+
+  private def calcLocale() = LiftRules.localeCalculator(
+    currentReq.is.map(_.request))
 
   /**
-   * Convert the request to a PageKey
+   * Set up current request state... calculate the Key
    */
-  def requestToPageKey(r: Req): PageKey =
-    canonicalizeDomain(r.hostName) -> r.path.wholePath
+  private def calcKey(): Box[Key] = 
+    for {
+      host <- currentHost.is
+      req <- currentReq
+      path = Path(req.path.wholePath)
+      locale <- currentLocale.is
+    } yield cms.infoToKey(host, path, locale)
+                          
+
+  /**
+   * Set up current request state... calculate the Key
+   */
+  private def calcRecord(): Box[Record] = 
+    for {
+      key <- currentKey.is
+      record <- cms.getRecord(key)
+    } yield record
+
+  /**
+   * calculate a response based on the request
+   */
+  private def calcResponse(): Box[LiftResponse] = 
+    for {
+      req <- currentReq.is
+      record <- currentRecord.is
+      HtmlContent(elem) <- Full(cms.recordToContent(record))
+    } yield null // FIXME
+
+  def isDefinedAt(req: Req): Boolean = {
+    setReq(req)
+    currentRecord.is.isDefined
+  }
+
+  def apply(req: Req):() => Box[LiftResponse] = {
+    setReq(req)
+    calcResponse _
+  }
+
+  private object currentReq extends TransientRequestVar[Box[Req]](Empty) {
+    override val __nameSalt = randomString(10)
+  }
+
+  private object currentLocale extends 
+  TransientRequestVar[Box[Locale]](Full(calcLocale())) {
+    override val __nameSalt = randomString(10)
+  }
+
+  private object currentHost extends TransientRequestVar[Box[Host]](calcHost()) {
+    override val __nameSalt = randomString(10)
+  }
+
+  private object currentKey extends TransientRequestVar[Box[Key]](calcKey()) {
+    override val __nameSalt = randomString(10)
+  }
+
+  private object currentRecord extends TransientRequestVar[Box[Record]](calcRecord()) {
+    override val __nameSalt = randomString(10)
+  }
+
+  
 }

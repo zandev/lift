@@ -1,0 +1,13 @@
+;; This config was generated using ensime-config-gen. Feel free to customize its contents manually. 
+
+(
+
+:project-name "lift-cms"
+
+:server-root "/home/dpp/tmp/ensime_2.8.0-0.3.0/"
+
+:project-package "net.liftweb.cms"
+
+:use-maven t
+
+)
