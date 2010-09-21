@@ -231,18 +231,96 @@ trait BindHelpers {
   }
 
   /**
-   * BindParam taking its value from an attribute
+   * BindParam that binds a given value into a new attribute. See the companion
+   * object for examples.
+   *
+   * @param name the name of the binding to replace
+   * @param myValue the value of the new attribute
+   * @param newAttr The new attribute label
    */
   final class AttrBindParam(val name: String, myValue: => NodeSeq, val newAttr: String)
           extends BindParam with BindWithAttr {
     def calcValue(in: NodeSeq): Option[NodeSeq] = Some(myValue)
   }
 
+ 
+  /**
+   * BindParam that binds a given value into a new attribute. This companion
+   * object provides convenient factory methods. For example, given the
+   * following markup:
+   *
+   * <pre>
+   * &lt;lift:AttrBinds &gt;
+   *   &lt;div test:w="foo" /&gt;
+   *   &lt;div test:x="foo" /&gt;
+   *   &lt;div test:y="foo" /&gt;
+   *   &lt;div test:z="foo" /&gt;
+   * &lt;/lift:AttrBinds &gt;
+   * </pre>
+   *
+   * The following snippet:
+   *
+   * <pre>
+   * import scala.xml._
+   * class AttrBinds {
+   *   def render(xhtml : NodeSeq) : NodeSeq =
+   *     BindHelpers.bind("test", xhtml,
+   *       AttrBindParam("w", Text("fooW"), "id"),
+   *       AttrBindParam("x", "fooX", "id"),
+   *       AttrBindParam("y", Text("fooW"), ("lift","calcId")),
+   *       AttrBindParam("z", "fooZ", ("lift", "calcId")))
+   * </pre>
+   *
+   * produces this markup:
+   *
+   * <pre>
+   *   &lt;div id="fooW" /&gt;
+   *   &lt;div id="fooX" /&gt;
+   *   &lt;div lift:calcId="fooY" /&gt;
+   *   &lt;div lift:calcId="fooZ" /&gt;
+   * </pre>
+   *   
+   */
   object AttrBindParam {
-    def apply(name: String, myValue: => NodeSeq, newAttr: String) = new AttrBindParam(name, myValue, newAttr)
-    def apply(name: String, myValue: String, newAttr: String) = new AttrBindParam(name, Text(myValue), newAttr)
+    /**
+     * Returns an unprefixed attribute binding containing the specified NodeSeq
+     *
+     * @param name The name to bind against
+     * @param myValue The value to place in the new attribute
+     * @param newAttr The new attribute label
+     */
+    def apply(name: String, myValue: => NodeSeq, newAttr: String) = 
+      new AttrBindParam(name, myValue, newAttr)
+
+    /**
+     * Returns an unprefixed attribute binding containing the specified String
+     * wrapped in a Text() element
+     *
+     * @param name The name to bind against
+     * @param myValue The value to place in the new attribute
+     * @param newAttr The new attribute label
+     */
+    def apply(name: String, myValue: String, newAttr: String) = 
+      new AttrBindParam(name, Text(myValue), newAttr)
+
+    /**
+     * Returns a prefixed attribute binding containing the specified NodeSeq
+     * 
+     * @param name The name to bind against
+     * @param myValue The value to place in the new attribute
+     * @param newAttr The new attribute in the form (prefix,label)
+     */
     def apply(name: String, myValue: => NodeSeq, newAttr: Pair[String,String]) = 
       PrefixedBindWithAttr(newAttr._1, new AttrBindParam(name, myValue, newAttr._2))
+
+    /**
+     * Returns a prefixed attribute binding containing the specified String
+     * wrapped in a Text() element
+     * 
+     * @param name The name to bind against
+     * @param myValue The value to place in the new attribute
+     * @param newAttr The new attribute in the form (prefix,label)
+     */
     def apply(name: String, myValue: String, newAttr: Pair[String,String]) = 
       PrefixedBindWithAttr(newAttr._1, new AttrBindParam(name, Text(myValue), newAttr._2))
   }
@@ -260,15 +338,69 @@ trait BindHelpers {
   }
 
   /**
-   * BindParam using a function to calculate its value
+   * BindParam using a function to calculate its value. See the companion object
+   * for examples.
+   *
+   * @param name The name to bind against
+   * @param value A function that takes the current attribute's value and computes
+   * the new attribute value
+   * @param newAttr The new attribute label
    */
   final class FuncAttrBindParam(val name: String, value: => NodeSeq => NodeSeq, val newAttr: String)
           extends BindParam with BindWithAttr {
     def calcValue(in: NodeSeq): Option[NodeSeq] = Some(value(in))
   }
 
+  /**
+   * BindParam that computes a new attribute value based on the current
+   * attribute value. This companion object provides convenient factory
+   * methods. For example, given the following markup:
+   *
+   * <pre>
+   * &lt;lift:AttrBinds &gt;
+   *   &lt;div test:x="foo" /&gt;
+   *   &lt;div test:y="foo" /&gt;
+   * &lt;/lift:AttrBinds &gt;
+   * </pre>
+   *
+   * The following snippet:
+   *
+   * <pre>
+   * import scala.xml._
+   * class AttrBinds {
+   *   def render(xhtml : NodeSeq) : NodeSeq =
+   *     BindHelpers.bind("test", xhtml,
+   *       FuncAttrBindParam("x", { ns : NodeSeq => Text(ns.text.toUpperCase + "X")}, "id"),
+   *       FuncAttrBindParam("y", { ns : NodeSeq => Text(ns.text.length + "Y")}, ("lift","calcId")))
+   * </pre>
+   *
+   * produces this markup:
+   *
+   * <pre>
+   *   &lt;div id="FOOX" /&gt;
+   *   &lt;div lift:calcId="3Y" /&gt;
+   * </pre>
+   *   
+   */
   object FuncAttrBindParam {
+    /**
+     * Returns an unprefixed attribute binding computed by the provided function
+     *
+     * @param name The name to bind against
+     * @param value The function that will transform the original attribute value
+     * into the new attribute value
+     * @param newAttr The new attribute label
+     */
     def apply(name: String, value: => NodeSeq => NodeSeq, newAttr: String) = new FuncAttrBindParam(name, value, newAttr)
+
+    /**
+     * Returns a prefixed attribute binding computed by the provided function
+     * 
+     * @param name The name to bind against
+     * @param value The function that will transform the original attribute value
+     * into the new attribute value
+     * @param newAttr The new attribute name in the form (prefix,label)
+     */
     def apply(name: String, value: => NodeSeq => NodeSeq, newAttr: Pair[String,String]) = 
       PrefixedBindWithAttr(newAttr._1, new FuncAttrBindParam(name, value, newAttr._2))
   }

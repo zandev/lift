@@ -219,6 +219,33 @@ object BindHelpersSpec extends Specification  {
       Helpers.stripHead(<head3><i><head>hello</head></i></head3>) must ==/(<head3><i>hello</i></head3>)
     }
   }
+
+  "Binding attributes" should {
+    "handle static, unprefixed attributes" in {
+      BindHelpers.bind("test", 
+                       <div><div test:x="replace" /></div>,
+                       AttrBindParam("x", "staticUnprefixed", "id")) must ==/(<div><div id="staticUnprefixed" /></div>)
+    }
+
+    "handle dynamic, unprefixed attributes" in {
+      // TODO: Figure out why doing straight XML comparison fails. Right now resorting to toString to get things working.
+      BindHelpers.bind("test", 
+                       <div><div test:x="dynamicUnprefixed" /></div>,
+                       FuncAttrBindParam("x", {ns : NodeSeq => ns }, "id")).toString must ==/((<div><div id={Text("dynamicUnprefixed")} /></div>).toString)
+    }
+
+    "handle static, prefixed attributes" in {
+      BindHelpers.bind("test", 
+                       <div><div test:x="replace" /></div>,
+                       AttrBindParam("x", "staticPrefixed", ("result","id"))) must ==/(<div><div result:id="staticPrefixed" /></div>)
+    }
+
+    "handle dynamic, prefixed attributes" in {
+      BindHelpers.bind("test", 
+                       <div><div test:x="dynamicPrefixed" /></div>,
+                       FuncAttrBindParam("x", {ns : NodeSeq => ns}, ("result","id"))) must ==/(<div><div result:id="dynamicPrefixed" /></div>)
+    }
+  }
 }
 class BindHelpersTest extends JUnit4(BindHelpersSpec)
 
